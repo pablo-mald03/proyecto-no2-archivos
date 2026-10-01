@@ -1,11 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<User>;
-
-//Principal model for users (TODO)
-@Schema({ timestamps: true })
-export class User {
+//Principal model entity for users
+@Schema({ collection: 'users', timestamps: true })
+export class UserEntity {
     @Prop({ required: true, unique: true, lowercase: true, trim: true })
     email!: string;
 
@@ -19,4 +17,8 @@ export class User {
     isActive!: boolean;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+//User document
+export type UserDocument = HydratedDocument<UserEntity>;
+
+
+export const UserSchema = SchemaFactory.createForClass(UserEntity);

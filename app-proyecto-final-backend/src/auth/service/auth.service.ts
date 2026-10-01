@@ -1,23 +1,30 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { createHash, randomBytes } from 'crypto';
 import { UsersRepository } from 'src/users/repository/users.repository';
 import { PasswordService } from 'src/users/service/password.service';
+import { RefreshTokensRepository } from '../repository/refresh-tokens.repository';
 import { LoginDto } from '../dto/login.dto';
 import { AuthenticationException } from 'src/common/exceptions/authentication.exception';
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
+import { UserDocument } from 'src/users/entities/user.entity';
 
 //Principal auth service for the API
 @Injectable()
 export class AuthService {
-
-
     private dummyHash?: Promise<string>;
+    private readonly refreshTtlSeconds: number;
 
     constructor(
+        cfg: ConfigService,
         private readonly users: UsersRepository,
         private readonly passwords: PasswordService,
         private readonly jwt: JwtService,
-    ) { }
+        private readonly refreshTokens: RefreshTokensRepository,
+    ) {
+        this.refreshTtlSeconds = cfg.getOrThrow<number>('REFRESH_EXPIRES_IN_SECONDS');
+    }
 
     async login(dto: LoginDto) {
         const user = await this.users.findByEmailWithPassword(dto.email);
@@ -28,12 +35,50 @@ export class AuthService {
             user?.passwordHash ?? (await this.dummyHash),
         );
 
-        if (!user || !valid) {
-            throw new AuthenticationException('Credenciales inválidas');
-        }
+        if (!user || !valid) throw new AuthenticationException('Credenciales inválidas');
         if (!user.isActive) throw new UserDisabledException();
 
-        const token = await this.jwt.signAsync({ sub: user.id, role: user.role });
-        return { token, user: { id: user.id, email: user.email, role: user.role } };
+        return this.issueSession(user);
+    }
+
+    async refresh(rawRefreshToken?: string) {
+        if (!rawRefreshToken) throw new AuthenticationException('Sesión no válida');
+
+        const stored = await this.refreshTokens.consume(this.hashToken(rawRefreshToken));
+        if (!stored) throw new AuthenticationException('La sesión ha expirado');
+
+        const user = await this.users.findById(stored.userId.toString());
+        if (!user) throw new AuthenticationException();
+        if (!user.isActive) throw new UserDisabledException();
+
+        return this.issueSession(user);
+    }
+
+    async logout(rawRefreshToken?: string): Promise<void> {
+        if (rawRefreshToken) {
+            await this.refreshTokens.revoke(this.hashToken(rawRefreshToken));
+        }
+    }
+
+    private async issueSession(user: UserDocument) {
+        const accessToken = await this.jwt.signAsync({ sub: user.id, role: user.role });
+        const refreshToken = randomBytes(48).toString('base64url');
+
+        await this.refreshTokens.create(
+            user.id,
+            this.hashToken(refreshToken),
+            new Date(Date.now() + this.refreshTtlSeconds * 1000),
+        );
+
+        return {
+            accessToken,
+            refreshToken,
+            user: { id: user.id, email: user.email, role: user.role },
+        };
+    }
+
+    // Encriptation method
+    private hashToken(raw: string): string {
+        return createHash('sha256').update(raw).digest('hex');
     }
 }

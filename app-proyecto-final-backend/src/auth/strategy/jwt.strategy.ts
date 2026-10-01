@@ -6,7 +6,7 @@ import type { Request } from 'express';
 import { UsersRepository } from 'src/users/repository/users.repository';
 import { AuthenticationException } from 'src/common/exceptions/authentication.exception';
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
-import { JwtPayload } from '../entity/jwt-payload.entity';
+import { JwtPayload } from '../payload/jwt-payload.entity';
 
 //Principal Jwt validator strategy
 @Injectable()

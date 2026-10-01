@@ -1,12 +1,13 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
-import { HttpStatus, ValidationError, ValidationPipe } from '@nestjs/common';
+import { HttpStatus, ValidationError, ValidationPipe, VersioningType } from '@nestjs/common';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { AppException } from './common/exceptions/app.exception';
 import { flattenErrors } from './common/utils/flatten-errors';
 import { setupSwagger } from './config/swagger.config';
+import { API_DEFAULT_VERSION, API_PREFIX } from './common/constants/api.constants';
 
 //Principal application configurations
 async function bootstrap() {
@@ -20,7 +21,8 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix(API_PREFIX);
+  app.enableVersioning({ type: VersioningType.URI, defaultVersion: API_DEFAULT_VERSION });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

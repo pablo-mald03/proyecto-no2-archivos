@@ -13,4 +13,6 @@ export const envValidationSchema = Joi.object({
     ARGON2_MEMORY_KIB: Joi.number().integer().min(8192).default(19456),
     ARGON2_TIME_COST: Joi.number().integer().min(1).default(2),
     ARGON2_PARALLELISM: Joi.number().integer().min(1).default(1),
+    REFRESH_EXPIRES_IN_SECONDS: Joi.number().integer().positive().default(86400),
+    REFRESH_COOKIE_NAME: Joi.string().default('refresh_token'),
 });
