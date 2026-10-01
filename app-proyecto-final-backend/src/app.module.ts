@@ -15,6 +15,7 @@ import { TrashModule } from './trash/trash.module';
 import { ActivityModule } from './activity/activity.module';
 import { ReportsModule } from './reports/reports.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

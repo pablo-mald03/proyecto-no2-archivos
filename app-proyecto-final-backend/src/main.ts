@@ -2,11 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 import { HttpStatus, ValidationError, ValidationPipe } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { AppException } from './common/exceptions/app.exception';
+import { flattenErrors } from './common/utils/flatten-errors';
+import { setupSwagger } from './config/swagger.config';
 
+//Principal application configurations
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const cfg = app.get(ConfigService);
@@ -25,24 +27,20 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
       exceptionFactory: (errors: ValidationError[]) => {
-        const map: Record<string, string> = {};
-        for (const err of errors) {
-          const first = Object.values(err.constraints ?? {})[0];
-          if (first) map[err.property] = first;
-        }
+        const map = flattenErrors(errors);
         const message = Object.values(map).join(', ') || 'Campos invalidos';
-        return new AppException('VALIDATION_ERROR', message, HttpStatus.BAD_REQUEST, map);
+        return new AppException(
+          'VALIDATION_ERROR',
+          message,
+          HttpStatus.BAD_REQUEST,
+          map,
+        );
       },
     }),
   );
 
-  const swagger = new DocumentBuilder()
-    .setTitle('Gestión Documental API')
-    .setVersion('1.0')
-    .addCookieAuth(cfg.getOrThrow<string>('COOKIE_NAME'))
-    .build();
-  SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, swagger));
+  setupSwagger(app);
 
-  await app.listen(cfg.get<number>('PORT') ?? 3000);
+  await app.listen(cfg.getOrThrow<number>('PORT'));
 }
 bootstrap();
