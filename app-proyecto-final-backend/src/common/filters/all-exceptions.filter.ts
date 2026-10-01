@@ -1,6 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { Response } from 'express';
-import { AuthCookieService } from '../../auth/auth-cookie.service';
+import { AuthCookieService } from '../../auth/service/auth-cookie.service';
 import { ErrorResponse } from '../dto/error-response';
 import { AppException } from '../exceptions/app.exception';
 import { UserDisabledException } from '../exceptions/user-disabled.exception';

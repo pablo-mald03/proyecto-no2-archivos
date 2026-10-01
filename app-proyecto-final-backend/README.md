@@ -1,98 +1,167 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Gestión Documental - API (Backend)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST del sistema de gestión documental. Permite almacenar, organizar, consultar y compartir archivos entre usuarios, con control de permisos, papelera, cuotas de almacenamiento, historial de actividad y reportes.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+## Requisitos previos
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- Node.js 22.12 o superior (`node -v`). Se recomienda usar `nvm`.
+- npm 10 o superior (`npm -v`).
+- MongoDB como replica set. Es obligatorio porque las operaciones de consistencia (cuotas, papelera, movimiento de carpetas, eliminación definitiva) usan transacciones, y MongoDB solo las permite en un replica set.
 
-## Project setup
+## 1. Levantar MongoDB
+
+Elige UNA de las tres opciones. En las tres, la cadena de conexión es la misma salvo en Atlas.
+
+### Opción A: Docker (recomendada)
 
 ```bash
-$ npm install
+docker run -d --name gestion-doc-mongo \
+  -p 27017:27017 \
+  -v gestion_doc_mongo_data:/data/db \
+  mongo:8 --replSet rs0 --bind_ip_all
+
+# Solo la primera vez: inicializar el replica set
+docker exec gestion-doc-mongo mongosh --eval \
+  "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
 ```
 
-## Compile and run the project
+Comandos útiles:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+docker stop gestion-doc-mongo     # detener
+docker start gestion-doc-mongo    # volver a iniciar (el replica set ya queda configurado)
+docker rm -f gestion-doc-mongo && docker volume rm gestion_doc_mongo_data   # borrar todo y empezar de cero
 ```
 
-## Run tests
+### Opción B: MongoDB instalado en el sistema (Linux)
+
+1. Instalar MongoDB Community Server y `mongosh` desde la web oficial.
+2. Editar `/etc/mongod.conf` y agregar:
+
+```yaml
+replication:
+  replSetName: rs0
+```
+
+3. Reiniciar el servicio:
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+sudo systemctl restart mongod
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+4. Inicializar el replica set una sola vez, indicando el host de forma explícita (evita que el driver intente conectarse al nombre de la máquina en lugar de `localhost`):
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Opción C: MongoDB Atlas
 
-## Resources
+1. Crear un clúster gratuito (M0).
+2. Crear un usuario de base de datos y agregar tu IP en Network Access.
+3. Copiar la cadena `mongodb+srv://...` y usarla como `MONGODB_URI`. Atlas ya incluye replica set.
 
-Check out a few resources that may come in handy when working with NestJS:
+### Verificar la conexión
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```bash
+mongosh "mongodb://localhost:27017/?replicaSet=rs0" --eval "rs.status().ok"
+```
 
-## Support
+Debe devolver `1`. Se recomienda MongoDB Compass para inspeccionar los datos.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 2. Instalación del proyecto
 
-## Stay in touch
+```bash
+git clone <url-del-repositorio>
+cd app-proyecto-final-backend
+npm install
+cp .env.example .env
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Edita `.env` antes de arrancar.
 
-## License
+## 3. Variables de entorno
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Ejemplo de `.env` para desarrollo:
+
+Para Atlas, `MONGODB_URI` tiene la forma `mongodb+srv://usuario:clave@cluster.../gestion_documental`.
+
+El archivo `.env` no debe subirse al repositorio. Solo se versiona `.env.example`, sin secretos reales.
+
+## 4. Ejecución
+
+```bash
+# desarrollo (recarga automática)
+npm run start:dev
+
+# ejecución normal
+npm run start
+
+# producción (requiere compilar antes)
+npm run build
+npm run start:prod
+```
+
+Con la aplicación en marcha:
+
+- API: `http://localhost:3000/api`
+- Documentación Swagger: `http://localhost:3000/docs`
+
+## 5. Datos iniciales (seed)
+
+```bash
+npm run seed
+```
+
+Carga los datos de demostración: usuarios, carpetas, archivos, comparticiones, elementos en papelera e historial de actividad. Requiere MongoDB corriendo y las variables de entorno configuradas.
+
+> Estado: el script se define en `src/seeds/seed.ts` y se completa después del modelado de la base de datos. Actualiza esta sección con las credenciales de los usuarios de prueba cuando esté listo.
+
+## 6. Pruebas
+
+```bash
+npm run test        # unitarias
+npm run test:e2e    # extremo a extremo
+npm run test:cov    # cobertura
+```
+
+## Arquitectura
+
+Cada módulo sigue la misma separación:
+
+- `controller`: capa HTTP. Recibe DTOs y delega; no accede a modelos.
+- `service`: lógica de negocio y reglas.
+- `repository`: único lugar que conoce Mongoose.
+- `dto/` y `schemas/`: contratos de entrada y esquemas de MongoDB.
+
+
+## Solución de problemas
+
+**Error `ERESOLVE` al instalar paquetes `@nestjs/*`.**
+Las versiones más recientes de algunos paquetes exigen Nest 12. Este proyecto usa Nest 11, por lo que `@nestjs/swagger`, `@nestjs/mongoose`, `@nestjs/jwt` y `@nestjs/passport` deben instalarse en la línea 11 (`npm install @nestjs/swagger@^11`). No uses `--legacy-peer-deps` en el backend.
+
+**La aplicación no arranca y lista variables faltantes.**
+Es la validación del `.env`. Revisa que existan `MONGODB_URI`, `JWT_SECRET` y `CORS_ORIGIN`.
+
+**Error de transacciones: "Transaction numbers are only allowed on a replica set member or mongos".**
+MongoDB está corriendo sin replica set. Revisa la sección "Levantar MongoDB" y que `MONGODB_URI` incluya `?replicaSet=rs0`.
+
+**Error de conexión o timeout con la opción nativa.**
+Probablemente el replica set se inicializó con el nombre de la máquina. Vuelve a configurarlo con `host: 'localhost:27017'` como se indica en la Opción B.
+
+**Falla la instalación de `argon2`.**
+El paquete trae binarios precompilados para Linux, macOS y Windows. Si tu plataforma no los tiene, instala las herramientas de compilación y repite:
+
+```bash
+sudo apt install build-essential python3
+npm install
+```
+
+**Las cookies no llegan desde el cliente.**
+Verifica que `CORS_ORIGIN` coincida exactamente con el origen del cliente (esquema, host y puerto), y que las peticiones usen `withCredentials: true`.
+
+
+## Licencia
+
+Proyecto basado en el starter de [NestJS](https://nestjs.com), licenciado bajo MIT.
