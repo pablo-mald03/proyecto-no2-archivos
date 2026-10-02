@@ -1,0 +1,121 @@
+<button
+  [type]="type()"
+  [disabled]="disabled() || loading()"
+  (click)="handleClick()"
+  class="
+    inline-flex
+    items-center
+    justify-center
+    gap-2
+    rounded-lg
+    font-semibold
+    transition-all
+    duration-200
+    focus:outline-none
+    focus:ring-2
+    focus:ring-primary/40
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+  "
+  [class.px-3]="size() === 'sm'"
+  [class.py-1.5]="size() === 'sm'"
+
+  [class.px-4]="size() === 'md'"
+  [class.py-2.5]="size() === 'md'"
+
+  [class.px-5]="size() === 'lg'"
+  [class.py-3]="size() === 'lg'"
+
+  [class.text-xs]="size() === 'sm'"
+  [class.text-sm]="size() === 'md'"
+  [class.text-base]="size() === 'lg'"
+
+[class.border]="bordered()"
+
+[class.border-primary]="
+  bordered() && variant() === 'primary'
+"
+
+[class.border-blue-800/50]="bordered() && variant() === 'secondary'"
+
+[class.border-red-800/50]="
+  bordered() && variant() === 'danger'
+"
+
+[class.border-green-800/50]="
+  bordered() && variant() === 'success'
+"
+
+[class.border-text-muted]="
+  bordered() && variant() === 'ghost'
+"
+[class.border-yellow-800/50]="bordered() && variant() === 'warning'"
+
+[class.bg-primary]="variant() === 'primary'"
+[class.text-primary-contrast]="variant() === 'primary'"
+[class.hover:bg-orange-600]="variant() === 'primary'"
+
+[class.bg-surface-raised]="variant() === 'secondary'"
+[class.text-blue-200]="variant() === 'secondary'"
+[class.hover:bg-blue-950/40]="variant() === 'secondary'"
+[class.hover:text-blue-100]="variant() === 'secondary'"
+
+[class.bg-surface-raised]="variant() === 'danger'"
+[class.text-red-400]="variant() === 'danger'"
+[class.hover:bg-red-950/40]="variant() === 'danger'"
+[class.hover:text-red-300]="variant() === 'danger'"
+
+[class.bg-surface-raised]="variant() === 'success'"
+[class.text-green-400]="variant() === 'success'"
+[class.hover:bg-green-950/40]="variant() === 'success'"
+[class.hover:text-green-300]="variant() === 'success'"
+
+[class.bg-transparent]="variant() === 'ghost'"
+[class.text-text-muted]="variant() === 'ghost'"
+[class.hover:bg-surface-raised]="variant() === 'ghost'"
+[class.hover:text-text]="variant() === 'ghost'"
+
+[class.bg-surface-raised]="variant() === 'warning'"
+[class.text-yellow-400]="variant() === 'warning'"
+[class.hover:bg-yellow-950/40]="variant() === 'warning'"
+[class.hover:text-yellow-300]="variant() === 'warning'"
+
+>
+
+  @if (loading()) {
+
+  <span class="
+        h-4
+        w-4
+        animate-spin
+        rounded-full
+        border-2
+        border-current
+        border-t-transparent
+      "></span>
+
+  } @else {
+
+  @if (icon() && iconPosition() === 'left') {
+
+  <ng-icon [svg]="icon()!" [size]="size() === 'sm' ? '16' : '18'" />
+
+  }
+
+  @if (label()) {
+
+  <span>
+    {{ label() }}
+  </span>
+
+  }
+
+  @if (icon() && iconPosition() === 'right') {
+
+  <ng-icon [svg]="icon()!" [size]="size() === 'sm' ? '16' : '18'" />
+
+  }
+
+  }
+
+</button>

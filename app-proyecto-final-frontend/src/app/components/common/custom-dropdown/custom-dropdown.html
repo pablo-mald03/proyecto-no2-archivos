@@ -1,0 +1,137 @@
+<div class="w-full">
+
+    @if (label()) {
+
+    <label class="
+      mb-2
+      block
+      text-sm
+      font-medium
+      text-text
+    ">
+        {{ label() }}
+    </label>
+
+    }
+
+
+    <div class="relative">
+
+        @if (icon()) {
+
+        <div class="
+        pointer-events-none
+        absolute
+        left-3
+        top-1/2
+        z-10
+        -translate-y-1/2
+        text-text-muted
+      ">
+
+            <ng-icon [svg]="icon()!" size="18" />
+
+        </div>
+
+        }
+
+
+        <select [formControl]="control()" class="
+        w-full
+        appearance-none
+        rounded-xl
+        border
+        bg-surface
+        px-4
+        py-3
+        pr-11
+        text-text
+        outline-none
+        transition
+      " [class.pl-10]="icon()" [class.pr-20]="clearable() && control().value != null"
+            [class.border-border]="!hasError()" [class.border-red-500]="hasError()"
+            [class.focus:border-primary]="!hasError()" [class.focus:border-red-500]="hasError()">
+
+            @if (!selectableFirst()) {
+
+            <option [ngValue]="null" disabled>
+                {{ placeholder() }}
+            </option>
+
+            }
+
+
+            @for (
+            option of options();
+            track getOptionValue(option)
+            ) {
+
+            <option [ngValue]="getOptionValue(option)">
+                {{ getOptionLabel(option) }}
+            </option>
+
+            }
+
+        </select>
+
+
+
+        <div class="
+      pointer-events-none
+      absolute
+      right-3
+      top-1/2
+      z-10
+      -translate-y-1/2
+      text-text-muted
+    ">
+
+            <ng-icon [svg]="lucideChevronDownIcon" size="16" />
+
+        </div>
+
+
+
+        @if (
+        clearable()
+        && control().value !== null
+        && control().value !== undefined
+        && control().value !== ''
+        ) {
+
+        <button type="button" (click)="clear()" class="
+          absolute
+          right-9
+          top-1/2
+          z-10
+          -translate-y-1/2
+          rounded-md
+          p-1
+          text-text-muted
+          transition-colors
+          hover:bg-surface-raised
+          hover:text-text
+        " aria-label="Limpiar selección">
+
+            <ng-icon [svg]="lucideXIcon" size="16" />
+
+        </button>
+
+        }
+
+    </div>
+
+
+    @if (hasError()) {
+
+    <p class="
+      mt-1
+      text-sm
+      text-red-500
+    ">
+        {{ errorMessage() }}
+    </p>
+
+    }
+
+</div>

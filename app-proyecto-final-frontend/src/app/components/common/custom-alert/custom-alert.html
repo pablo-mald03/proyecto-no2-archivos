@@ -1,0 +1,49 @@
+<div
+  class="
+    flex
+    items-start
+    gap-3
+    rounded-xl
+    border
+    p-4
+  "
+  [class.border-primary/30]="type() === 'info'"
+  [class.bg-primary/5]="type() === 'info'"
+
+  [class.border-green-500/30]="type() === 'success'"
+  [class.bg-green-500/5]="type() === 'success'"
+
+  [class.border-yellow-500/30]="type() === 'warning'"
+  [class.bg-yellow-500/5]="type() === 'warning'"
+
+  [class.border-red-500/30]="type() === 'error'"
+  [class.bg-red-500/5]="type() === 'error'"
+>
+
+  <ng-icon
+    [svg]="icon()"
+    size="20"
+    class="mt-0.5 shrink-0"
+    [class.text-primary]="type() === 'info'"
+    [class.text-green-500]="type() === 'success'"
+    [class.text-yellow-500]="type() === 'warning'"
+    [class.text-red-500]="type() === 'error'"
+  />
+
+  <div class="min-w-0">
+
+    @if (title()) {
+
+      <p class="font-semibold text-text">
+        {{ title() }}
+      </p>
+
+    }
+
+    <p class="text-sm text-text-muted">
+      {{ message() }}
+    </p>
+
+  </div>
+
+</div>

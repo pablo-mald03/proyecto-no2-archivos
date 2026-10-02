@@ -1,0 +1,21 @@
+<article class="
+    overflow-hidden
+    rounded-xl
+    bg-surface
+    shadow-sm
+    transition-all
+    duration-200
+  " [class.border]="bordered()" [class.border-border]="bordered()" [class.hover:-translate-y-0.5]="hoverable()"
+  [class.hover:border-primary]="hoverable()" [class.hover:shadow-md]="hoverable()">
+
+  <div class="p-4 sm:p-5" [class]="bodyClass()">
+    <ng-content />
+  </div>
+
+  @if (actions()) {
+  <div class="flex items-center justify-end gap-2 border-t border-border px-4 py-3 sm:px-5">
+    <ng-content select="[card-actions]" />
+  </div>
+  }
+
+</article>

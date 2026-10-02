@@ -1,0 +1,87 @@
+<div class="overflow-hidden rounded-xl border border-border">
+
+    <table class="w-full border-collapse text-sm">
+
+        <thead>
+            <tr [class.bg-primary]="headerVariant() === 'primary'"
+                [class.text-primary-contrast]="headerVariant() === 'primary'"
+                [class.bg-blue-950/60]="headerVariant() === 'secondary'"
+                [class.text-blue-200]="headerVariant() === 'secondary'"
+                [class.bg-green-950/60]="headerVariant() === 'success'"
+                [class.text-green-400]="headerVariant() === 'success'"
+                [class.bg-red-950/60]="headerVariant() === 'danger'" [class.text-red-400]="headerVariant() === 'danger'"
+                [class.bg-yellow-950/60]="headerVariant() === 'warning'"
+                [class.text-yellow-400]="headerVariant() === 'warning'"
+                [class.bg-surface-raised]="headerVariant() === 'ghost'"
+                [class.text-text-muted]="headerVariant() === 'ghost'">
+
+                @if (numbered()) {
+                <th class="w-14 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide">
+                    No.
+                </th>
+                }
+
+                @for (column of columns(); track column.key) {
+                <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide"
+                    [class.text-left]="!column.align || column.align === 'left'"
+                    [class.text-center]="column.align === 'center'" [class.text-right]="column.align === 'right'"
+                    [style.width]="column.width">
+                    {{ column.header }}
+                </th>
+                }
+
+            </tr>
+        </thead>
+
+        <tbody>
+
+            @if (loading()) {
+            <tr>
+                <td [attr.colspan]="totalColumns()" class="px-4 py-10 text-center">
+                    <div class="flex justify-center">
+                        <div class="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary"></div>
+                    </div>
+                </td>
+            </tr>
+            } @else if (data().length === 0) {
+            <tr>
+                <td [attr.colspan]="totalColumns()" class="px-4 py-10 text-center text-sm text-text-muted">
+                    {{ emptyMessage() }}
+                </td>
+            </tr>
+            } @else {
+
+            @for (row of data(); track row; let i = $index) {
+            <tr class="border-t border-border transition-colors" [class.hover:bg-surface-raised]="hoverable()"
+                [class.bg-surface-raised/40]="striped() && i % 2 === 1">
+
+                @if (numbered()) {
+                <td class="px-4 py-3 text-text-muted">
+                    {{ startIndex() + i + 1 }}
+                </td>
+                }
+
+                @for (column of columns(); track column.key) {
+                <td class="px-4 py-3 text-text" [class.text-left]="!column.align || column.align === 'left'"
+                    [class.text-center]="column.align === 'center'" [class.text-right]="column.align === 'right'">
+
+                    @if (cellTemplates().get(column.key); as template) {
+                    <ng-container [ngTemplateOutlet]="template"
+                        [ngTemplateOutletContext]="{ $implicit: row, row: row }" />
+                    } @else {
+                    {{ getValue(row, column.key) }}
+                    }
+
+                </td>
+                }
+
+            </tr>
+            }
+
+            }
+
+        </tbody>
+
+    </table>
+
+</div>

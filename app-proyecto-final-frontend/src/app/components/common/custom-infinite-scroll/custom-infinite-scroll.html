@@ -1,0 +1,17 @@
+<div #scrollContainer class="h-full overflow-y-auto" (scroll)="onScroll($event)">
+
+  <ng-content />
+
+  @if (loading()) {
+  <div class="flex justify-center py-6">
+    <div class="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary"></div>
+  </div>
+  }
+
+  @if (!hasMore() && !loading()) {
+  <div class="py-6 text-center text-sm text-text-muted">
+    No hay más resultados.
+  </div>
+  }
+
+</div>

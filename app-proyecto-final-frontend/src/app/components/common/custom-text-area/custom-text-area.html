@@ -1,0 +1,83 @@
+<div class="w-full">
+
+    @if (label()) {
+
+    <label class="
+                mb-2
+                block
+                text-sm
+                font-medium
+                text-text
+            ">
+        {{ label() }}
+    </label>
+
+    }
+
+
+    <div class="relative">
+
+        <textarea [formControl]="control()" [placeholder]="placeholder()" [rows]="rows()" class="
+                w-full
+                rounded-xl
+                border
+                bg-surface
+                px-4
+                py-3
+                text-text
+                transition
+                outline-none
+            " [class.resize-none]="!resizable()" [class.resize-y]="resizable()" [class.pr-11]="clearable()"
+            [class.border-border]="!hasError" [class.border-red-500]="hasError" [class.focus:border-primary]="!hasError"
+            [class.focus:border-red-500]="hasError"></textarea>
+
+
+        @if (
+        clearable()
+        && control().value
+        ) {
+
+        <button type="button" (click)="clear()" class="
+                    absolute
+                    right-3
+                    top-3
+                    rounded-md
+                    p-1
+                    text-text-muted
+                    transition-colors
+                    hover:bg-surface-raised
+                    hover:text-text
+                " aria-label="Limpiar campo">
+
+            <ng-icon [svg]="lucideXIcon" size="18" />
+
+        </button>
+
+        }
+
+    </div>
+
+
+    @if (hasError) {
+
+    <p class="
+                mt-1
+                text-sm
+                text-red-500
+            ">
+        {{ errorMessage }}
+    </p>
+
+    } @else if (hint()) {
+
+    <p class="
+                mt-1
+                text-sm
+                text-text-muted
+            ">
+        {{ hint() }}
+    </p>
+
+    }
+
+</div>

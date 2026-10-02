@@ -1,0 +1,21 @@
+<div class="flex items-center justify-between gap-4 border-t border-border pt-4">
+
+    <p class="text-sm text-text-muted">
+        @if (totalElements() !== undefined) {
+        {{ totalElements() }} resultados —
+        }
+        Página {{ displayPage() }} de {{ totalPages() || 1 }}
+    </p>
+
+    <div class="flex items-center gap-2">
+
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideChevronLeftIcon" ariaLabel="Página anterior"
+            [bordered]="true" [disabled]="isFirstPage() || loading()" (clicked)="goPrevious()" />
+
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideChevronRightIcon" iconPosition="right"
+            ariaLabel="Página siguiente" [bordered]="true" [disabled]="isLastPage() || loading()"
+            (clicked)="goNext()" />
+
+    </div>
+
+</div>

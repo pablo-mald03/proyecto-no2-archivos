@@ -1,0 +1,40 @@
+<div
+  class="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center w-full max-w-sm pointer-events-none"
+  (mouseenter)="isHovered.set(true)"
+  (mouseleave)="isHovered.set(false)"
+>
+  @for (toast of toasts(); track toast.id; let i = $index) {
+    <div
+      class="absolute w-full transition-all duration-300 ease-out pointer-events-auto shadow-xl rounded-2xl border p-4 flex gap-3 overflow-hidden"
+      [class]="getVariantClasses(toast.variant)"
+      
+      [style.transform]="
+        isHovered() 
+          ? 'translateY(' + (i * 90) + 'px)' 
+          : 'translateY(' + (i * 12) + 'px) scale(' + (1 - i * 0.05) + ')'
+      "
+      [style.z-index]="50 - i"
+      [style.opacity]="!isHovered() && i > 0 ? 1 - (i * 0.2) : 1"
+    >
+      
+      <ng-icon [name]="getIcon(toast.variant)" size="20" class="shrink-0 mt-0.5" />
+
+      <div class="flex-1 min-w-0">
+        @if (toast.title) {
+          <p class="text-sm font-bold truncate">{{ toast.title }}</p>
+        }
+        <p class="text-sm opacity-90">{{ toast.message }}</p>
+      </div>
+
+      <button 
+        (click)="toastService.remove(toast.id)"
+        class="shrink-0 p-2 rounded-md transition-colors"
+        [class]="getCloseButtonClasses(toast.variant)"
+        aria-label="Cerrar notificación"
+      >
+        x
+      </button>
+
+    </div>
+  }
+</div>
