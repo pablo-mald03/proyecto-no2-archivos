@@ -1,0 +1,46 @@
+services:
+  mongo:
+    image: mongo:8
+    container_name: document-mgmt-mongo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_APP_DB: ${MONGO_APP_DB}
+      MONGO_APP_USER: ${MONGO_APP_USER}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+      - mongo_keyfile:/keyfile
+      - ./docker/mongo-init:/docker-entrypoint-initdb.d:ro
+    entrypoint:
+      - bash
+      - -c
+      - |
+        # Replica set + auth requires a keyfile; generated once and kept in a volume
+        if [ ! -f /keyfile/mongo.key ]; then
+          head -c 600 /dev/urandom | base64 -w 0 > /keyfile/mongo.key
+        fi
+        chmod 400 /keyfile/mongo.key
+        chown mongodb:mongodb /keyfile/mongo.key
+        exec docker-entrypoint.sh mongod --replSet rs0 --bind_ip_all --keyFile /keyfile/mongo.key
+    healthcheck:
+      # Initializes the replica set on the first run, then reports healthy
+      test:
+        - CMD-SHELL
+        - >
+          mongosh --quiet
+          -u "$$MONGO_INITDB_ROOT_USERNAME"
+          -p "$$MONGO_INITDB_ROOT_PASSWORD"
+          --authenticationDatabase admin
+          --eval "try { quit(rs.status().ok === 1 ? 0 : 1) } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}); quit(1) }"
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  mongo_data:
+  mongo_keyfile:

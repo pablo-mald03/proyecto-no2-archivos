@@ -19,6 +19,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
+import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { PermissionsGuard } from './common/guards/permissions.guard';
     ReportsModule,
     RolesModule,
     PermissionsModule,
+    RefreshTokensModule,
   ],
   controllers: [AppController],
   providers: [

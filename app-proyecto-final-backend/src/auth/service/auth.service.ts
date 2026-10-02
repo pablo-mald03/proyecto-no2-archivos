@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes } from 'crypto';
 import { UsersRepository } from 'src/users/repository/users.repository';
 import { PasswordService } from 'src/users/service/password.service';
-import { RefreshTokensRepository } from '../repository/refresh-tokens.repository';
+import { RefreshTokensRepository } from '../../refresh-tokens/repository/refresh-tokens.repository';
 import { LoginDto } from '../dto/login.dto';
 import { AuthenticationException } from 'src/common/exceptions/authentication.exception';
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
