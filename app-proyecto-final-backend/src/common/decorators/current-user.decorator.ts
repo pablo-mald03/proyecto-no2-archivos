@@ -1,11 +1,6 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import type { Request } from 'express';
-
-export interface AuthUser {
-    id: string;
-    email: string;
-    role: 'ADMIN' | 'USER';
-}
+import { AuthUser } from 'src/users/models/auth-user.model';
 
 //Principal current user check decorator
 export const CurrentUser = createParamDecorator(

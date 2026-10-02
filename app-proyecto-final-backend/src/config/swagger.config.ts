@@ -9,8 +9,8 @@ export function setupSwagger(app: INestApplication): void {
     const port = cfg.getOrThrow<number>('PORT');
 
     const config = new DocumentBuilder()
-        .setTitle('Gestión Documental API')
-        .setDescription('API del sistema de gestión documental')
+        .setTitle('Document Management API')
+        .setDescription('REST API for the document management system')
         .setVersion('1.0.0')
         .setContact('Soporte', 'https://tu-sitio.com', 'documentalsupport@gmail.com')
         .setLicense('Apache 2.0', 'https://www.apache.org/licenses/LICENSE-2.0')
@@ -18,7 +18,7 @@ export function setupSwagger(app: INestApplication): void {
         .addCookieAuth(cookieName, {
             type: 'apiKey',
             in: 'cookie',
-            description: 'Autenticación mediante cookie httpOnly con JWT',
+            description: 'Authentication with httpOnly using JWT',
         })
         .build();
 

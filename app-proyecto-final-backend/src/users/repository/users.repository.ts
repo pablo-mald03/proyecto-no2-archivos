@@ -9,6 +9,7 @@ import { UserEntity, UserDocument } from '../entities/user.entity';
 export class UsersRepository {
     constructor(@InjectModel(UserEntity.name) private readonly model: Model<UserEntity>) { }
 
+    //Principal method to find user by id
     findById(id: string): Promise<UserDocument | null> {
         return this.model.findById(id).exec();
     }
@@ -16,5 +17,10 @@ export class UsersRepository {
     //Principal auth method 
     findByEmailWithPassword(email: string): Promise<UserDocument | null> {
         return this.model.findOne({ email }).select('+passwordHash').exec();
+    }
+
+    //Principal method to touch last login
+    touchLastLogin(id: string) {
+        return this.model.updateOne({ _id: id }, { $set: { lastLoginAt: new Date() } }).exec();
     }
 }

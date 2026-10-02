@@ -9,6 +9,7 @@ import { LoginDto } from '../dto/login.dto';
 import { AuthenticationException } from 'src/common/exceptions/authentication.exception';
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
 import { UserDocument } from 'src/users/entities/user.entity';
+import { AuthUserService } from './auth-user.service';
 
 //Principal auth service for the API
 @Injectable()
@@ -22,6 +23,7 @@ export class AuthService {
         private readonly passwords: PasswordService,
         private readonly jwt: JwtService,
         private readonly refreshTokens: RefreshTokensRepository,
+        private readonly authUsers: AuthUserService,
     ) {
         this.refreshTtlSeconds = cfg.getOrThrow<number>('REFRESH_EXPIRES_IN_SECONDS');
     }
@@ -38,6 +40,7 @@ export class AuthService {
         if (!user || !valid) throw new AuthenticationException('Credenciales inválidas');
         if (!user.isActive) throw new UserDisabledException();
 
+        await this.users.touchLastLogin(user.id);
         return this.issueSession(user);
     }
 
@@ -61,7 +64,7 @@ export class AuthService {
     }
 
     private async issueSession(user: UserDocument) {
-        const accessToken = await this.jwt.signAsync({ sub: user.id, role: user.role });
+        const accessToken = await this.jwt.signAsync({ sub: user.id });
         const refreshToken = randomBytes(48).toString('base64url');
 
         await this.refreshTokens.create(
@@ -70,11 +73,7 @@ export class AuthService {
             new Date(Date.now() + this.refreshTtlSeconds * 1000),
         );
 
-        return {
-            accessToken,
-            refreshToken,
-            user: { id: user.id, email: user.email, role: user.role },
-        };
+        return { accessToken, refreshToken, user: await this.authUsers.fromUser(user) };
     }
 
     // Encriptation method

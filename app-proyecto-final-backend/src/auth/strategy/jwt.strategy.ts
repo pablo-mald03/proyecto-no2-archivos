@@ -7,15 +7,16 @@ import { UsersRepository } from 'src/users/repository/users.repository';
 import { AuthenticationException } from 'src/common/exceptions/authentication.exception';
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
 import { JwtPayload } from '../payload/jwt-payload.entity';
+import { AuthUserService } from '../service/auth-user.service';
+import { AuthUser } from 'src/users/models/auth-user.model';
 
 //Principal Jwt validator strategy
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-
-    //Constructor for the cookie setter
     constructor(
         cfg: ConfigService,
         private readonly users: UsersRepository,
+        private readonly authUsers: AuthUserService,
     ) {
         const cookieName = cfg.getOrThrow<string>('COOKIE_NAME');
         super({
@@ -27,11 +28,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    //Principal validation method for the payload
-    async validate(payload: JwtPayload) {
+    async validate(payload: JwtPayload): Promise<AuthUser> {
         const user = await this.users.findById(payload.sub);
         if (!user) throw new AuthenticationException();
         if (!user.isActive) throw new UserDisabledException();
-        return { id: user.id, email: user.email, role: user.role };
+        return this.authUsers.fromUser(user);
     }
 }

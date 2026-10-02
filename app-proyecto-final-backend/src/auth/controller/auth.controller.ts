@@ -5,7 +5,8 @@ import { AuthService } from '../service/auth.service';
 import { AuthCookieService } from '../service/auth-cookie.service';
 import { Public } from 'src/common/decorators/public.decorator';
 import { LoginDto } from '../dto/login.dto';
-import { AuthUser, CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { type AuthUser } from 'src/users/models/auth-user.model';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -18,7 +19,7 @@ export class AuthController {
     @Public()
     @Post('login')
     @HttpCode(200)
-    @ApiOperation({ summary: 'Iniciar sesión' })
+    @ApiOperation({ summary: 'Login at the application' })
     async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
         const { accessToken, refreshToken, user } = await this.auth.login(dto);
         this.cookies.setSession(res, accessToken, refreshToken);
@@ -28,7 +29,7 @@ export class AuthController {
     @Public()
     @Post('refresh')
     @HttpCode(200)
-    @ApiOperation({ summary: 'Renovar la sesión con la cookie de refresh' })
+    @ApiOperation({ summary: 'Renew the cookie session' })
     async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         const { accessToken, refreshToken, user } = await this.auth.refresh(
             this.cookies.readRefreshToken(req),
@@ -37,17 +38,17 @@ export class AuthController {
         return user;
     }
 
-    // @Get('me')
-    // @ApiOperation({ summary: 'Usuario de la sesión actual' })
-    // me(@CurrentUser() user: AuthUser) {
-    //     return user;
-    // }
+    @Get('me')
+    @ApiOperation({ summary: 'Verify if the user is login in' })
+    me(@CurrentUser() user: AuthUser) {
+        return user;
+    }
 
 
     @Public()
     @Post('logout')
     @HttpCode(204)
-    @ApiOperation({ summary: 'Cerrar sesión' })
+    @ApiOperation({ summary: 'Logout at the application' })
     async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
         await this.auth.logout(this.cookies.readRefreshToken(req));
         this.cookies.clear(res);

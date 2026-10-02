@@ -1,10 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import { UserEntity } from 'src/users/entities/user.entity';
 
 //Principal entity for the 
 @Schema({ collection: "refresh_tokens", timestamps: true })
 export class RefreshTokenEntity {
-    @Prop({ type: Types.ObjectId, ref: 'UserEntity.name', required: true, index: true })
+
+    @Prop({ type: Types.ObjectId, ref: UserEntity.name, required: true, index: true })
     userId!: Types.ObjectId;
 
     @Prop({ required: true, unique: true })
