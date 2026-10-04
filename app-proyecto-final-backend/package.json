@@ -24,10 +24,12 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "docker:db": "docker compose up -d",
-    "docker:app": "docker compose --profile app up -d --build",
     "docker:logs": "docker compose --profile app logs -f api",
-    "docker:app:down": "docker compose --profile app rm -sf api migrate",
-    "docker:down": "docker compose --profile app down"
+    "seed:run": "node dist/seeds/run-seed.js",
+    "seed:dev": "nest build && npm run seed:run",
+    "docker:app": "docker compose --profile app up -d --build",
+    "docker:app:down": "docker compose --profile app rm -sf api seed migrate",
+    "docker:seed": "docker compose --profile app run --rm --build seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

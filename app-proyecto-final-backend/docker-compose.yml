@@ -43,18 +43,36 @@ services:
       retries: 20
       start_period: 20s
 
-  # Fallback only: runs the migrations inside Docker, then exits
+  # Fallback only: runs the migrations
   migrate:
     profiles: ["app"]
     build:
       context: .
       target: build
     command: ["npm", "run", "migrate:up:all"]
+    env_file: .env
     environment:
       MIGRATE_MONGO_URI: mongodb://${MONGO_MIGRATE_USER}:${MONGO_MIGRATE_PASSWORD}@mongo:27017/${MONGO_APP_DB}?authSource=${MONGO_APP_DB}&directConnection=true
     depends_on:
       mongo:
         condition: service_healthy
+    restart: "no"
+
+  # Fallback only: development seeds, then exits
+  seed:
+    profiles: ["app"]
+    build:
+      context: .
+      target: build   # keeps the dev dependencies (the demo seeds will need faker)
+    command: ["npm", "run", "seed:run"]
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://${MONGO_APP_USER}:${MONGO_APP_PASSWORD}@mongo:27017/${MONGO_APP_DB}?authSource=${MONGO_APP_DB}&directConnection=true
+    depends_on:
+      mongo:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: "no"
 
   # Fallback only: the API inside Docker
@@ -74,7 +92,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
-      migrate:
+      seed:
         condition: service_completed_successfully
 
 volumes:

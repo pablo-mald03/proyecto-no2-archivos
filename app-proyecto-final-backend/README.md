@@ -1,8 +1,8 @@
-****# Gestión Documental - API (Backend)****
+# Gestión Documental - API (Backend)
 
 API REST del sistema de gestión documental. Permite almacenar, organizar, consultar y compartir archivos entre usuarios, con control de permisos, papelera, cuotas de almacenamiento, historial de actividad y reportes.
 
-****## Requisitos previos****
+## Requisitos previos
 
 * Node.js 22.12 o superior (`node -v`). Se recomienda usar `nvm`.
 
@@ -12,13 +12,13 @@ API REST del sistema de gestión documental. Permite almacenar, organizar, consu
 
 * MongoDB como replica set. Es obligatorio porque las operaciones de consistencia (cuotas, papelera, movimiento de carpetas y eliminación definitiva) utilizan transacciones, y MongoDB requiere un replica set para soportarlas.
 
-\> ********Recomendación:****** utilizar Docker para evitar diferencias de configuración entre equipos.
+\> *Recomendación: utilizar Docker para evitar diferencias de configuración entre equipos.
 
-****---****
+---
 
-****## 1. Levantar MongoDB****
+## 1. Levantar MongoDB
 
-****### Opción A: Docker Compose — recomendada****
+### Opción A: Docker Compose — recomendada
 
 El proyecto incluye la configuración de MongoDB en `docker-compose.yml`.
 
@@ -70,7 +70,7 @@ healthy
 
 ```
 
-****### Configuración utilizada****
+### Configuración utilizada
 
 * MongoDB: `8`
 
@@ -96,13 +96,13 @@ mongodb://gestion_app:<password>@localhost:27017/gestion_documental?replicaSet=r
 
 ```
 
-\> ********Importante:****** esta URL contiene la contraseña de MongoDB. Es válida para el entorno de desarrollo/calificación local, pero ********no debe publicarse en repositorios públicos, capturas de pantalla, documentación pública ni compartirla fuera del equipo******.
+\> Importante: esta URL contiene la contraseña de MongoDB. Es válida para el entorno de desarrollo/calificación local, pero no debe publicarse en repositorios públicos, capturas de pantalla, documentación pública ni compartirla fuera del equipo.
 
 \>
 
 \> En un entorno real, la contraseña debe almacenarse únicamente en variables de entorno o un gestor de secretos.
 
-****### Comandos útiles****
+### Comandos útiles
 
 Detener MongoDB:
 
@@ -146,9 +146,9 @@ docker compose down -v
 
 \> `docker compose down -v` elimina también el volumen de MongoDB. Esto borra todos los datos almacenados localmente.
 
-****---****
+---
 
-****## 1.1. Compatibilidad de MongoDB y kernel de Linux****
+## 1.1. Compatibilidad de MongoDB y kernel de Linux
 
 MongoDB 8 presenta una incompatibilidad conocida con kernels Linux desde `6.19` hasta `7.0.13`. MongoDB detecta estas versiones y detiene el servidor para evitar el fallo asociado a TCMalloc. MongoDB documenta que el problema se resuelve utilizando kernel `7.0.14` o posterior. Esta incompatibilidad también afecta a MongoDB ejecutándose dentro de Docker.
 
@@ -162,7 +162,7 @@ uname -r
 
 Si se utiliza Linux y el kernel es `7.0.14` o superior, MongoDB 8 puede utilizarse normalmente.
 
-****### Fallback para equipos con kernel incompatible****
+### Fallback para equipos con kernel incompatible
 
 Si durante la instalación o evaluación el equipo utiliza un kernel afectado y no es posible actualizarlo, se puede utilizar temporalmente MongoDB 7.0:
 
@@ -178,7 +178,7 @@ services:
 
 MongoDB 7.0 tiene soporte documentado para Ubuntu 22.04 LTS en `x86_64`.
 
-\> ********No utilizar MongoDB 6.0 como alternativa******, ya que MongoDB 6.0 alcanzó el fin de vida el 31 de julio de 2025.
+\> No utilizar MongoDB 6.0 como alternativa, ya que MongoDB 6.0 alcanzó el fin de vida el 31 de julio de 2025.
 
 Para la configuración oficial del proyecto se mantiene:
 
@@ -190,9 +190,9 @@ image: mongo:8
 
 El cambio a `mongo:7.0` se considera únicamente un mecanismo de compatibilidad para equipos cuyo kernel no pueda actualizarse.
 
-****---****
+---
 
-****## 1.2. MongoDB instalado directamente en Linux****
+## 1.2. MongoDB instalado directamente en Linux
 
 También es posible instalar MongoDB directamente en el sistema.
 
@@ -234,9 +234,9 @@ mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}
 
 \> Para una instalación local se recomienda utilizar explícitamente `localhost:27017` para evitar problemas si MongoDB inicializa el replica set utilizando el hostname de la máquina.
 
-****---****
+---
 
-****## 1.3. MongoDB Atlas****
+## 1.3. MongoDB Atlas
 
 Como alternativa, puede utilizarse MongoDB Atlas.
 
@@ -252,9 +252,9 @@ Como alternativa, puede utilizarse MongoDB Atlas.
 
 Atlas ya proporciona un replica set, por lo que no es necesario configurar `rs.initiate()` manualmente.
 
-****---****
+---
 
-****## 1.4. Verificar MongoDB****
+## 1.4. Verificar MongoDB
 
 Con Docker:
 
@@ -278,9 +278,9 @@ Debe devolver:
 
 También se recomienda MongoDB Compass para inspeccionar visualmente la base de datos.
 
-****---****
+---
 
-****## 2. Instalación del proyecto****
+## 2. Instalación del proyecto
 
 Clonar el repositorio:
 
@@ -322,9 +322,9 @@ nano .env
 
 ```
 
-****---****
+---
 
-****## 3. Variables de entorno****
+## 3. Variables de entorno
 
 Ejemplo de configuración local:
 
@@ -356,9 +356,9 @@ JWT_SECRET=8c7c...
 
 No es necesario utilizar exactamente ese valor; cada instalación debe generar su propio secreto.
 
-****### Importante sobre las credenciales****
+### Importante sobre las credenciales
 
-El archivo `.env` contiene información sensible y ********no debe subirse al repositorio******.
+El archivo `.env` contiene información sensible y no debe subirse al repositorio.
 
 Debe versionarse únicamente:
 
@@ -398,9 +398,9 @@ Además, si una contraseña contiene caracteres especiales como:
 
 debe utilizarse URL encoding antes de colocarla dentro de `MONGODB_URI`.
 
-****---****
+---
 
-****## 4. Ejecución
+## 4. Ejecución
 
 ### Desarrollo local — recomendado
 
@@ -544,7 +544,7 @@ docker compose --profile app down
 | `npm run docker:app:down` | Elimina únicamente `api` y `migrate`.        |
 | `npm run docker:down`     | Detiene el entorno Docker del perfil `app`.  |
 
-> **Nota:** `docker:app:down` es la opción preferida cuando solo se quiere reiniciar o reconstruir la aplicación y conservar MongoDB ejecutándose. `docker:down` se utiliza cuando se desea detener el entorno Docker completo.
+> Nota: `docker:app:down` es la opción preferida cuando solo se quiere reiniciar o reconstruir la aplicación y conservar MongoDB ejecutándose. `docker:down` se utiliza cuando se desea detener el entorno Docker completo.
 
 
 
@@ -589,11 +589,11 @@ Para detener el flujo Docker:
 npm run docker:down
 ```
 
-> Este perfil funciona como **fallback** para levantar el proyecto completo cuando se prefiera no ejecutar NestJS directamente en el host. El flujo de desarrollo recomendado continúa siendo ejecutar MongoDB con Docker y NestJS localmente con `npm run start:dev`.
+> Este perfil funciona como fallback para levantar el proyecto completo cuando se prefiera no ejecutar NestJS directamente en el host. El flujo de desarrollo recomendado continúa siendo ejecutar MongoDB con Docker y NestJS localmente con `npm run start:dev`.
 
-****
 
-****## 5. Orden recomendado para ejecutar el proyecto
+
+## 5. Orden recomendado para ejecutar el proyecto
 
 ### Flujo normal de desarrollo
 
@@ -630,9 +630,9 @@ npm run docker:app
 
 Este flujo ya se encarga de esperar MongoDB, ejecutar las migraciones y arrancar la API.
 
-****
 
-****## 6. Datos iniciales (seed)****
+
+## 6. Datos iniciales (seed)
 
 Ejecutar:
 
@@ -676,11 +676,11 @@ Las credenciales de los usuarios creados por el seed deben consultarse en la con
 
 \> Las credenciales de usuarios de demostración son independientes de las credenciales de MongoDB.
 
-****---****
+---
 
-**
 
-**## 7. Migraciones de MongoDB**
+
+## 7. Migraciones de MongoDB
 
 El proyecto utiliza `ts-migrate-mongoose` para controlar cambios versionados de estructura y datos sobre MongoDB.
 
@@ -704,7 +704,7 @@ Cada migración define dos operaciones:
 
 Las migraciones se ejecutan en orden y su estado se registra en MongoDB. Una migración que ya fue aplicada no debe modificarse; si se necesita otro cambio, se crea una nueva migración.
 
-**### Requisitos**
+### Requisitos
 
 Antes de ejecutar migraciones:
 
@@ -728,7 +728,7 @@ docker compose ps
 
 El servicio `mongo` debe aparecer como `healthy`.
 
-**### Scripts de migración**
+### Scripts de migración
 
 Los scripts definidos en `package.json` son:
 
@@ -744,7 +744,7 @@ Los scripts definidos en `package.json` son:
 
 ```
 
-**### Crear una migración**
+### Crear una migración
 
 Desde la raíz del backend:
 
@@ -772,7 +772,7 @@ migrations/<timestamp>-add-user-indexes.ts
 
 No se agrega `.ts` al ejecutar `migrate create`; la herramienta genera la extensión.
 
-**### Consultar el estado**
+### Consultar el estado
 
 ```bash
 
@@ -782,7 +782,7 @@ npm run migrate:list
 
 Esto permite comprobar qué migraciones existen y cuáles están `up` o `down`.
 
-**### Aplicar migraciones**
+### Aplicar migraciones
 
 El comando habitual es:
 
@@ -794,7 +794,7 @@ npm run migrate:up
 
 Si existen migraciones nuevas que todavía no están registradas en la base de datos, `ts-migrate-mongoose` puede mostrar un selector para elegir cuáles importar.
 
-Para aplicar ****todas las migraciones pendientes sin seleccionar una por una****, se puede utilizar:
+Para aplicar todas las migraciones pendientes sin seleccionar una por una, se puede utilizar:
 
 ```bash
 
@@ -820,9 +820,9 @@ npm run migrate:up:all
 
 ```
 
-****Recomendación:**** utilizar `npm run migrate:up` cuando se quiera revisar explícitamente qué migraciones nuevas se van a registrar. Utilizar `migrate:up:all` para un flujo rápido en desarrollo o en despliegues controlados.
+Recomendación: utilizar `npm run migrate:up` cuando se quiera revisar explícitamente qué migraciones nuevas se van a registrar. Utilizar `migrate:up:all` para un flujo rápido en desarrollo o en despliegues controlados.
 
-**### Revertir migraciones**
+### Revertir migraciones
 
 El script disponible es:
 
@@ -836,7 +836,7 @@ Antes de utilizarlo, revisar qué migración se desea revertir y qué comportami
 
 Las migraciones no deben editarse después de haber sido aplicadas en un entorno compartido. Si se necesita corregir o ampliar un cambio, normalmente se crea una nueva migración.
 
-**### Flujo recomendado**
+### Flujo recomendado
 
 ```text
 
@@ -880,7 +880,7 @@ Comandos principales:
 
 \| Revertir | `npm run migrate:down` |
 
-**### Consideraciones**
+### Consideraciones
 
 \- Las migraciones deben ser pequeñas y enfocadas en un cambio concreto.
 
@@ -894,9 +894,9 @@ Comandos principales:
 
 \- El `seed` y las migraciones cumplen funciones diferentes: las migraciones controlan cambios versionados de la base de datos, mientras que `npm run seed` carga datos iniciales de demostración.
 
-**---**
+---
 
-## 8. Pruebas**
+## 8. Pruebas
 
 Pruebas unitarias:
 
@@ -922,9 +922,9 @@ npm run test:cov
 
 ```
 
-****---****
+---
 
-**## 9. Arquitectura**
+## 9. Arquitectura
 
 Cada módulo sigue la misma separación:
 
@@ -944,7 +944,7 @@ module/
 
 ```
 
-****### `controller`****
+### `controller`
 
 Capa HTTP.
 
@@ -952,27 +952,27 @@ Recibe las solicitudes, valida DTOs y delega la operación al servicio.
 
 No accede directamente a modelos de Mongoose.
 
-****### `service`****
+### `service`
 
 Contiene la lógica de negocio y las reglas del sistema.
 
-****### `repository`****
+### `repository`
 
 Es el único lugar que conoce Mongoose y la persistencia de datos.
 
-****### `dto/`****
+### `dto/`
 
 Define los contratos de entrada y validaciones de las solicitudes HTTP.
 
-****### `schemas/`****
+### `schemas/`
 
 Contiene los esquemas utilizados por MongoDB/Mongoose.
 
-****---****
+---
 
-**## 10. Solución de problemas**
+## 10. Solución de problemas
 
-****### Error `ERESOLVE` al instalar paquetes `@nestjs/*`****
+### Error `ERESOLVE` al instalar paquetes `@nestjs/*`
 
 Las versiones más recientes de algunos paquetes pueden requerir Nest 12.
 
@@ -996,9 +996,9 @@ npm install --legacy-peer-deps
 
 como solución permanente.
 
-****---****
+---
 
-****### La aplicación no arranca y lista variables faltantes****
+### La aplicación no arranca y lista variables faltantes
 
 Es la validación del `.env`.
 
@@ -1014,9 +1014,9 @@ CORS_ORIGIN=
 
 ```
 
-****---****
+---
 
-****### Error:****
+### Error:
 
 ```text
 
@@ -1050,9 +1050,9 @@ También verificar que `MONGODB_URI` incluya:
 
 ```
 
-****---****
+---
 
-****### MongoDB no inicia dentro de Docker****
+### MongoDB no inicia dentro de Docker
 
 Primero comprobar el kernel:
 
@@ -1100,9 +1100,9 @@ docker compose up -d
 
 ```
 
-****---****
+---
 
-****### MongoDB reinicia continuamente****
+### MongoDB reinicia continuamente
 
 Consultar:
 
@@ -1138,9 +1138,9 @@ MONGODB_URI=
 
 y comprobar que `authSource=gestion_documental` esté presente.
 
-****---****
+---
 
-****### Error de conexión con MongoDB****
+### Error de conexión con MongoDB
 
 Verificar primero que el contenedor esté activo:
 
@@ -1174,9 +1174,9 @@ mongosh "mongodb://localhost:27017/?replicaSet=rs0"
 
 ```
 
-****---****
+---
 
-****### Error de conexión o timeout con la instalación nativa****
+### Error de conexión o timeout con la instalación nativa
 
 Probablemente el replica set fue inicializado utilizando el nombre de la máquina.
 
@@ -1204,9 +1204,9 @@ rs.initiate({
 
 ```
 
-****---****
+---
 
-****### Falla la instalación de `argon2`****
+### Falla la instalación de `argon2`
 
 El paquete puede utilizar binarios precompilados.
 
@@ -1226,9 +1226,9 @@ npm install
 
 ```
 
-****---****
+---
 
-****### Las cookies no llegan desde el cliente****
+### Las cookies no llegan desde el cliente
 
 Verificar que:
 
@@ -1250,9 +1250,9 @@ withCredentials: true
 
 También comprobar que la cookie esté configurada correctamente por el backend.
 
-****---****
+---
 
-**## 11. Docker — comandos útiles**
+## 11. Docker — comandos útiles
 
 Ver contenedores activos:
 
@@ -1320,13 +1320,13 @@ docker image prune
 
 \> No ejecutar `docker system prune -a` durante la evaluación sin revisar primero qué recursos serán eliminados.
 
-****---****
+---
 
-**## 12. Instalación de Docker y Docker Compose**
+## 12. Instalación de Docker y Docker Compose
 
 Si el equipo no tiene Docker instalado, seguir estos pasos antes de levantar MongoDB.
 
-****### 1. Desinstalar versiones antiguas (opcional)****
+### 1. Desinstalar versiones antiguas (opcional)
 
 Si Docker ya fue instalado anteriormente mediante paquetes antiguos, se recomienda eliminar los paquetes anteriores:
 
@@ -1338,7 +1338,7 @@ sudo apt remove docker docker-engine docker.io containerd runc
 
 Esto no elimina las imágenes ni volúmenes de Docker almacenados en el sistema.
 
-****### 2. Instalar dependencias****
+### 2. Instalar dependencias
 
 En Ubuntu 22.04 / Pop!_OS 22.04:
 
@@ -1350,7 +1350,7 @@ sudo apt install ca-certificates curl
 
 ```
 
-****### 3. Agregar el repositorio oficial de Docker****
+### 3. Agregar el repositorio oficial de Docker
 
 Crear el directorio para las claves:
 
@@ -1400,7 +1400,7 @@ sudo apt update
 
 ```
 
-****### 4. Instalar Docker Engine y Docker Compose****
+### 4. Instalar Docker Engine y Docker Compose
 
 Instalar Docker y sus componentes:
 
@@ -1422,7 +1422,7 @@ Esto instala:
 
 * Docker Compose Plugin
 
-****### 5. Verificar la instalación****
+### 5. Verificar la instalación
 
 Comprobar Docker:
 
@@ -1452,7 +1452,7 @@ sudo docker run hello-world
 
 Si aparece el mensaje de bienvenida de Docker, la instalación funciona correctamente.
 
-****### 6. Ejecutar Docker sin `sudo` (recomendado)****
+### 6. Ejecutar Docker sin `sudo` (recomendado)
 
 Agregar el usuario actual al grupo `docker`:
 
@@ -1484,7 +1484,7 @@ Si funciona sin `sudo`, la configuración está lista.
 
 \> ```
 
-****### 7. Verificar que Docker se inicie automáticamente****
+### 7. Verificar que Docker se inicie automáticamente
 
 Comprobar el servicio:
 
@@ -1502,7 +1502,7 @@ sudo systemctl enable --now docker
 
 ```
 
-****### 8. Levantar el proyecto****
+### 8. Levantar el proyecto
 
 Una vez instalado Docker y Docker Compose, regresar a la carpeta del backend:
 
@@ -1538,9 +1538,9 @@ docker logs document-mgmt-mongo --tail 50
 
 Si MongoDB aparece funcionando correctamente, continuar con la instalación del proyecto y la configuración del archivo `.env`.
 
-\> ********Nota:****** Docker Compose moderno se ejecuta mediante `docker compose` con un espacio. No es necesario instalar por separado el antiguo comando `docker-compose`.
+\> Nota: Docker Compose moderno se ejecuta mediante `docker compose` con un espacio. No es necesario instalar por separado el antiguo comando `docker-compose`.
 
 
-**## 13. Licencia**
+## 13. Licencia
 
 Proyecto basado en el starter de [NestJS]\\(https://nestjs.com), licenciado bajo MIT.

@@ -23,4 +23,15 @@ export class UsersRepository {
     touchLastLogin(id: string) {
         return this.model.updateOne({ _id: id }, { $set: { lastLoginAt: new Date() } }).exec();
     }
+
+    // Persists a new user (timestamps are set by Mongoose)
+    create(data: Pick<UserEntity,
+        'username' | 'email' | 'passwordHash' | 'firstName' | 'lastName' | 'roleId' | 'storage'>,): Promise<UserDocument> {
+        return this.model.create(data);
+    }
+
+    async existsByEmailOrUsername(email: string, username: string): Promise<boolean> {
+        const found = await this.model.exists({ $or: [{ email }, { username }] });
+        return found !== null;
+    }
 }
