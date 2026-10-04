@@ -1,10 +1,11 @@
 import { Component, ElementRef, inject, input, output, signal } from '@angular/core';
 import { lucideFolderPlus, lucidePlus, lucideUpload } from '@ng-icons/lucide';
-import { NgIcon, NgIconComponent } from '@ng-icons/core';
+import { NgIcon } from '@ng-icons/core';
+import { CustomButton } from '../../common/custom-button/custom-button';
 
 @Component({
   selector: 'app-drive-new-button',
-  imports: [NgIcon],
+  imports: [NgIcon, CustomButton],
   templateUrl: './drive-new-button.html',
   styleUrl: './drive-new-button.css',
 })

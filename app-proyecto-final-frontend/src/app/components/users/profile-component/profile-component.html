@@ -1,0 +1,154 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex items-center gap-3">
+        <button type="button" (click)="goBack()" aria-label="Volver"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+            <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+        </button>
+        <div>
+            <h1 class="text-2xl font-bold text-text">Mi perfil</h1>
+            <p class="mt-1 text-sm text-text-muted">Información de tu cuenta.</p>
+        </div>
+    </div>
+
+    @if (loading() && !profile()) {
+
+    <div class="flex items-center justify-center py-16 text-sm text-text-muted">
+        Cargando perfil...
+    </div>
+
+    } @else if (!profile()) {
+
+    <app-custom-alert type="info" title="Sin datos" message="No se pudo cargar la información del perfil." />
+
+    } @else {
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+
+        <div class="lg:col-span-1">
+            <app-custom-card [hoverable]="false">
+                <div class="flex flex-col items-center text-center">
+
+                    <div
+                        class="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-2xl font-bold text-primary">
+                        {{ initials() }}
+                    </div>
+
+                    <h2 class="mt-4 text-lg font-semibold text-text">
+                        {{ fullName() }}
+                    </h2>
+
+                    <p class="mt-1 flex items-center gap-1.5 text-xs text-text-muted">
+                        <ng-icon [svg]="lucideAtSignIcon" size="12" />
+                        {{ profile()!.userRegistry }}
+                    </p>
+
+                    <div class="mt-4">
+                        @if (profile()!.status) {
+                        <span
+                            class="inline-flex items-center gap-1.5 rounded-full bg-green-950/60 px-3 py-1 text-xs font-medium text-green-400">
+                            <ng-icon [svg]="lucideCheckIcon" size="12" />
+                            Cuenta activa
+                        </span>
+                        } @else {
+                        <span
+                            class="inline-flex items-center gap-1.5 rounded-full bg-red-950/60 px-3 py-1 text-xs font-medium text-red-400">
+                            <ng-icon [svg]="lucideXIcon" size="12" />
+                            Cuenta inactiva
+                        </span>
+                        }
+                    </div>
+
+                </div>
+            </app-custom-card>
+        </div>
+
+        <div class="flex flex-col gap-6 lg:col-span-2">
+
+            <app-custom-card [hoverable]="false">
+                <div class="mb-4">
+                    <h3 class="text-base font-semibold text-text">Información personal</h3>
+                    <p class="mt-0.5 text-xs text-text-muted">Datos registrados en tu cuenta.</p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-raised text-text-muted">
+                            <ng-icon [svg]="lucideIdCardIcon" size="16" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-wide text-text-muted">Identificación</p>
+                            <p class="mt-0.5 truncate text-sm font-medium text-text">{{ profile()!.identification }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-raised text-text-muted">
+                            <ng-icon [svg]="lucideMailIcon" size="16" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-wide text-text-muted">Correo</p>
+                            <p class="mt-0.5 truncate text-sm font-medium text-text">{{ profile()!.email }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-raised text-text-muted">
+                            <ng-icon [svg]="lucidePhoneIcon" size="16" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-wide text-text-muted">Teléfono</p>
+                            <p class="mt-0.5 truncate text-sm font-medium text-text">{{ profile()!.phoneNumber }}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-raised text-text-muted">
+                            <ng-icon [svg]="lucideCakeIcon" size="16" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-wide text-text-muted">Fecha de nacimiento</p>
+                            <p class="mt-0.5 truncate text-sm font-medium text-text">
+                                {{ profile()!.birthDate | date:'dd/MM/yyyy' }}
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </app-custom-card>
+
+            <app-custom-card [hoverable]="false">
+                <div class="mb-4 flex items-center gap-2">
+                    <ng-icon [svg]="lucideShieldIcon" size="16" class="text-primary" />
+                    <h3 class="text-base font-semibold text-text">Roles asignados</h3>
+                </div>
+
+                @if (!profile()?.role) {
+                <p class="py-4 text-center text-sm text-text-muted">
+                    No tienes roles asignados.
+                </p>
+                } @else {
+                <div class="flex flex-wrap gap-2">
+
+                    <span
+                        class="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                        <ng-icon [svg]="lucideShieldIcon" size="11" />
+                        {{ profile()!.role }}
+                    </span>
+
+                </div>
+                }
+            </app-custom-card>
+
+        </div>
+
+    </div>
+
+    }
+
+</div>

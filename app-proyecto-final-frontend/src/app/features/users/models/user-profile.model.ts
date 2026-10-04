@@ -9,5 +9,5 @@ export interface UserProfile {
     birthDate: string;
     email: string;
     status: boolean;
-    roles: string[];
+    role: string;
 }
