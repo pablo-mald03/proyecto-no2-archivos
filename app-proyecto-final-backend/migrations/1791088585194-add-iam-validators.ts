@@ -12,31 +12,42 @@ const str = (minLength: number, maxLength: number, pattern?: string): JsonSchema
 
 const CODE_PATTERN = '^[A-Z][A-Z0-9_]*$';
 
+// Audit fields shared by every auditable collection
+const AUDIT_FIELDS: Record<string, JsonSchema> = {
+  createdAt: { bsonType: 'date' },
+  updatedAt: { bsonType: 'date' },
+};
+
+const AUDIT_REQUIRED = ['createdAt', 'updatedAt'];
+
 //Schemas modeling
 const SCHEMAS: Record<string, JsonSchema> = {
   permissions: {
-    required: ['code', 'module', 'name', 'description'],
+    required: ['code', 'module', 'name', 'description', ...AUDIT_REQUIRED],
     properties: {
       code: str(2, 60, CODE_PATTERN),
       module: str(2, 60, '^[A-Z_]+$'),
       name: str(3, 150),
       description: str(3, 255),
+      ...AUDIT_FIELDS,
     },
   },
   roles: {
-    required: ['code', 'name', 'permissions', 'isSystem'],
+    required: ['code', 'name', 'permissions', 'isSystem', ...AUDIT_REQUIRED],
     properties: {
       code: str(2, 50, CODE_PATTERN),
       name: str(3, 50),
       description: str(0, 255),
       permissions: { bsonType: 'array', uniqueItems: true, items: str(2, 60) },
       isSystem: { bsonType: 'bool' },
-      createdAt: { bsonType: 'date' },
-      updatedAt: { bsonType: 'date' },
+      ...AUDIT_FIELDS,
     },
   },
   users: {
-    required: ['username', 'email', 'passwordHash', 'firstName', 'lastName', 'roleId', 'isActive', 'storage'],
+    required: [
+      'username', 'email', 'passwordHash', 'firstName', 'lastName',
+      'roleId', 'isActive', 'storage', ...AUDIT_REQUIRED,
+    ],
     properties: {
       username: str(3, 60, '^[a-z0-9._-]+$'),
       email: str(5, 254, '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$'),
@@ -55,6 +66,7 @@ const SCHEMAS: Record<string, JsonSchema> = {
           usedBytes: { bsonType: 'number', minimum: 0 },
         },
       },
+      ...AUDIT_FIELDS,
     },
   },
   refresh_tokens: {
@@ -64,6 +76,7 @@ const SCHEMAS: Record<string, JsonSchema> = {
       tokenHash: str(64, 64, '^[a-f0-9]{64}$'),
       expiresAt: { bsonType: 'date' },
       revokedAt: { bsonType: ['date', 'null'] },
+      ...AUDIT_FIELDS,
     },
   },
 };

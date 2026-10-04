@@ -43,6 +43,40 @@ services:
       retries: 20
       start_period: 20s
 
+  # Fallback only: runs the migrations inside Docker, then exits
+  migrate:
+    profiles: ["app"]
+    build:
+      context: .
+      target: build
+    command: ["npm", "run", "migrate:up:all"]
+    environment:
+      MIGRATE_MONGO_URI: mongodb://${MONGO_MIGRATE_USER}:${MONGO_MIGRATE_PASSWORD}@mongo:27017/${MONGO_APP_DB}?authSource=${MONGO_APP_DB}&directConnection=true
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: "no"
+
+  # Fallback only: the API inside Docker
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      target: runtime
+    container_name: document-mgmt-api
+    restart: "no"
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://${MONGO_APP_USER}:${MONGO_APP_PASSWORD}@mongo:27017/${MONGO_APP_DB}?authSource=${MONGO_APP_DB}&directConnection=true
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
 volumes:
   mongo_data:
   mongo_keyfile:

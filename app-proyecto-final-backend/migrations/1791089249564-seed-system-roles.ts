@@ -53,7 +53,6 @@ export async function down(connection: Connection): Promise<void> {
   const roles = connection.collection('roles');
   const base = await roles.find({ code: { $in: ['ADMIN', 'USER'] } }, { projection: { _id: 1 } }).toArray();
 
-  // Never remove system roles while users still point to them
   const inUse = await connection
     .collection('users')
     .countDocuments({ roleId: { $in: base.map((r) => r._id) } });

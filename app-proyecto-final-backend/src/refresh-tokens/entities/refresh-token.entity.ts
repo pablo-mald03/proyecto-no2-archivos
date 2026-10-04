@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import { AuditableEntity } from 'src/common/entities/auditable.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 
 //Principal entity for the 
 @Schema({ collection: "refresh_tokens", timestamps: true })
-export class RefreshTokenEntity {
+export class RefreshTokenEntity extends AuditableEntity {
 
     @Prop({ type: Types.ObjectId, ref: UserEntity.name, required: true, index: true })
     userId!: Types.ObjectId;

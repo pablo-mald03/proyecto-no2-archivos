@@ -10,6 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "migrate:list": "migrate list",
     "migrate:up": "migrate up",
+    "migrate:up:all": "migrate up --autosync true",
     "migrate:down": "migrate down",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -21,7 +22,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "docker:db": "docker compose up -d",
+    "docker:app": "docker compose --profile app up -d --build",
+    "docker:logs": "docker compose --profile app logs -f api",
+    "docker:app:down": "docker compose --profile app rm -sf api migrate",
+    "docker:down": "docker compose --profile app down"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -36,11 +36,13 @@ const PERMISSIONS: readonly PermissionSeed[] = [
 ];
 
 export async function up(connection: Connection): Promise<void> {
+  const now = new Date();
+
   await connection.collection('permissions').bulkWrite(
     PERMISSIONS.map(([code, module, name, description]) => ({
       updateOne: {
         filter: { code },
-        update: { $setOnInsert: { module, name, description } },
+        update: { $setOnInsert: { module, name, description, createdAt: now, updatedAt: now } },
         upsert: true,
       },
     })),
