@@ -15,4 +15,5 @@ export const envValidationSchema = Joi.object({
     ARGON2_PARALLELISM: Joi.number().integer().min(1).default(1),
     REFRESH_EXPIRES_IN_SECONDS: Joi.number().integer().positive().default(86400),
     REFRESH_COOKIE_NAME: Joi.string().default('refresh_token'),
+    APP_TIMEZONE: Joi.string().default('America/Guatemala'),
 });

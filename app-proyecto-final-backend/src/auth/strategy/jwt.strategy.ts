@@ -13,6 +13,8 @@ import { AuthUser } from 'src/users/models/auth-user.model';
 //Principal Jwt validator strategy
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
+
+    //Dependencies
     constructor(
         cfg: ConfigService,
         private readonly users: UsersRepository,
@@ -28,6 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
+    //Validation method with the payload helper
     async validate(payload: JwtPayload): Promise<AuthUser> {
         const user = await this.users.findById(payload.sub);
         if (!user) throw new AuthenticationException();

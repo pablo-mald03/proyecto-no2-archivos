@@ -11,6 +11,8 @@ services:
       MONGO_APP_DB: ${MONGO_APP_DB}
       MONGO_APP_USER: ${MONGO_APP_USER}
       MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD}
+      MONGO_MIGRATE_USER: ${MONGO_MIGRATE_USER}
+      MONGO_MIGRATE_PASSWORD: ${MONGO_MIGRATE_PASSWORD}
     volumes:
       - mongo_data:/data/db
       - mongo_keyfile:/keyfile

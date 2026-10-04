@@ -4,7 +4,6 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { envValidationSchema } from './config/env.validation';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -31,6 +30,7 @@ import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
       inject: [ConfigService],
       useFactory: (cfg: ConfigService) => ({
         uri: cfg.getOrThrow<string>('MONGODB_URI'),
+        autoIndex: false, // indexes are owned by the migrations
       }),
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
@@ -46,7 +46,6 @@ import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
     PermissionsModule,
     RefreshTokensModule,
   ],
-  controllers: [AppController],
   providers: [
     AppService,
     { provide: APP_GUARD, useClass: ThrottlerGuard },

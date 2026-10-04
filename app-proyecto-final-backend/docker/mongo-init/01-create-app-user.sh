@@ -6,9 +6,19 @@ mongosh --quiet \
   -p "$MONGO_INITDB_ROOT_PASSWORD" \
   --authenticationDatabase admin <<EOF
 db = db.getSiblingDB("$MONGO_APP_DB");
+
 db.createUser({
   user: "$MONGO_APP_USER",
   pwd: "$MONGO_APP_PASSWORD",
   roles: [{ role: "readWrite", db: "$MONGO_APP_DB" }]
+});
+
+db.createUser({
+  user: "$MONGO_MIGRATE_USER",
+  pwd: "$MONGO_MIGRATE_PASSWORD",
+  roles: [
+    { role: "readWrite", db: "$MONGO_APP_DB" },
+    { role: "dbAdmin", db: "$MONGO_APP_DB" }
+  ]
 });
 EOF

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { AuthService } from '../service/auth.service';
 import { AuthCookieService } from '../service/auth-cookie.service';
@@ -8,14 +8,19 @@ import { LoginDto } from '../dto/login.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { type AuthUser } from 'src/users/models/auth-user.model';
 
+//Auth controller
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
+    //Dependencies
     constructor(
         private readonly auth: AuthService,
         private readonly cookies: AuthCookieService,
     ) { }
 
+    /*
+     * Endpoint to excecute the login to the application
+    */
     @Public()
     @Post('login')
     @HttpCode(200)
@@ -26,6 +31,9 @@ export class AuthController {
         return user;
     }
 
+    /*
+     * Endpoint to excecute the refresh token activity
+    */
     @Public()
     @Post('refresh')
     @HttpCode(200)
@@ -38,13 +46,21 @@ export class AuthController {
         return user;
     }
 
+    /*
+     * Endpoint to excecute the auth me verification
+    */
     @Get('me')
+    @ApiCookieAuth()
     @ApiOperation({ summary: 'Verify if the user is login in' })
     me(@CurrentUser() user: AuthUser) {
         return user;
     }
 
 
+    /**
+     * Endpoint to excecute the logout to the API
+     * 
+    */
     @Public()
     @Post('logout')
     @HttpCode(204)
