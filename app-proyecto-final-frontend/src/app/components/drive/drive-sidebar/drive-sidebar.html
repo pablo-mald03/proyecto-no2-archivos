@@ -1,0 +1,14 @@
+<aside class="relative flex h-full flex-col border-r border-border bg-surface transition-[width] duration-300"
+    [class.w-72]="!collapsed()" [class.w-20]="collapsed()">
+
+    <div class="h-full overflow-hidden">
+        <app-drive-sidebar-content [collapsed]="collapsed()" (uploadClicked)="uploadClicked.emit()"
+            (folderClicked)="folderClicked.emit()" (logoutClicked)="logoutClicked.emit()" />
+    </div>
+
+    <button type="button" (click)="toggle.emit()" [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Contraer menú'"
+        class="absolute -right-3 top-16 z-10 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-surface text-text-muted transition-colors hover:border-primary/40 hover:text-primary">
+        <ng-icon [svg]="collapsed() ? lucideChevronRightIcon : lucideChevronLeftIcon" size="14" />
+    </button>
+
+</aside>

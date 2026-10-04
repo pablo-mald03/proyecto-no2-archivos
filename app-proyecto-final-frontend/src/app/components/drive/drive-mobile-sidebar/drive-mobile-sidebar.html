@@ -1,0 +1,17 @@
+@if (open()) {
+
+<div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm" (click)="closed.emit()"></div>
+
+<aside class="fixed left-0 top-0 z-50 h-full w-72 border-r border-border bg-surface shadow-2xl">
+
+    <button type="button" (click)="closed.emit()" aria-label="Cerrar menú"
+        class="absolute right-3 top-5 z-10 rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-raised hover:text-text">
+        <ng-icon [svg]="lucideXIcon" size="20" />
+    </button>
+
+    <app-drive-sidebar-content (optionSelected)="closed.emit()" (uploadClicked)="upload()" (folderClicked)="newFolder()"
+        (logoutClicked)="logoutClicked.emit()" />
+
+</aside>
+
+}

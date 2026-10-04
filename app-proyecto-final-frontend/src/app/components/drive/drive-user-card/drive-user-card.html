@@ -1,0 +1,21 @@
+<div class="flex items-center gap-3 rounded-xl border border-border bg-surface-raised/40 p-2.5"
+    [class.flex-col]="collapsed()">
+
+    <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
+        {{ initials() }}
+    </div>
+
+    @if (!collapsed()) {
+    <div class="min-w-0 flex-1">
+        <p class="truncate text-sm font-medium text-text">{{ fullName() }}</p>
+        <p class="truncate text-xs text-text-subtle">{{ user()?.email }}</p>
+    </div>
+    }
+
+    <button type="button" (click)="logoutClicked.emit()" title="Cerrar sesión" aria-label="Cerrar sesión"
+        class="rounded-lg p-2 text-text-muted transition-colors hover:bg-surface-raised hover:text-text">
+        <ng-icon [svg]="lucideLogOutIcon" size="18" />
+    </button>
+
+</div>

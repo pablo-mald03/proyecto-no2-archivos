@@ -1,0 +1,5 @@
+<nav class="space-y-1">
+  @for (option of options(); track option.route) {
+  <app-drive-nav-item [option]="option" [collapsed]="collapsed()" (optionSelected)="optionSelected.emit()" />
+  }
+</nav>

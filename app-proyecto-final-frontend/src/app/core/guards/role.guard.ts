@@ -1,6 +1,7 @@
 import { inject } from "@angular/core";
 import { CanActivateFn, Router } from "@angular/router";
 import { AuthState } from "../../stores/auth.state";
+import { homeFor } from "../utils/role-home";
 
 // Principal guard to protect the URL by role
 export const roleGuard: CanActivateFn = (route) => {
@@ -20,5 +21,5 @@ export const roleGuard: CanActivateFn = (route) => {
         return true;
     }
 
-    return router.createUrlTree(['/dashboard']);
+    return router.createUrlTree([homeFor(userRole)]);
 };

@@ -1,0 +1,6 @@
+<a [routerLink]="option().route" routerLinkActive="bg-primary/15 text-primary" (click)="optionSelected.emit()" [title]="collapsed() ? option().label : ''" [class.justify-center]="collapsed()" class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-colors hover:bg-surface-raised">
+  <ng-icon [svg]="option().icon" size="20" class="shrink-0" />
+  @if (!collapsed()) {
+  <span class="truncate">{{ option().label }}</span>
+  }
+</a>

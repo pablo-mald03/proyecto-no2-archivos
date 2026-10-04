@@ -1,0 +1,23 @@
+<div class="relative">
+
+  <button type="button" (click)="toggle()" [attr.aria-expanded]="open()" aria-haspopup="menu" class="flex w-full items-center gap-3 rounded-2xl bg-primary px-4 py-3 text-sm font-semibold text-primary-contrast shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover hover:shadow-primary/30" [class.justify-center]="collapsed()">
+    <ng-icon [svg]="lucidePlusIcon" size="20" class="shrink-0" />
+    @if (!collapsed()) {
+    <span>Nuevo</span>
+    }
+  </button>
+
+  @if (open()) {
+  <div role="menu" class="absolute left-0 top-full z-30 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-surface p-1.5 shadow-2xl">
+    <button type="button" role="menuitem" (click)="upload()" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-text transition-colors hover:bg-surface-raised">
+      <ng-icon [svg]="lucideUploadIcon" size="18" class="text-primary" />
+      Subir archivo
+    </button>
+    <button type="button" role="menuitem" (click)="newFolder()" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-text transition-colors hover:bg-surface-raised">
+      <ng-icon [svg]="lucideFolderPlusIcon" size="18" class="text-primary" />
+      Nueva carpeta
+    </button>
+  </div>
+  }
+
+</div>

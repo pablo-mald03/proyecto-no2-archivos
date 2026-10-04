@@ -1,7 +1,8 @@
 <div class="flex h-screen w-full overflow-hidden bg-background text-text">
 
   <div class="hidden shrink-0 lg:flex lg:h-full">
-    <app-sidebar class="flex h-full flex-col" [items]="navItems" [collapsed]="sidebarCollapsed()" (toggle)="toggleSidebar()" (logoutClicked)="logout()" />
+    <app-drive-sidebar [collapsed]="sidebarCollapsed()" (toggle)="toggleSidebar()" (uploadClicked)="uploadFile()"
+      (folderClicked)="createFolder()" (logoutClicked)="logout()" />
   </div>
 
   <div class="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
@@ -14,6 +15,7 @@
 
   </div>
 
-  <app-mobile-sidebar [items]="navItems" [open]="mobileSidebarOpen()" (closed)="closeMobileSidebar()" (logoutClicked)="logout()" />
+  <app-drive-mobile-sidebar [open]="mobileSidebarOpen()" (closed)="closeMobileSidebar()" (uploadClicked)="uploadFile()"
+    (folderClicked)="createFolder()" (logoutClicked)="logout()" />
 
 </div>

@@ -1,0 +1,17 @@
+<div class="flex h-full flex-col gap-6 p-4">
+
+    <div class="flex h-12 items-center gap-3 px-1" [class.justify-center]="collapsed()">
+        <img src="/icon.ico" alt="Gestión Documental" class="h-9 w-9 shrink-0 rounded-lg" />
+        @if (!collapsed()) {
+        <span class="truncate text-lg font-bold tracking-tight text-primary">Gestión Documental</span>
+        }
+    </div>
+
+    <app-drive-new-button [collapsed]="collapsed()" (uploadClicked)="uploadClicked.emit()"
+        (folderClicked)="folderClicked.emit()" />
+
+    <app-drive-nav class="flex-1 overflow-y-auto" [collapsed]="collapsed()" (optionSelected)="optionSelected.emit()" />
+
+    <app-drive-user-card [collapsed]="collapsed()" (logoutClicked)="logoutClicked.emit()" />
+
+</div>
