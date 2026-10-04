@@ -1,626 +1,215 @@
 <div class="overflow-hidden">
 
-    <section id="home" class="
-      relative
-      isolate
-      flex
-      min-h-[calc(100vh-5rem)]
-      items-center
-      overflow-hidden
-    ">
-
-
-        <div class="
-        pointer-events-none
-        absolute
-        inset-0
-        -z-10
-      ">
-
-            <div class="
-          absolute
-          -right-40
-          -top-40
-          h-[32rem]
-          w-[32rem]
-          rounded-full
-          bg-primary/20
-          blur-3xl
-        "></div>
-
-            <div class="
-          absolute
-          -bottom-48
-          -left-40
-          h-[28rem]
-          w-[28rem]
-          rounded-full
-          bg-primary/10
-          blur-3xl
-        "></div>
-
-        </div>
-
-
-        <div class="
-        mx-auto
-        grid
-        w-full
-        max-w-7xl
-        items-center
-        gap-16
-        px-6
-        py-20
-        lg:grid-cols-2
-        lg:px-8
-        lg:py-28
-      ">
-
+    <section id="home" class="relative flex min-h-[calc(100vh-5rem)] items-center">
+        <div
+            class="mx-auto grid w-full max-w-7xl items-center gap-14 px-6 py-16 lg:grid-cols-[1.05fr_1fr] lg:px-8 lg:py-24">
 
             <div>
-
-                <div class="
-            mb-6
-            inline-flex
-            items-center
-            gap-2
-            rounded-full
-            border
-            border-primary/20
-            bg-primary/10
-            px-4
-            py-2
-            text-sm
-            font-medium
-            text-primary
-          ">
-
-                    <span class="
-              h-2
-              w-2
-              rounded-full
-              bg-primary
-              shadow-[0_0_12px_var(--erp-primary)]
-            "></span>
-
-                    Gestión empresarial inteligente
-
-                </div>
-
-
-                <h1 class="
-            max-w-3xl
-            text-5xl
-            font-bold
-            leading-[1.05]
-            tracking-tight
-            text-text
-            sm:text-6xl
-            lg:text-7xl
-          ">
-                    Gestiona tu negocio.
-                    <span class="text-primary">
-                        Una sola plataforma.
-                    </span>
+                <h1 class="max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-text sm:text-5xl lg:text-6xl">
+                    Todos los documentos de tu organización, en un solo lugar.
                 </h1>
 
-
-                <p class="
-            mt-7
-            max-w-2xl
-            text-lg
-            leading-8
-            text-text-muted
-            sm:text-xl
-          ">
-                    Comercial ERP centraliza tus operaciones,
-                    optimiza el manejo de tu inventario y proteje tus transacciones.
+                <p class="mt-6 max-w-xl text-lg leading-8 text-text-muted">
+                    Guarda archivos .txt y .md, ordénalos en carpetas, compártelos con el permiso justo y consulta quién
+                    hizo qué y cuándo.
                 </p>
 
-
-                <div class="
-            mt-9
-            flex
-            flex-col
-            gap-4
-            sm:flex-row
-          ">
-
+                <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                     @if (isAuthenticated()) {
-
                     <app-custom-button label="Ir al portal" [icon]="lucidePortalIcon" iconPosition="right"
                         variant="primary" (clicked)="goToPortal()" />
-                    }
-                    @else {
-
-                     <app-custom-button label="Iniciar sesión" [icon]="lucideLogInIcon" iconPosition="right"
+                    } @else {
+                    <app-custom-button label="Iniciar sesión" [icon]="lucideLogInIcon" iconPosition="right"
                         variant="primary" (clicked)="login()" />
                     }
-
-                    <button type="button" (click)="scrollToSection('commitments')" class="
-              rounded-xl
-              border
-              border-border
-              bg-surface
-              px-4
-              py-2.5
-              text-sm
-              font-semibold
-              text-text
-              transition
-              hover:border-primary/40
-              hover:bg-surface-raised
-            ">
-                        Conoce más
+                    <button type="button" (click)="scrollToSection('commitments')"
+                        class="rounded-xl border border-border bg-surface px-4 py-2.5 text-sm font-semibold text-text transition hover:border-primary/40 hover:bg-surface-raised">
+                        Ver qué puedes hacer
                     </button>
-
                 </div>
 
-
-                <div class="
-            mt-10
-            flex
-            flex-wrap
-            items-center
-            gap-x-6
-            gap-y-3
-            text-sm
-            text-text-subtle
-          ">
-
-                    <span>✓ Gestión segura</span>
-                    <span>✓ Información organizada</span>
-                    <span>✓ Control de operaciones</span>
-
-                </div>
-
+                <ul class="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-sm text-text-subtle">
+                    <li>Acceso solo con tus credenciales</li>
+                    <li>Papelera con restauración</li>
+                    <li>Historial de cada operación</li>
+                </ul>
             </div>
 
-            <div class="
-          relative
-          hidden
-          lg:block
-        ">
+            <div class="relative isolate hidden lg:block" aria-hidden="true">
 
-                <div class="
-            relative
-            mx-auto
-            aspect-square
-            max-w-xl
-          ">
+                <div class="group relative">
 
+                    <div
+                        class="pointer-events-none absolute -inset-6 -z-10 rounded-[2rem] bg-primary/20 opacity-60 blur-3xl transition-opacity duration-500 group-hover:opacity-100">
+                    </div>
 
-                    <div class="
-              absolute
-              inset-10
-              rounded-full
-              bg-primary/20
-              blur-3xl
-            "></div>
+                    <div
+                        class="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl transition-all duration-300 group-hover:border-primary/40 group-hover:shadow-[0_0_48px_-12px_var(--color-primary)]">
 
-
-                    <div class="
-              absolute
-              left-1/2
-              top-1/2
-              w-[82%]
-              -translate-x-1/2
-              -translate-y-1/2
-              rounded-3xl
-              border
-              border-border
-              bg-surface/90
-              p-6
-              shadow-2xl
-              backdrop-blur-xl
-            ">
-
-                        <div class="
-                mb-6
-                flex
-                items-center
-                justify-between
-              ">
-
-                            <div>
-
-                                <p class="text-sm text-text-muted">
-                                    Resumen general
-                                </p>
-
-                                <p class="mt-1 text-2xl font-bold text-text">
-                                    Operaciones
-                                </p>
-
-                            </div>
-
-
-                            <div class="
-                  rounded-xl
-                  bg-primary/10
-                  p-3
-                  text-primary
-                ">
-                                <ng-icon [svg]="lucideChartIcon" size="24" />
-                            </div>
-
+                        <div
+                            class="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent">
                         </div>
 
-
-                        <div class="space-y-4">
-
-                            <div>
-
-                                <div class="
-                    mb-2
-                    flex
-                    justify-between
-                    text-sm
-                  ">
-
-                                    <span class="text-text-muted">
-                                        Ventas
-                                    </span>
-
-                                    <span class="font-semibold text-text">
-                                        70%
-                                    </span>
-
-                                </div>
-
-                                <div class="
-                    h-2
-                    overflow-hidden
-                    rounded-full
-                    bg-surface-raised
-                  ">
-
-                                    <div class="
-                      h-full
-                      w-[70%]
-                      rounded-full
-                      bg-primary
-                    "></div>
-
-                                </div>
-
+                        <div class="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
+                            <p class="truncate text-sm text-text-muted">
+                                Mis documentos <span class="text-text-subtle">/</span> Contratos <span
+                                    class="text-text-subtle">/</span>
+                                <span class="font-medium text-text">2026</span>
+                            </p>
+                            <div
+                                class="flex w-40 items-center gap-2 rounded-lg border border-border bg-background px-3 py-1.5 text-xs text-text-subtle">
+                                <ng-icon [svg]="lucideSearchIcon" size="14" />
+                                Buscar archivos
                             </div>
-
-
-                            <div>
-
-                                <div class="
-                    mb-2
-                    flex
-                    justify-between
-                    text-sm
-                  ">
-
-                                    <span class="text-text-muted">
-                                        Inventario
-                                    </span>
-
-                                    <span class="font-semibold text-text">
-                                        90%
-                                    </span>
-
-                                </div>
-
-                                <div class="
-                    h-2
-                    overflow-hidden
-                    rounded-full
-                    bg-surface-raised
-                  ">
-
-                                    <div class="
-                      h-full
-                      w-[90%]
-                      rounded-full
-                      bg-primary/70
-                    "></div>
-
-                                </div>
-
-                            </div>
-
-
-                            <div>
-
-                                <div class="
-                    mb-2
-                    flex
-                    justify-between
-                    text-sm
-                  ">
-
-                                    <span class="text-text-muted">
-                                        Clientes
-                                    </span>
-
-                                    <span class="font-semibold text-text">
-                                        92%
-                                    </span>
-
-                                </div>
-
-                                <div class="
-                    h-2
-                    overflow-hidden
-                    rounded-full
-                    bg-surface-raised
-                  ">
-
-                                    <div class="
-                      h-full
-                      w-[92%]
-                      rounded-full
-                      bg-primary/50
-                    "></div>
-
-                                </div>
-
-                            </div>
-
                         </div>
 
+                        <ul class="divide-y divide-border text-sm">
+                            <li
+                                class="group/row flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-raised">
+                                <ng-icon [svg]="lucideFolderIcon" size="20" class="text-primary" />
+                                <span class="flex-1 font-medium text-text">Informes trimestrales</span>
+                                <span class="text-xs text-text-subtle">12 elementos</span>
+                            </li>
+                            <li
+                                class="group/row flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-raised">
+                                <ng-icon [svg]="lucideFileTextIcon" size="20"
+                                    class="text-text-muted transition-colors group-hover/row:text-primary" />
+                                <span class="flex-1 text-text">contrato-servicios-acme.md</span>
+                                <span class="text-xs text-text-subtle">4 KB</span>
+                                <span
+                                    class="rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">Edición</span>
+                            </li>
+                            <li
+                                class="group/row flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-raised">
+                                <ng-icon [svg]="lucideFileTextIcon" size="20"
+                                    class="text-text-muted transition-colors group-hover/row:text-primary" />
+                                <span class="flex-1 text-text">acta-reunion-marzo.txt</span>
+                                <span class="text-xs text-text-subtle">2 KB</span>
+                                <span
+                                    class="rounded-full bg-surface-raised px-2.5 py-0.5 text-xs font-medium text-text-muted group-hover/row:bg-surface">Lectura</span>
+                            </li>
+                            <li
+                                class="group/row flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-raised">
+                                <ng-icon [svg]="lucideFileTextIcon" size="20"
+                                    class="text-text-muted transition-colors group-hover/row:text-primary" />
+                                <span class="flex-1 text-text">propuesta-cliente.md</span>
+                                <span class="text-xs text-text-subtle">6 KB</span>
+                                <span
+                                    class="rounded-full border border-border px-2.5 py-0.5 text-xs text-text-subtle">Solo
+                                    tú</span>
+                            </li>
+                        </ul>
 
-                        <div class="
-                mt-6
-                grid
-                grid-cols-2
-                gap-3
-              ">
-
-                            <div class="
-                  rounded-2xl
-                  bg-surface-raised
-                  p-4
-                ">
-
-                                <p class="text-xs text-text-muted">
-                                    Productos
-                                </p>
-
-                                <p class="mt-1 text-xl font-bold">
-                                    100
-                                </p>
-
-                            </div>
-
-
-                            <div class="
-                  rounded-2xl
-                  bg-surface-raised
-                  p-4
-                ">
-
-                                <p class="text-xs text-text-muted">
-                                    Clientes
-                                </p>
-
-                                <p class="mt-1 text-xl font-bold">
-                                    300
-                                </p>
-
-                            </div>
-
+                        <div
+                            class="flex items-center gap-3 border-t border-border bg-surface-raised px-5 py-3.5 text-xs text-text-muted">
+                            <ng-icon [svg]="lucideHistoryIcon" size="16" class="text-primary" />
+                            <span>Laura editó <span class="text-text">contrato-servicios-acme.md</span></span>
+                            <span class="ml-auto text-text-subtle">hace 5 min</span>
                         </div>
 
                     </div>
-
                 </div>
 
             </div>
-
         </div>
-
     </section>
 
 
-    <section id="commitments" class="
-      border-t
-      border-border
-      bg-surface
-    ">
-
-        <div class="
-        mx-auto
-        max-w-7xl
-        px-6
-        py-24
-        lg:px-8
-      ">
+    <section id="commitments" class="border-t border-border bg-surface">
+        <div class="mx-auto max-w-7xl px-6 py-24 lg:px-8">
 
             <div class="max-w-2xl">
-
-                <p class="
-            text-sm
-            font-semibold
-            uppercase
-            tracking-widest
-            text-primary
-          ">
-                    Nuestros compromisos
-                </p>
-
-                <h2 class="
-            mt-4
-            text-4xl
-            font-bold
-            tracking-tight
-            text-text
-            sm:text-5xl
-          ">
-                    Tecnología al servicio
-                    de tu empresa e Inventario.
+                <h2 class="text-3xl font-bold tracking-tight text-text sm:text-4xl">
+                    Lo que necesitas para trabajar con documentos, sin perder el control.
                 </h2>
-
-                <p class="
-            mt-5
-            text-lg
-            leading-8
-            text-text-muted
-          ">
-                    Diseñado para ayudarte a mantener el control
-                    milimetrico del inventario de tu empresa.
+                <p class="mt-5 text-lg leading-8 text-text-muted">
+                    Cada archivo y carpeta tiene un dueño, una ubicación y un registro de lo que se hizo con él.
                 </p>
-
             </div>
 
-
-            <div class="
-          mt-16
-          grid
-          gap-6
-          sm:grid-cols-2
-          lg:grid-cols-4
-        ">
-
+            <div class="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 @for (commitment of commitments; track commitment.title) {
-
-                <div class="
-              rounded-2xl
-              border
-              border-border
-              bg-background
-              p-6
-              transition
-              duration-300
-              hover:-translate-y-1
-              hover:border-primary/40
-            ">
-
-                    <div class="
-                mb-5
-                inline-flex
-                rounded-xl
-                bg-primary/10
-                p-3
-                text-primary
-              ">
-
+                <div
+                    class="rounded-2xl border border-border bg-background p-6 transition-colors hover:border-primary/40">
+                    <div class="mb-5 inline-flex rounded-xl bg-primary/10 p-3 text-primary">
                         <ng-icon [svg]="commitment.icon" size="22" />
-
                     </div>
-
-
-                    <h3 class="
-                text-lg
-                font-semibold
-                text-text
-              ">
-                        {{ commitment.title }}
-                    </h3>
-
-
-                    <p class="
-                mt-3
-                text-sm
-                leading-6
-                text-text-muted
-              ">
-                        {{ commitment.description }}
-                    </p>
-
+                    <h3 class="text-lg font-semibold text-text">{{ commitment.title }}</h3>
+                    <p class="mt-2 text-sm leading-6 text-text-muted">{{ commitment.description }}</p>
                 </div>
-
                 }
-
             </div>
 
         </div>
-
     </section>
 
 
-
-    <section id="about" class="
-      border-t
-      border-border
-    ">
-
-        <div class="
-        mx-auto
-        grid
-        max-w-7xl
-        gap-16
-        px-6
-        py-24
-        lg:grid-cols-2
-        lg:px-8
-        lg:py-32
-      ">
+    <section id="about" class="border-t border-border">
+        <div class="mx-auto grid max-w-7xl gap-14 px-6 py-24 lg:grid-cols-2 lg:px-8 lg:py-28">
 
             <div>
-
-                <p class="
-            text-sm
-            font-semibold
-            uppercase
-            tracking-widest
-            text-primary
-          ">
-                    Sobre nosotros
-                </p>
-
-                <h2 class="
-            mt-4
-            text-4xl
-            font-bold
-            tracking-tight
-            sm:text-5xl
-          ">
-                    Una visión simple
-                    de la gestión de inventarios.
+                <h2 class="max-w-md text-3xl font-bold tracking-tight text-text sm:text-4xl">
+                    Antes, los documentos vivían en cada computadora. Ahora, en una sola plataforma.
                 </h2>
-
+                <p class="mt-6 max-w-md text-lg leading-8 text-text-muted">
+                    Gestión Documental reúne los archivos de la organización para que encontrarlos, compartirlos y
+                    auditarlos deje de ser una tarea manual.
+                </p>
             </div>
 
+            <div class="space-y-10">
 
-            <div class="
-          space-y-6
-          text-lg
-          leading-8
-          text-text-muted
-        ">
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <div class="border-l-2 border-primary pl-5">
+                        <h3 class="font-semibold text-text">Usuario</h3>
+                        <p class="mt-2 text-sm leading-6 text-text-muted">Administra sus archivos y carpetas, consulta
+                            lo que le comparten y decide con quién compartir lo suyo.</p>
+                    </div>
+                    <div class="border-l-2 border-primary pl-5">
+                        <h3 class="font-semibold text-text">Administrador</h3>
+                        <p class="mt-2 text-sm leading-6 text-text-muted">Gestiona usuarios y consulta reportes globales
+                            sobre el uso de la plataforma.</p>
+                    </div>
+                </div>
 
-                <p>
-                    Comercial ERP nace con una idea sencilla:
-                    hacer que la gestión de tu empresa cuente
-                    con tecnologias recientes y rapidas.
-                </p>
-
-                <p>
-                    Centralizamos la información que necesitas
-                    para que puedas dedicar menos tiempo a buscar
-                    datos y más tiempo a tomar decisiones sobre
-                    movimientos de activos.
-                </p>
-
-                <div class="
-            rounded-2xl
-            border
-            border-primary/20
-            bg-primary/5
-            p-6
-            text-text
-          ">
-
-                    <p class="font-semibold">
-                        Seguridad Grarantizada.
-                    </p>
-
-                    <p class="mt-1 text-text-muted">
-                        Control total sobre tus empleados y permisos.
-                    </p>
-
+                <div class="rounded-2xl border border-border bg-surface p-6">
+                    <h3 class="font-semibold text-text">Tú eliges qué puede hacer cada persona</h3>
+                    <ul class="mt-5 space-y-4 text-sm">
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="w-20 shrink-0 rounded-full bg-surface-raised px-2.5 py-0.5 text-center text-xs font-medium text-text-muted">Lectura</span>
+                            <span class="text-text-muted">Puede abrir y descargar el archivo.</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="w-20 shrink-0 rounded-full border border-primary/40 px-2.5 py-0.5 text-center text-xs font-medium text-primary">Comentar</span>
+                            <span class="text-text-muted">Puede dejar comentarios sin modificar el contenido.</span>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <span
+                                class="w-20 shrink-0 rounded-full bg-primary/15 px-2.5 py-0.5 text-center text-xs font-medium text-primary">Edición</span>
+                            <span class="text-text-muted">Puede modificar el archivo. Tú puedes retirar el permiso
+                                cuando quieras.</span>
+                        </li>
+                    </ul>
                 </div>
 
             </div>
-
         </div>
 
+        <div class="border-t border-border bg-surface">
+            <div
+                class="mx-auto flex max-w-7xl flex-col items-start justify-between gap-6 px-6 py-12 sm:flex-row sm:items-center lg:px-8">
+                <p class="max-w-lg text-xl font-semibold text-text">Entra a tu cuenta y sigue donde lo dejaste.</p>
+                @if (isAuthenticated()) {
+                <app-custom-button label="Ir al portal" [icon]="lucidePortalIcon" iconPosition="right" variant="primary"
+                    (clicked)="goToPortal()" />
+                } @else {
+                <app-custom-button label="Iniciar sesión" [icon]="lucideLogInIcon" iconPosition="right"
+                    variant="primary" (clicked)="login()" />
+                }
+            </div>
+        </div>
     </section>
 
 </div>
