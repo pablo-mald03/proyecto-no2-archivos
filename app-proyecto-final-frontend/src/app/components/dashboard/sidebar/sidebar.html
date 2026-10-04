@@ -1,0 +1,153 @@
+<aside class="
+        flex
+        h-full
+        flex-col
+        overflow-hidden
+        border-r
+        border-border
+        bg-surface
+        transition-all
+        duration-300
+    " [class.w-64]="!collapsed()" [class.w-20]="collapsed()">
+
+    <div class="
+            flex
+            h-16
+            shrink-0
+            items-center
+            border-b
+            border-border
+            px-4
+        ">
+
+        @if (!collapsed()) {
+
+        <span class="
+                    min-w-0
+                    flex-1
+                    truncate
+                    text-xl
+                    font-bold
+                    text-primary
+                ">
+            Gestion Documental
+        </span>
+
+        } @else {
+
+        <span class="
+                    flex-1
+                    text-center
+                    text-lg
+                    font-bold
+                    text-primary
+                ">
+            CE
+        </span>
+
+        }
+
+
+        <button type="button" (click)="toggle.emit()" class="
+                shrink-0
+                rounded-lg
+                p-2
+                text-text-muted
+                transition-colors
+                hover:bg-surface-raised
+                hover:text-text
+            " [attr.aria-label]="
+                collapsed()
+                    ? 'Mostrar menú'
+                    : 'Ocultar menú'
+            ">
+
+            @if (collapsed()) {
+
+            <ng-icon name="lucidePanelLeftOpen" size="20" />
+
+            } @else {
+
+            <ng-icon name="lucidePanelLeftClose" size="20" />
+
+            }
+
+        </button>
+
+    </div>
+
+
+    <app-sidebar-nav [collapsed]="collapsed()" class="flex-1" />
+
+
+    <div class="
+        shrink-0
+        border-t
+        border-border
+        p-3">
+
+        @if (!collapsed()) {
+
+        <div class="
+                    mb-2
+                    min-w-0
+                    px-2
+                ">
+
+            <p class="
+                        truncate
+                        text-sm
+                        font-medium
+                        text-text
+                    ">
+                {{ user()?.username }}
+            </p>
+
+            <p class="
+                        truncate
+                        text-xs
+                        text-text-muted
+                    ">
+                {{ user()?.email }}
+            </p>
+
+        </div>
+
+        }
+
+
+        <button type="button" (click)="logout()" class="
+                flex
+                w-full
+                items-center
+                gap-3
+                rounded-lg
+                px-3
+                py-2.5
+                text-sm
+                font-medium
+                text-text-muted
+                transition-colors
+                hover:bg-surface-raised
+                hover:text-primary
+            " [class.justify-center]="collapsed()" [attr.aria-label]="
+                collapsed()
+                    ? 'Cerrar sesión'
+                    : null
+            ">
+
+            <ng-icon [svg]="lucideLogOutIcon" size="20" class="shrink-0" />
+
+            @if (!collapsed()) {
+
+            <span>
+                Cerrar sesión
+            </span>
+
+            }
+
+        </button>
+
+    </div>
+
+</aside>

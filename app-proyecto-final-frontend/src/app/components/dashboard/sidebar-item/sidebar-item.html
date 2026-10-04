@@ -1,0 +1,128 @@
+@if (hasChildren()) {
+
+
+<div routerLinkActive #parentActive="routerLinkActive">
+
+    <button type="button" (click)="toggle()" class="
+                flex
+                w-full
+                items-center
+                rounded-lg
+                py-2.5
+                text-sm
+                font-medium
+                text-text
+                transition-colors
+                hover:bg-surface-raised
+                hover:text-primary
+            " [class.bg-surface-raised]="
+                parentActive.isActive || expanded()
+            " [class.text-primary]="
+                parentActive.isActive || expanded()
+            " [class.gap-3]="!collapsed()" [class.justify-center]="collapsed()" [class.px-3]="!collapsed()"
+        [class.px-2]="collapsed()">
+
+        <ng-icon [svg]="option().icon" size="20" class="shrink-0" />
+
+        @if (!collapsed()) {
+
+        <span class="
+                        min-w-0
+                        flex-1
+                        truncate
+                        text-left
+                    ">
+            {{ option().label }}
+        </span>
+
+        <ng-icon name="lucideChevronDown" size="16" class="
+                        shrink-0
+                        transition-transform
+                        duration-200
+                    " [class.rotate-180]="expanded()" />
+
+        }
+
+    </button>
+
+
+
+    @if (!collapsed() && expanded()) {
+
+    <div class="ml-4 mt-1 space-y-1">
+
+        @for (
+        child of visibleChildren();
+        track child.route
+        ) {
+
+        <a [routerLink]="child.route" (click)="selectOption()" [routerLinkActive]="[
+        'bg-surface-raised',
+        'text-primary'
+    ]" [routerLinkActiveOptions]="{
+        exact: true
+    }" ariaCurrentWhenActive="page" class="
+        flex
+        items-center
+        gap-3
+        rounded-lg
+        px-3
+        py-2
+        text-sm
+        text-text-muted
+        transition-colors
+        hover:bg-surface-raised
+        hover:text-primary
+    ">
+
+            <ng-icon [svg]="child.icon" size="16" class="shrink-0" />
+
+            <span class="truncate">
+                {{ child.label }}
+            </span>
+
+        </a>
+
+        }
+
+    </div>
+
+    }
+
+</div>
+
+} @else {
+
+
+<a [routerLink]="option().route" (click)="selectOption()" [routerLinkActive]="[
+        'bg-surface-raised',
+        'text-primary'
+    ]" ariaCurrentWhenActive="page" [routerLinkActiveOptions]="{
+        exact: option().route === '/dashboard'
+    }" class="
+        flex
+        items-center
+        rounded-lg
+        py-2.5
+        text-sm
+        font-medium
+        text-text
+        transition-colors
+        hover:bg-surface-raised
+        hover:text-primary
+    " [class.gap-3]="!collapsed()" [class.justify-center]="collapsed()" [class.px-3]="!collapsed()"
+    [class.px-2]="collapsed()">
+
+    <ng-icon [svg]="option().icon" size="20" class="shrink-0" />
+
+    @if (!collapsed()) {
+
+    <span class="truncate">
+        {{ option().label }}
+    </span>
+
+    }
+
+</a>
+
+}

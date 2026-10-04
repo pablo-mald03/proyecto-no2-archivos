@@ -410,7 +410,7 @@ Primero levantar MongoDB:
 npm run docker:db
 ```
 
-Esto ejecuta `docker compose up -d` y deja MongoDB disponible en el host.
+Esto levanta únicamente MongoDB mediante Docker Compose y lo deja disponible para el desarrollo local.
 
 Instalar dependencias:
 
@@ -438,12 +438,12 @@ npm run start:dev
 
 La aplicación quedará disponible en:
 
-- API: `http://localhost:3000/api/v1`
-- Swagger: `http://localhost:3000/api/v1/docs`
+* API: `http://localhost:3000/api/v1`
+* Swagger: `http://localhost:3000/docs`
 
 ### Otros scripts para levantar la aplicación
 
-El proyecto proporciona diferentes comandos según la forma en que se quiera ejecutar la aplicación. Cada uno tiene una responsabilidad específica.
+El proyecto proporciona diferentes comandos según la forma en que se quiera ejecutar la aplicación.
 
 ```bash
 npm run start
@@ -456,6 +456,7 @@ npm run start:dev
 ```
 
 Inicia la API en modo desarrollo con `watch`.
+
 Es el modo recomendado durante el desarrollo.
 
 ```bash
@@ -486,13 +487,30 @@ Para utilizar el fallback completamente dockerizado:
 npm run docker:app
 ```
 
-Este comando construye y levanta el perfil `app`, que incluye:
+Este comando construye y levanta el perfil `app`, compuesto por:
 
 1. MongoDB.
 2. Migraciones.
-3. API.
+3. Seed de datos de demostración.
+4. API.
 
-Las migraciones se ejecutan antes de iniciar la API. Si las migraciones terminan correctamente, Docker permite que el contenedor de la API se inicie.
+El flujo de ejecución es:
+
+```text
+MongoDB
+   ↓
+healthy
+   ↓
+Migraciones
+   ↓
+Seed
+   ↓
+API
+```
+
+Las migraciones se ejecutan antes del seed y el seed se ejecuta antes de iniciar la API.
+
+La migración inicial crea el administrador del sistema utilizando las variables `INITIAL_ADMIN_*`. El seed se encarga únicamente de los datos de demostración.
 
 Para consultar los logs de la API:
 
@@ -504,7 +522,7 @@ npm run docker:logs
 
 El proyecto permite detener los servicios de forma modular.
 
-Si únicamente se desea eliminar los contenedores de la aplicación (`api` y `migrate`), manteniendo MongoDB funcionando:
+Si únicamente se desea eliminar los contenedores de aplicación (`api`, `seed` y `migrate`), manteniendo MongoDB funcionando:
 
 ```bash
 npm run docker:app:down
@@ -513,44 +531,46 @@ npm run docker:app:down
 Este comando ejecuta:
 
 ```bash
-docker compose --profile app rm -sf api migrate
+docker compose --profile app rm -sf api seed migrate
 ```
 
 Es útil cuando se necesita reconstruir o reiniciar únicamente la aplicación sin afectar la base de datos.
 
-Si se desea detener todo el entorno Docker asociado al perfil `app`:
+Si se desea ejecutar únicamente el seed dentro de Docker:
 
 ```bash
-npm run docker:down
+npm run docker:seed
 ```
 
-Este comando ejecuta:
-
-```bash
-docker compose --profile app down
-```
+Este comando ejecuta el servicio `seed` de forma independiente y lo elimina automáticamente al finalizar.
 
 ### Resumen de scripts
 
-| Comando                   | Uso                                          |
-| ------------------------- | -------------------------------------------- |
-| `npm run start`           | Inicia la API normalmente.                   |
-| `npm run start:dev`       | Desarrollo con `watch`.                      |
-| `npm run start:debug`     | Desarrollo con debugging.                    |
-| `npm run start:prod`      | Ejecuta la aplicación compilada.             |
-| `npm run docker:db`       | Levanta únicamente MongoDB.                  |
-| `npm run docker:app`      | Levanta el backend completo mediante Docker. |
-| `npm run docker:logs`     | Muestra los logs de la API Dockerizada.      |
-| `npm run docker:app:down` | Elimina únicamente `api` y `migrate`.        |
-| `npm run docker:down`     | Detiene el entorno Docker del perfil `app`.  |
+| Comando                   | Uso                                                     |
+| ------------------------- | ------------------------------------------------------- |
+| `npm run start`           | Inicia la API normalmente.                              |
+| `npm run start:dev`       | Desarrollo con `watch`.                                 |
+| `npm run start:debug`     | Desarrollo con debugging.                               |
+| `npm run start:prod`      | Ejecuta la aplicación compilada.                        |
+| `npm run docker:db`       | Levanta únicamente MongoDB.                             |
+| `npm run docker:app`      | Levanta el backend completo mediante Docker.            |
+| `npm run docker:logs`     | Muestra los logs de la API Dockerizada.                 |
+| `npm run docker:app:down` | Elimina `api`, `seed` y `migrate`, conservando MongoDB. |
+| `npm run docker:seed`     | Ejecuta únicamente el seed mediante Docker.             |
+| `npm run migrate:list`    | Consulta el estado de las migraciones.                  |
+| `npm run migrate:up`      | Aplica las migraciones pendientes.                      |
+| `npm run migrate:up:all`  | Sincroniza y aplica todas las migraciones pendientes.   |
+| `npm run migrate:down`    | Revierte una migración.                                 |
+| `npm run seed`            | Ejecuta el seed localmente.                             |
+| `npm run seed:dev`        | Compila el proyecto y ejecuta el seed desde `dist`.     |
 
-> Nota: `docker:app:down` es la opción preferida cuando solo se quiere reiniciar o reconstruir la aplicación y conservar MongoDB ejecutándose. `docker:down` se utiliza cuando se desea detener el entorno Docker completo.
+> Nota: `docker:app:down` es la opción preferida cuando solo se quiere eliminar o reconstruir la aplicación y conservar MongoDB. Los volúmenes de MongoDB no se eliminan con este comando.
 
-
+---
 
 ### Fallback: ejecutar toda la aplicación con Docker
 
-Como alternativa al flujo local, el proyecto incluye un perfil Docker para levantar la API completa.
+Como alternativa al flujo local, el proyecto incluye un perfil Docker para levantar la aplicación completa.
 
 ```bash
 npm run docker:app
@@ -561,9 +581,11 @@ Este comando:
 1. Construye las imágenes necesarias.
 2. Levanta MongoDB.
 3. Espera a que MongoDB esté `healthy`.
-4. Ejecuta las migraciones automáticamente.
-5. Si las migraciones terminan correctamente, levanta la API.
-6. Expone la API en el puerto `3000`.
+4. Ejecuta todas las migraciones pendientes.
+5. Crea el administrador inicial mediante la migración correspondiente.
+6. Ejecuta el seed de datos de demostración.
+7. Levanta la API.
+8. Expone la API en el puerto `3000`.
 
 La API queda disponible en:
 
@@ -574,7 +596,7 @@ http://localhost:3000/api/v1
 Swagger:
 
 ```text
-http://localhost:3000/api/v1/docs
+http://localhost:3000/docs
 ```
 
 Para ver los logs de la API:
@@ -583,15 +605,17 @@ Para ver los logs de la API:
 npm run docker:logs
 ```
 
-Para detener el flujo Docker:
+Para eliminar los contenedores de aplicación:
 
 ```bash
-npm run docker:down
+npm run docker:app:down
 ```
+
+Este comando elimina `api`, `seed` y `migrate`, pero conserva MongoDB y sus volúmenes.
 
 > Este perfil funciona como fallback para levantar el proyecto completo cuando se prefiera no ejecutar NestJS directamente en el host. El flujo de desarrollo recomendado continúa siendo ejecutar MongoDB con Docker y NestJS localmente con `npm run start:dev`.
 
-
+---
 
 ## 5. Orden recomendado para ejecutar el proyecto
 
@@ -614,10 +638,12 @@ npm run seed
 npm run start:dev
 ```
 
+Las migraciones crean y mantienen la estructura y configuración inicial de la base de datos. El seed agrega datos de demostración.
+
 Luego abrir Swagger:
 
 ```text
-http://localhost:3000/api/v1/docs
+http://localhost:3000/docs
 ```
 
 ### Flujo alternativo con Docker
@@ -628,57 +654,74 @@ Si se quiere levantar todo el backend mediante Docker:
 npm run docker:app
 ```
 
-Este flujo ya se encarga de esperar MongoDB, ejecutar las migraciones y arrancar la API.
+Este flujo se encarga automáticamente de:
 
+```text
+MongoDB
+   ↓
+MongoDB healthy
+   ↓
+Migraciones
+   ↓
+Administrador inicial
+   ↓
+Seed de demostración
+   ↓
+API
+```
 
+---
 
 ## 6. Datos iniciales (seed)
 
-Ejecutar:
+El seed contiene datos de demostración que pueden cargarse de forma independiente de las migraciones.
+
+Ejecutar localmente:
 
 ```bash
-
 npm run seed
-
 ```
 
-El seed carga los datos iniciales de demostración:
+O utilizar el flujo de desarrollo que compila el proyecto antes de ejecutar el seed:
 
-* usuarios
+```bash
+npm run seed:dev
+```
 
+También puede ejecutarse mediante Docker:
+
+```bash
+npm run docker:seed
+```
+
+El seed carga los datos iniciales de demostración, tales como:
+
+* usuarios de demostración
 * carpetas
-
 * archivos
-
 * comparticiones
-
 * elementos en papelera
-
 * historial de actividad
+
+El usuario administrador inicial **no pertenece al seed**. Se crea mediante una migración para garantizar que exista como parte de la preparación de la base de datos.
+
+Actualmente el seed de desarrollo contiene usuarios de demostración independientes del administrador inicial.
 
 El seed requiere:
 
 * MongoDB funcionando.
-
 * `MONGODB_URI` configurado correctamente.
-
 * Las variables de entorno requeridas por la aplicación.
 
 El script se encuentra en:
 
 ```text
-
 src/seeds/seed.ts
-
 ```
 
-Las credenciales de los usuarios creados por el seed deben consultarse en la configuración actual del seed.
-
-\> Las credenciales de usuarios de demostración son independientes de las credenciales de MongoDB.
+> Las credenciales de los usuarios de demostración son independientes de las credenciales utilizadas por MongoDB.
 
 ---
-
-
 
 ## 7. Migraciones de MongoDB
 
@@ -687,43 +730,63 @@ El proyecto utiliza `ts-migrate-mongoose` para controlar cambios versionados de 
 Las migraciones se encuentran en:
 
 ```text
-
 migrations/
 
 ├── <timestamp>-<nombre>.ts
-
 └── ...
-
 ```
 
 Cada migración define dos operaciones:
 
-\- `up`: aplica el cambio.
-
-\- `down`: revierte el cambio cuando corresponda.
+* `up`: aplica el cambio.
+* `down`: revierte el cambio cuando corresponda.
 
 Las migraciones se ejecutan en orden y su estado se registra en MongoDB. Una migración que ya fue aplicada no debe modificarse; si se necesita otro cambio, se crea una nueva migración.
+
+### Migración del administrador inicial
+
+El administrador inicial del sistema se crea mediante una migración específica.
+
+Esta migración utiliza las siguientes variables de entorno:
+
+```env
+INITIAL_ADMIN_USERNAME=
+INITIAL_ADMIN_EMAIL=
+INITIAL_ADMIN_PASSWORD=
+INITIAL_ADMIN_FIRST_NAME=
+INITIAL_ADMIN_LAST_NAME=
+```
+
+Las variables `INITIAL_ADMIN_*` son utilizadas por la migración y no forman parte de la configuración normal de la API.
+
+La migración:
+
+1. Valida que existan las variables requeridas.
+2. Busca si el administrador ya existe.
+3. Obtiene el rol `ADMIN`.
+4. Genera el hash de la contraseña.
+5. Crea el administrador inicial.
+
+La migración es idempotente: si el administrador ya existe, no crea un usuario duplicado.
+
+El administrador inicial se considera parte de la preparación de la base de datos, mientras que los datos de demostración pertenecen al seed.
 
 ### Requisitos
 
 Antes de ejecutar migraciones:
 
-1\. MongoDB debe estar levantado.
-
-2\. El contenedor debe estar `healthy`.
-
-3\. La URI utilizada por las migraciones debe estar configurada en el entorno local.
-
-4\. Las dependencias del proyecto deben estar instaladas.
+1. MongoDB debe estar levantado.
+2. El contenedor debe estar `healthy`.
+3. La URI utilizada por las migraciones debe estar configurada en el entorno local.
+4. Las variables `INITIAL_ADMIN_*` deben estar disponibles cuando corresponda.
+5. Las dependencias del proyecto deben estar instaladas.
 
 Comprobar MongoDB:
 
 ```bash
-
 docker compose up -d
 
 docker compose ps
-
 ```
 
 El servicio `mongo` debe aparecer como `healthy`.
@@ -733,15 +796,10 @@ El servicio `mongo` debe aparecer como `healthy`.
 Los scripts definidos en `package.json` son:
 
 ```json
-
 "migrate:list": "migrate list",
-
 "migrate:up": "migrate up",
-
 "migrate:up:all": "migrate up --autosync true",
-
 "migrate:down": "migrate down"
-
 ```
 
 ### Crear una migración
@@ -749,25 +807,19 @@ Los scripts definidos en `package.json` son:
 Desde la raíz del backend:
 
 ```bash
-
 npx migrate create <nombre-de-la-migracion>
-
 ```
 
 Por ejemplo:
 
 ```bash
-
 npx migrate create add-user-indexes
-
 ```
 
 La herramienta genera automáticamente un archivo con timestamp dentro de `migrations/`:
 
 ```text
-
 migrations/<timestamp>-add-user-indexes.ts
-
 ```
 
 No se agrega `.ts` al ejecutar `migrate create`; la herramienta genera la extensión.
@@ -775,9 +827,7 @@ No se agrega `.ts` al ejecutar `migrate create`; la herramienta genera la extens
 ### Consultar el estado
 
 ```bash
-
 npm run migrate:list
-
 ```
 
 Esto permite comprobar qué migraciones existen y cuáles están `up` o `down`.
@@ -787,49 +837,31 @@ Esto permite comprobar qué migraciones existen y cuáles están `up` o `down`.
 El comando habitual es:
 
 ```bash
-
 npm run migrate:up
-
 ```
 
 Si existen migraciones nuevas que todavía no están registradas en la base de datos, `ts-migrate-mongoose` puede mostrar un selector para elegir cuáles importar.
 
-Para aplicar todas las migraciones pendientes sin seleccionar una por una, se puede utilizar:
+Para aplicar todas las migraciones pendientes sin seleccionar una por una:
 
 ```bash
-
-npx migrate up --autosync true
-
+npm run migrate:up:all
 ```
 
 La opción `--autosync true` sincroniza automáticamente las migraciones nuevas y después ejecuta las pendientes en orden.
 
-Si se quiere tener este flujo como comando del proyecto, puede agregarse al `package.json`:
+Recomendación:
 
-```json
-
-"migrate:up:all": "migrate up --autosync true"
-
-```
-
-Entonces se ejecutaría con:
-
-```bash
-
-npm run migrate:up:all
-
-```
-
-Recomendación: utilizar `npm run migrate:up` cuando se quiera revisar explícitamente qué migraciones nuevas se van a registrar. Utilizar `migrate:up:all` para un flujo rápido en desarrollo o en despliegues controlados.
+* Utilizar `npm run migrate:up` cuando se quiera revisar explícitamente qué migraciones nuevas se van a registrar.
+* Utilizar `npm run migrate:up:all` para un flujo rápido en desarrollo o en despliegues controlados.
+* El flujo Docker utiliza `migrate:up:all` para automatizar la preparación de la base de datos.
 
 ### Revertir migraciones
 
 El script disponible es:
 
 ```bash
-
 npm run migrate:down
-
 ```
 
 Antes de utilizarlo, revisar qué migración se desea revertir y qué comportamiento tiene definido su función `down`.
@@ -839,92 +871,72 @@ Las migraciones no deben editarse después de haber sido aplicadas en un entorno
 ### Flujo recomendado
 
 ```text
-
 MongoDB healthy
-
       ↓
-
 Crear migración
-
       ↓
-
 Escribir up / down
-
       ↓
-
 Revisar estado
-
       ↓
-
 Aplicar migraciones
-
       ↓
-
 Verificar cambios en MongoDB
-
 ```
 
 Comandos principales:
 
-\| Acción | Comando |
+| Acción                     | Comando                       |
+| -------------------------- | ----------------------------- |
+| Crear migración            | `npx migrate create <nombre>` |
+| Ver estado                 | `npm run migrate:list`        |
+| Aplicar pendientes         | `npm run migrate:up`          |
+| Aplicar todas sin selector | `npm run migrate:up:all`      |
+| Revertir                   | `npm run migrate:down`        |
 
-\| --- | --- |
+### Comprobación desde cero
 
-\| Crear migración | `npx migrate create <nombre>` |
+Para verificar que el administrador es creado por la migración y no por un seed anterior, se puede recrear la base de datos desde cero.
 
-\| Ver estado | `npm run migrate:list` |
+> Este procedimiento elimina los datos de MongoDB. Utilizarlo únicamente cuando no existan datos que se quieran conservar.
 
-\| Aplicar pendientes | `npm run migrate:up` |
+```bash
+docker compose --profile app down -v
+npm run docker:db
+npm run migrate:up:all
+npm run seed:dev
+```
 
-\| Aplicar todas sin selector | `npm run migrate:up:all` |
+El resultado esperado es:
 
-\| Revertir | `npm run migrate:down` |
+```text
+Migraciones
+└── administrador inicial
 
-### Consideraciones
+Seed
+└── pablo-user
+```
 
-\- Las migraciones deben ser pequeñas y enfocadas en un cambio concreto.
+También se puede comprobar el flujo completamente dockerizado:
 
-\- No se deben editar migraciones que ya fueron aplicadas en un entorno compartido.
+```bash
+docker compose --profile app down -v
+npm run docker:app
+docker compose ps
+npm run docker:logs
+```
 
-\- Un cambio posterior debe representarse mediante una nueva migración.
+El estado esperado es:
 
-\- Las migraciones necesitan acceso a MongoDB para consultar y guardar su estado.
-
-\- El usuario utilizado para migraciones debe tener los permisos necesarios para los cambios que realice la migración.
-
-\- El `seed` y las migraciones cumplen funciones diferentes: las migraciones controlan cambios versionados de la base de datos, mientras que `npm run seed` carga datos iniciales de demostración.
-
+```text
+mongo    Up (healthy)
+migrate  Exited (0)
+seed     Exited (0)
+api      Up
+```
 ---
 
-## 8. Pruebas
-
-Pruebas unitarias:
-
-```bash
-
-npm run test
-
-```
-
-Pruebas end-to-end:
-
-```bash
-
-npm run test:e2e
-
-```
-
-Cobertura:
-
-```bash
-
-npm run test:cov
-
-```
-
----
-
-## 9. Arquitectura
+## 8. Arquitectura
 
 Cada módulo sigue la misma separación:
 
@@ -940,7 +952,7 @@ module/
 
 ├── dto/
 
-└── schemas/
+└── entities/
 
 ```
 
@@ -964,13 +976,13 @@ Es el único lugar que conoce Mongoose y la persistencia de datos.
 
 Define los contratos de entrada y validaciones de las solicitudes HTTP.
 
-### `schemas/`
+### `entities/`
 
 Contiene los esquemas utilizados por MongoDB/Mongoose.
 
 ---
 
-## 10. Solución de problemas
+## 9. Solución de problemasa
 
 ### Error `ERESOLVE` al instalar paquetes `@nestjs/*`
 
@@ -1252,7 +1264,7 @@ También comprobar que la cookie esté configurada correctamente por el backend.
 
 ---
 
-## 11. Docker — comandos útiles
+## 10. Docker — comandos útiles
 
 Ver contenedores activos:
 
@@ -1322,7 +1334,7 @@ docker image prune
 
 ---
 
-## 12. Instalación de Docker y Docker Compose
+## 11. Instalación de Docker y Docker Compose
 
 Si el equipo no tiene Docker instalado, seguir estos pasos antes de levantar MongoDB.
 
@@ -1541,6 +1553,6 @@ Si MongoDB aparece funcionando correctamente, continuar con la instalación del 
 \> Nota: Docker Compose moderno se ejecuta mediante `docker compose` con un espacio. No es necesario instalar por separado el antiguo comando `docker-compose`.
 
 
-## 13. Licencia
+## 12. Licencia
 
 Proyecto basado en el starter de [NestJS]\\(https://nestjs.com), licenciado bajo MIT.

@@ -1,0 +1,111 @@
+<div class="
+    fixed
+    inset-0
+    z-40
+    bg-black/50
+    transition-opacity
+    duration-300
+    lg:hidden
+  " [class.pointer-events-none]="!open()" [class.opacity-0]="!open()" [class.pointer-events-auto]="open()"
+  [class.opacity-100]="open()" (click)="closed.emit()"></div>
+
+<aside class="
+    fixed
+    inset-y-0
+    left-0
+    z-50
+    flex
+    w-72
+    max-w-[85vw]
+    flex-col
+    border-r
+    border-border
+    bg-surface
+    shadow-2xl
+    transition-transform
+    duration-300
+    ease-in-out
+    lg:hidden
+  " [class.-translate-x-full]="!open()" [class.translate-x-0]="open()">
+  <div class="
+      flex
+      h-16
+      shrink-0
+      items-center
+      border-b
+      border-border
+      px-4
+    ">
+    <span class="
+        min-w-0
+        flex-1
+        truncate
+        text-xl
+        font-bold
+        text-primary
+      ">
+      Gestion Documental
+    </span>
+
+    <button type="button" (click)="closed.emit()" class="
+        shrink-0
+        rounded-lg
+        p-2
+        text-text-muted
+        transition-colors
+        hover:bg-surface-raised
+        hover:text-text
+      " aria-label="Cerrar menú">
+      <ng-icon name="lucideX" size="22" />
+    </button>
+  </div>
+
+  <app-sidebar-nav class="flex-1" [collapsed]="false" (optionSelected)="closed.emit()" />
+
+  <div class="
+      shrink-0
+      border-t
+      border-border
+      p-3
+    ">
+    <div class="mb-2 min-w-0 px-2">
+      <p class="
+          truncate
+          text-sm
+          font-medium
+          text-text
+        ">
+        {{ user()?.username }}
+      </p>
+
+      <p class="
+          truncate
+          text-xs
+          text-text-muted
+        ">
+        {{ user()?.email }}
+      </p>
+    </div>
+
+    <button type="button" (click)="logout()" class="
+    flex
+    w-full
+    cursor-pointer
+    items-center
+    gap-3
+    rounded-lg
+    px-3
+    py-2.5
+    text-sm
+    font-medium
+    text-text-muted
+    transition-colors
+    hover:bg-surface-raised
+    hover:text-primary
+  " aria-label="Cerrar sesión">
+      <ng-icon [svg]="lucideLogOutIcon" size="20" class="shrink-0" />
+
+      <span>Cerrar sesión</span>
+    </button>
+  </div>
+</aside>

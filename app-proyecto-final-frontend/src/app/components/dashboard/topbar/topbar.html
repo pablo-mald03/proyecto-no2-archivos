@@ -1,0 +1,47 @@
+<header class="
+        flex
+        h-16
+        shrink-0
+        items-center
+        border-b
+        border-border
+        bg-surface
+        px-4
+        sm:px-6
+    ">
+
+
+    <button type="button" (click)="menuToggle.emit()" class="
+            rounded-lg
+            p-2
+            text-text-muted
+            transition-colors
+            hover:bg-surface-raised
+            hover:text-text
+            lg:hidden
+        " aria-label="Abrir menú">
+
+        <ng-icon name="lucideMenu" size="22" />
+
+    </button>
+
+
+    <div class="
+            ml-3
+            flex-1
+            lg:ml-0
+        ">
+
+        <span class="font-semibold">
+            Dashboard
+        </span>
+
+    </div>
+
+
+    <button type="button" (click)="goToProfile()" aria-label="Mi perfil"
+        class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+        <ng-icon [svg]="lucideUserRoundIcon" size="18" />
+    </button>
+
+</header>

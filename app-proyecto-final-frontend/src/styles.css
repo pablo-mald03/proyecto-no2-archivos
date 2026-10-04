@@ -2,10 +2,10 @@
 
 @import "tailwindcss";
 
-
 :root {
-    --color-primary: #DD700B;
-    --color-primary-contrast: #FCF8D8;
+    --color-primary: #0b89dd;
+    --color-primary-hover: #0975bd;
+    --color-primary-contrast: #E0F2FE;
 
     --color-background: #191A18;
     --color-surface: #222320;
@@ -31,9 +31,9 @@ body {
     font-family: Inter, system-ui, sans-serif;
 }
 
-
 @theme {
     --color-primary: var(--color-primary);
+    --color-primary-hover: var(--color-primary-hover);
     --color-primary-contrast: var(--color-primary-contrast);
 
     --color-background: var(--color-background);

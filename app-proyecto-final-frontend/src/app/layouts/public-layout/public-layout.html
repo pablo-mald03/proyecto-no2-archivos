@@ -1,0 +1,44 @@
+<div class="min-h-screen bg-background text-text">
+
+  <div class="hidden md:block">
+
+    <app-landing-topbar 
+      [isAuthenticated]="isAuthenticated()"
+      (sectionSelected)="navigateToSection($event)"
+      (loginClicked)="login()" 
+      (portalClicked)="goToPortal()" 
+      />
+
+  </div>
+
+
+  <div class="md:hidden">
+
+    <app-landing-mobile-topbar
+    [isAuthenticated]="isAuthenticated()"
+    (menuToggle)="toggleMobileSidebar()"
+    (loginClicked)="login()"
+    (portalClicked)="goToPortal()"
+    />
+
+  </div>
+
+
+  <app-landing-mobile-sidebar [open]="mobileSidebarOpen()" (closed)="closeMobileSidebar()"
+    (sectionSelected)="navigateToSection($event)" />
+
+
+  <main class="min-h-[calc(100vh-5rem)]">
+
+    <router-outlet />
+
+  </main>
+
+
+  <div id="contact">
+
+    <app-landing-footer />
+
+  </div>
+
+</div>

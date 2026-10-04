@@ -1,0 +1,53 @@
+<div class="
+    flex
+    min-h-screen
+    items-center
+    justify-center
+    bg-background
+    p-4
+  ">
+  <main class="
+      w-full
+      max-w-md
+      rounded-2xl
+      border
+      border-border
+      bg-surface
+      p-6
+      shadow-xl
+      sm:p-8
+    ">
+
+    <div class="mb-8 text-center">
+
+      <button type="button" (click)="goToLanding()" class="
+    inline-flex
+    items-center
+    justify-center
+    gap-3
+    text-2xl
+    font-bold
+    text-primary
+    transition-opacity
+    hover:opacity-80
+  ">
+        <img src="/icon.ico" alt="Gestion Documental" class="h-9 w-9 rounded-lg" />
+
+        <span class="
+      hidden
+      text-xl
+      font-bold
+      tracking-tight
+      text-primary
+      sm:block
+    ">
+          Gestion Documental
+        </span>
+      </button>
+
+    </div>
+
+    <router-outlet />
+
+  </main>
+</div>

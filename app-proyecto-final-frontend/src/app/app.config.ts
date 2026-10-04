@@ -38,7 +38,7 @@ export const appConfig: ApplicationConfig = {
       return firstValueFrom(
         authService.getCurrentUser()
       ).catch(() => {
-        // No existe una sesión válida.
+        // Valid session doesn't exists
       });
 
     })
