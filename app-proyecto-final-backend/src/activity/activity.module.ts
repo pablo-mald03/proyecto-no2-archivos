@@ -1,9 +1,13 @@
 import { Module } from '@nestjs/common';
-import { ActivityService } from './activity.service';
-import { ActivityController } from './activity.controller';
+
+import { MongooseModule } from '@nestjs/mongoose';
+import { ActivityLogEntity, ActivityLogSchema } from './entities/activity-log.entity';
+import { ActivityLogsRepository } from './repository/activity-logs.repository';
+import { ActivityRecorderService } from './service/activity-recorder.service';
 
 @Module({
-  controllers: [ActivityController],
-  providers: [ActivityService],
+  imports: [MongooseModule.forFeature([{ name: ActivityLogEntity.name, schema: ActivityLogSchema }])],
+  providers: [ActivityLogsRepository, ActivityRecorderService],
+  exports: [ActivityRecorderService],
 })
-export class ActivityModule {}
+export class ActivityModule { }

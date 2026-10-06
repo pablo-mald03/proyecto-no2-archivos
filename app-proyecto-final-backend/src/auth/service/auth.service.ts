@@ -28,6 +28,7 @@ export class AuthService {
         this.refreshTtlSeconds = cfg.getOrThrow<number>('REFRESH_EXPIRES_IN_SECONDS');
     }
 
+    //Principal login method
     async login(dto: LoginDto) {
         const user = await this.users.findByEmailWithPassword(dto.email);
 
@@ -44,6 +45,7 @@ export class AuthService {
         return this.issueSession(user);
     }
 
+    //Principal refresh jwt method
     async refresh(rawRefreshToken?: string) {
         if (!rawRefreshToken) throw new AuthenticationException('Sesión no válida');
 
@@ -57,6 +59,7 @@ export class AuthService {
         return this.issueSession(user);
     }
 
+    //Principal logout jwt method
     async logout(rawRefreshToken?: string): Promise<void> {
         if (rawRefreshToken) {
             await this.refreshTokens.revoke(this.hashToken(rawRefreshToken));
