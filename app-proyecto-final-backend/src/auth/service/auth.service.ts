@@ -10,6 +10,9 @@ import { AuthenticationException } from 'src/common/exceptions/authentication.ex
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
 import { UserDocument } from 'src/users/entities/user.entity';
 import { AuthUserService } from './auth-user.service';
+import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
+import { ActivityAction, ResourceType } from 'src/common/constants/activity-action';
+import { AuthUser } from 'src/users/models/auth-user.model';
 
 //Principal auth service for the API
 @Injectable()
@@ -24,6 +27,7 @@ export class AuthService {
         private readonly jwt: JwtService,
         private readonly refreshTokens: RefreshTokensRepository,
         private readonly authUsers: AuthUserService,
+        private readonly activity: ActivityRecorderService,
     ) {
         this.refreshTtlSeconds = cfg.getOrThrow<number>('REFRESH_EXPIRES_IN_SECONDS');
     }
@@ -42,7 +46,10 @@ export class AuthService {
         if (!user.isActive) throw new UserDisabledException();
 
         await this.users.touchLastLogin(user.id);
-        return this.issueSession(user);
+
+        const session = await this.issueSession(user);
+        this.logAuth(session.user, ActivityAction.USER_LOGGED_IN, 'Inició sesión en la plataforma');
+        return session;
     }
 
     //Principal refresh jwt method
@@ -56,16 +63,23 @@ export class AuthService {
         if (!user) throw new AuthenticationException();
         if (!user.isActive) throw new UserDisabledException();
 
-        return this.issueSession(user);
+        const session = await this.issueSession(user);
+        this.logAuth(session.user, ActivityAction.USER_SESSION_REFRESHED, 'Renovó su sesión');
+        return session;
     }
 
     //Principal logout jwt method
     async logout(rawRefreshToken?: string): Promise<void> {
-        if (rawRefreshToken) {
-            await this.refreshTokens.revoke(this.hashToken(rawRefreshToken));
-        }
+        if (!rawRefreshToken) return;
+
+        const userId = await this.refreshTokens.revoke(this.hashToken(rawRefreshToken));
+        if (!userId) return;
+
+        const user = await this.users.findById(userId.toString());
+        if (user) this.logAuth(user, ActivityAction.USER_LOGGED_OUT, 'Cerró sesión');
     }
 
+    //Helper method to get the acces token
     private async issueSession(user: UserDocument) {
         const accessToken = await this.jwt.signAsync({ sub: user.id });
         const refreshToken = randomBytes(48).toString('base64url');
@@ -77,6 +91,20 @@ export class AuthService {
         );
 
         return { accessToken, refreshToken, user: await this.authUsers.fromUser(user) };
+    }
+
+    //Principal method to log the actions at the auth service
+    private logAuth(
+        actor: Pick<AuthUser, 'id' | 'username' | 'email'>,
+        action: ActivityAction,
+        description: string,
+    ): void {
+        this.activity.record({
+            actor,
+            action,
+            resource: { type: ResourceType.USER, id: actor.id, name: actor.username },
+            description,
+        });
     }
 
     // Encriptation method
