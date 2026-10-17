@@ -28,6 +28,12 @@ export class RoleEntity extends AuditableEntity {
     //Principal flag protection for the role
     @Prop({ default: false })
     isSystem!: boolean;
+
+    @Prop({ default: true })
+    isActive!: boolean;
+
+    @Prop({ type: Date, default: null })
+    deactivatedAt!: Date | null;
 }
 
 //Model POJO representation

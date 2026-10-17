@@ -30,6 +30,11 @@ export const ActivityAction = {
     USER_QUOTA_CHANGED: 'USER_QUOTA_CHANGED',
     USER_PASSWORD_CHANGED: 'USER_PASSWORD_CHANGED',
     SETTING_UPDATED: 'SETTING_UPDATED',
+    ROLE_CREATED: 'ROLE_CREATED',
+    ROLE_UPDATED: 'ROLE_UPDATED',
+    ROLE_PERMISSIONS_CHANGED: 'ROLE_PERMISSIONS_CHANGED',
+    ROLE_ACTIVATED: 'ROLE_ACTIVATED',
+    ROLE_DEACTIVATED: 'ROLE_DEACTIVATED',
 } as const;
 
 
@@ -65,6 +70,11 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
     USER_QUOTA_CHANGED: 'Cuota de almacenamiento modificada',
     USER_PASSWORD_CHANGED: 'Contraseña modificada',
     SETTING_UPDATED: 'Regla del sistema modificada',
+    ROLE_CREATED: 'Rol creado',
+    ROLE_UPDATED: 'Rol actualizado',
+    ROLE_PERMISSIONS_CHANGED: 'Permisos de rol modificados',
+    ROLE_ACTIVATED: 'Rol activado',
+    ROLE_DEACTIVATED: 'Rol desactivado',
 };
 
 //Constant export
