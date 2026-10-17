@@ -1,6 +1,6 @@
 import { Transform } from "class-transformer";
 import { IsString, Length, Matches } from "class-validator";
-import { FieldLimits } from "src/common/constants/field-limits";
+import { FieldLimits } from "src/common/constants/validation/field-limits";
 import { trimUpperCase } from "src/common/utils/transforms";
 
 //Principal assign role request dto class

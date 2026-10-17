@@ -7,7 +7,7 @@ import { UsersSeeder } from './users.seeder';
 import { UsersRepository } from 'src/users/repository/users.repository';
 import { RolesRepository } from 'src/roles/repository/roles.repository';
 import { PasswordService } from 'src/password/service/password.service';
-import { SettingKey } from 'src/common/constants/setting-key';
+import { SettingKey } from 'src/common/constants/validation/setting-key';
 import { SystemSettingsService } from 'src/system-settings/service/system-settings.service';
 
 //Principal function to run all seeders

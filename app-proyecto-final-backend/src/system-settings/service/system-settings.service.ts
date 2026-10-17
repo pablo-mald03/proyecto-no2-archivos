@@ -6,12 +6,12 @@ import { SettingResponseDto } from "../dto/response/setting-response.dto";
 import { UpdateSettingDto } from "../dto/request/update-setting.dto";
 import { AuthUser } from "src/users/models/auth-user.model";
 import { SettingNotFoundException } from "../exceptions/setting-not-foung.exception";
-import { ActivityAction } from "src/common/constants/activity-action";
-import { SettingKey } from "src/common/constants/setting-key";
+import { ActivityAction } from "src/common/constants/actions/activity-action";
+import { SettingKey } from "src/common/constants/validation/setting-key";
 import { InvalidSettingValueException } from "../exceptions/invalid-setting-value.exception";
 import { SystemSettingDocument } from "../entities/system-setting.entity";
 import { SystemSettingMapper } from "../mapper/system-setting.mapper";
-import { ResourceType } from "src/common/constants/resource-type";
+import { ResourceType } from "src/common/constants/actions/resource-type";
 
 /*Service for manage system settings*/
 @Injectable()

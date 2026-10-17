@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Patch } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Permission } from "src/common/constants/permissions";
+import { Permission } from "src/common/constants/permissions/permissions";
 import { RequirePermissions } from "src/common/decorators/require-permissions.decorator";
 import { SystemSettingsService } from "../service/system-settings.service";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";

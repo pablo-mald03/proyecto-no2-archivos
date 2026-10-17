@@ -8,7 +8,7 @@ import { CreateRoleDto } from "../dto/request/create-role.dto";
 import { AuthUser } from "src/users/models/auth-user.model";
 import { RoleDetailResponseDto } from "../dto/response/role-detail-responsel.dto";
 import { RoleAlreadyExistsException } from "../exceptions/role-already-exists.exception";
-import { ActivityAction } from "src/common/constants/activity-action";
+import { ActivityAction } from "src/common/constants/actions/activity-action";
 import { RoleMapper } from "../mapper/role.mapper";
 import { ListRolesQueryDto } from "../dto/request/list-roles-query.dto";
 import { PageResponseDto } from "src/common/dto/page-response.dto";
@@ -24,9 +24,9 @@ import { RoleDocument } from "../entities/role.entity";
 import { PermissionMapper } from "src/permissions/mapper/permissions.mapper";
 import { InvalidRolePermissionsException } from "../exceptions/invalid-role-permission.exception";
 import { EDIT_SUFFIXES } from "../constants/edit-suffixes";
-import { SystemRole } from "src/common/constants/system-roles";
-import { Permission } from "src/common/constants/permissions";
-import { ResourceType } from "src/common/constants/resource-type";
+import { SystemRole } from "src/common/constants/validation/system-roles";
+import { Permission } from "src/common/constants/permissions/permissions";
+import { ResourceType } from "src/common/constants/actions/resource-type";
 
 /*Principal role admin management service */
 @Injectable()

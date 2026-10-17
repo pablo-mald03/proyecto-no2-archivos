@@ -8,11 +8,12 @@ import { RolesModule } from 'src/roles/roles.module';
 import { RefreshTokensModule } from 'src/refresh-tokens/refresh-token.module';
 import { ActivityModule } from 'src/activity/activity.module';
 import { PasswordModule } from 'src/password/password.module';
+import { SystemSettingsModule } from 'src/system-settings/system-settings.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: UserEntity.name, schema: UserSchema }]),
-    RolesModule, RefreshTokensModule, ActivityModule, PasswordModule,
+    RolesModule, RefreshTokensModule, ActivityModule, PasswordModule,SystemSettingsModule
   ],
   controllers: [UsersController],
   providers: [UsersRepository, UsersService],

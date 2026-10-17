@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
-import { FieldLimits } from "src/common/constants/field-limits";
+import { FieldLimits } from "src/common/constants/validation/field-limits";
 import { AuditableEntity } from "src/common/entities/auditable.entity";
 import { Schema as MongooseSchema } from 'mongoose'
 

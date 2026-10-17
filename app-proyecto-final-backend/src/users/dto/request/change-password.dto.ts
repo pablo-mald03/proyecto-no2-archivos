@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString, Length } from "class-validator";
-import { FieldLimits } from "src/common/constants/field-limits";
+import { FieldLimits } from "src/common/constants/validation/field-limits";
 
 /*Principal change password request dto class */
 export class ChangePasswordDto {

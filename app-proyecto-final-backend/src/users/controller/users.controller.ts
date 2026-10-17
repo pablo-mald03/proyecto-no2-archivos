@@ -3,7 +3,7 @@ import { UsersService } from '../service/users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/request/create-user.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
-import { Permission } from 'src/common/constants/permissions';
+import { Permission } from 'src/common/constants/permissions/permissions';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from '../models/auth-user.model';
 import { ListUsersQueryDto } from '../dto/request/list-users-query.dto';

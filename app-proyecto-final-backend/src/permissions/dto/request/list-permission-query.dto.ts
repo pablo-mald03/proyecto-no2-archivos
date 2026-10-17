@@ -2,7 +2,7 @@ import { IsIn, IsOptional, IsString, Length, MaxLength } from "class-validator";
 import { PERMISSION_SORT_FIELDS } from "../../filter/list-permissions-query.dto";
 import { PaginationQueryDto } from "src/common/dto/pagination-query.dto";
 import { Transform } from "class-transformer";
-import { FieldLimits } from "src/common/constants/field-limits";
+import { FieldLimits } from "src/common/constants/validation/field-limits";
 import { trim, trimUpperCase } from "src/common/utils/transforms";
 
 //Principal list permission query dto

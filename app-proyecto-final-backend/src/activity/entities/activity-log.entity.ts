@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { HydratedDocument, Types } from "mongoose";
-import { FieldLimits } from "src/common/constants/field-limits";
+import { FieldLimits } from "src/common/constants/validation/field-limits";
 import { ActivityMetadataEntity, ActivityMetadataSchema } from "./activity-metadata.entity";
-import { ActivityAction } from "src/common/constants/activity-action";
-import { ResourceType } from "src/common/constants/resource-type";
+import { ActivityAction } from "src/common/constants/actions/activity-action";
+import { ResourceType } from "src/common/constants/actions/resource-type";
 
 //Activity log entity
 @Schema({ collection: 'activity_logs', timestamps: { createdAt: true, updatedAt: false } })

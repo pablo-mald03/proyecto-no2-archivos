@@ -8,7 +8,7 @@ import { RefreshTokensRepository } from 'src/refresh-tokens/repository/refresh-t
 import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/request/create-user.dto';
 import { AuthUser } from '../models/auth-user.model';
-import { ActivityAction } from 'src/common/constants/activity-action';
+import { ActivityAction } from 'src/common/constants/actions/activity-action';
 import { UserNotFoundException } from '../exceptions/user-not-found.exception';
 import { UserDetailResponseDto } from '../dto/response/user-detail-response.dto';
 import { UserMapper } from '../mapper/users.mapper';
@@ -26,10 +26,10 @@ import { RoleNotFoundException } from 'src/roles/exceptions/role-not-found.excep
 import { UserAlreadyExistsException } from '../exceptions/user-already-exists.exception';
 import { SelfActionNotAllowedException } from '../exceptions/self-action-not-allowed.exception';
 import { ActivityMetadataEntity } from 'src/activity/entities/activity-metadata.entity';
-import { SystemRole } from 'src/common/constants/system-roles';
+import { SystemRole } from 'src/common/constants/validation/system-roles';
 import { LastAdminException } from '../exceptions/last-admin.exception';
-import { ResourceType } from 'src/common/constants/resource-type';
-import { SettingKey } from 'src/common/constants/setting-key';
+import { ResourceType } from 'src/common/constants/actions/resource-type';
+import { SettingKey } from 'src/common/constants/validation/setting-key';
 import { SystemSettingsService } from 'src/system-settings/service/system-settings.service';
 
 /*Principal user service class */

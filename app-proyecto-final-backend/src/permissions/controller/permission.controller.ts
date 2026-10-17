@@ -2,7 +2,7 @@ import { Controller, Get, Query } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { RequirePermissions } from "src/common/decorators/require-permissions.decorator";
 import { PermissionsService } from "../service/permission.service";
-import { Permission } from "src/common/constants/permissions";
+import { Permission } from "src/common/constants/permissions/permissions";
 import { ListPermissionsQueryDto } from "../dto/request/list-permission-query.dto";
 
 

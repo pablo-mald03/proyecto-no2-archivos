@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { FieldLimits } from 'src/common/constants/field-limits';
+import { FieldLimits } from 'src/common/constants/validation/field-limits';
 import { AuditableEntity } from 'src/common/entities/auditable.entity';
 
 //Principal entity model for the roles table

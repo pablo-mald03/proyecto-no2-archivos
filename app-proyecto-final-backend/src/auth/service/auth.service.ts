@@ -11,8 +11,9 @@ import { UserDisabledException } from 'src/common/exceptions/user-disabled.excep
 import { UserDocument } from 'src/users/entities/user.entity';
 import { AuthUserService } from './auth-user.service';
 import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
-import { ActivityAction, ResourceType } from 'src/common/constants/activity-action';
+import { ActivityAction } from 'src/common/constants/actions/activity-action';
 import { AuthUser } from 'src/users/models/auth-user.model';
+import { ResourceType } from 'src/common/constants/actions/resource-type';
 
 //Principal auth service for the API
 @Injectable()
