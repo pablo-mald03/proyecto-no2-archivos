@@ -6,7 +6,7 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './controller/auth.controller';
 import { AuthCookieService } from './service/auth-cookie.service';
 import { AuthService } from './service/auth.service';
-import { PasswordService } from 'src/users/service/password.service';
+import { PasswordService } from 'src/password/service/password.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshTokensModule } from 'src/refresh-tokens/refresh-token.module';
 import { AuthUserService } from './service/auth-user.service';

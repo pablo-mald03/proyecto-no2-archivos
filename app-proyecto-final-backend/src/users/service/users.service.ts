@@ -1,0 +1,201 @@
+import { Injectable } from '@nestjs/common';
+import { UserDocument } from '../entities/user.entity';
+import { ConfigService } from '@nestjs/config';
+import { UsersRepository } from '../repository/users.repository';
+import { RolesService } from 'src/roles/service/roles.service';
+import { PasswordService } from 'src/password/service/password.service';
+import { RefreshTokensRepository } from 'src/refresh-tokens/repository/refresh-tokens.repository';
+import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
+import { CreateUserDto, UpdateUserDto } from '../dto/request/create-user.dto';
+import { AuthUser } from '../models/auth-user.model';
+import { ActivityAction, ResourceType } from 'src/common/constants/activity-action';
+import { UserNotFoundException } from '../exceptions/user-not-found.exception';
+import { UserDetailResponseDto } from '../dto/response/user-detail-response.dto';
+import { UserMapper } from '../mapper/users.mapper';
+import { ListUsersQueryDto } from '../dto/request/list-users-query.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { UserResponseDto } from '../dto/response/user-response.dto';
+import { AssignRoleDto } from '../dto/request/assign-role.dto';
+import { ChangeUserStatusDto } from '../dto/request/change-user-status.dto';
+import { UpdateQuotaDto } from '../dto/request/update-quota.dto';
+import { InvalidQuotaException } from '../exceptions/invalid-quota.exception';
+import { ChangePasswordDto } from '../dto/request/change-password.dto';
+import { InvalidPasswordChangeException } from '../exceptions/invalid-password-change.exception';
+import { RoleDocument } from 'src/roles/entities/role.entity';
+import { RoleNotFoundException } from 'src/roles/exceptions/role-not-found.exception';
+import { UserAlreadyExistsException } from '../exceptions/user-already-exists.exception';
+import { SelfActionNotAllowedException } from '../exceptions/self-action-not-allowed.exception';
+import { ActivityMetadataEntity } from 'src/activity/entities/activity-metadata.entity';
+import { SystemRole } from 'src/common/constants/system-roles';
+import { LastAdminException } from '../exceptions/last-admin.exception';
+
+/*Principal user service class */
+@Injectable()
+export class UsersService {
+  private readonly defaultQuotaBytes: number;
+
+  constructor(
+    cfg: ConfigService,
+    private readonly users: UsersRepository,
+    private readonly roles: RolesService,
+    private readonly passwords: PasswordService,
+    private readonly refreshTokens: RefreshTokensRepository,
+    private readonly activity: ActivityRecorderService,
+  ) {
+    this.defaultQuotaBytes = cfg.getOrThrow<number>('DEFAULT_QUOTA_BYTES');
+  }
+
+  async create(dto: CreateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
+    const role = await this.roles.getByCodeOrFail(dto.roleCode);
+    await this.assertUnique(dto.email, dto.username);
+
+    const user = await this.users.create({
+      username: dto.username,
+      email: dto.email,
+      passwordHash: await this.passwords.hash(dto.password),
+      firstName: dto.firstName,
+      lastName: dto.lastName,
+      roleId: role._id,
+      storage: { quotaBytes: this.defaultQuotaBytes, usedBytes: 0 },
+    });
+
+    this.log(actor, ActivityAction.USER_CREATED, user, `Creó al usuario ${user.username}`);
+    return UserMapper.toDetail(user, role);
+  }
+
+  async findAll(query: ListUsersQueryDto): Promise<PageResponseDto<UserResponseDto>> {
+    const role = query.roleCode ? await this.roles.getByCodeOrFail(query.roleCode) : undefined;
+    const { content, total } = await this.users.findPage(
+      { search: query.search, isActive: query.isActive, roleId: role?._id }, query);
+
+    const roleMap = await this.roles.getMapByIds([...new Set(content.map((u) => u.roleId.toString()))]);
+    const items = content.map((u) => UserMapper.toResponse(u, this.roleOf(roleMap, u)));
+    return PageResponseDto.of(items, total, query);
+  }
+
+  async findById(id: string): Promise<UserDetailResponseDto> {
+    const user = await this.getOrFail(id);
+    return UserMapper.toDetail(user, await this.roles.getByIdOrFail(user.roleId));
+  }
+
+  async update(id: string, dto: UpdateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
+    const user = await this.getOrFail(id);
+    const changesEmail = dto.email !== undefined && dto.email !== user.email;
+    const changesUsername = dto.username !== undefined && dto.username !== user.username;
+    await this.assertUnique(changesEmail ? dto.email : undefined, changesUsername ? dto.username : undefined, id);
+
+    const updated = await this.users.updateProfile(id, dto);
+    if (!updated) throw new UserNotFoundException();
+
+    this.log(actor, ActivityAction.USER_UPDATED, updated, `Actualizó los datos del usuario ${updated.username}`);
+    return UserMapper.toDetail(updated, await this.roles.getByIdOrFail(updated.roleId));
+  }
+
+  async assignRole(id: string, dto: AssignRoleDto, actor: AuthUser): Promise<UserDetailResponseDto> {
+    this.assertNotSelf(id, actor, 'No puedes cambiar tu propio rol');
+    const user = await this.getOrFail(id);
+    const newRole = await this.roles.getByCodeOrFail(dto.roleCode);
+    if (user.roleId.equals(newRole._id)) return UserMapper.toDetail(user, newRole); 
+
+    await this.assertNotLastAdmin(user);
+    const updated = await this.users.setRole(id, newRole._id);
+    if (!updated) throw new UserNotFoundException();
+
+    this.log(actor, ActivityAction.USER_ROLE_CHANGED, updated,
+      `Cambió el rol de ${updated.username} a ${newRole.name}`);
+    return UserMapper.toDetail(updated, newRole);
+  }
+
+  async changeStatus(id: string, dto: ChangeUserStatusDto, actor: AuthUser): Promise<UserDetailResponseDto> {
+    this.assertNotSelf(id, actor, 'No puedes cambiar tu propio estado');
+    const user = await this.getOrFail(id);
+    const role = await this.roles.getByIdOrFail(user.roleId);
+    if (user.isActive === dto.isActive) return UserMapper.toDetail(user, role);
+
+    if (!dto.isActive) await this.assertNotLastAdmin(user);
+    const updated = await this.users.setActive(id, dto.isActive);
+    if (!updated) throw new UserNotFoundException();
+
+    if (!dto.isActive) await this.refreshTokens.revokeAllByUserId(id);
+
+    this.log(actor, dto.isActive ? ActivityAction.USER_ACTIVATED : ActivityAction.USER_DEACTIVATED, updated,
+      `${dto.isActive ? 'Activó' : 'Desactivó'} al usuario ${updated.username}`);
+    return UserMapper.toDetail(updated, role);
+  }
+
+  async updateQuota(id: string, dto: UpdateQuotaDto, actor: AuthUser): Promise<UserDetailResponseDto> {
+    const user = await this.getOrFail(id);
+    if (dto.quotaBytes < user.storage.usedBytes) throw new InvalidQuotaException();
+
+    const previous = user.storage.quotaBytes;
+    const updated = await this.users.setQuota(id, dto.quotaBytes);
+    if (!updated) throw new UserNotFoundException();
+
+    this.log(actor, ActivityAction.USER_QUOTA_CHANGED, updated,
+      `Cambió la cuota de almacenamiento de ${updated.username}`,
+      { previousSizeBytes: previous, sizeBytes: dto.quotaBytes });
+    return UserMapper.toDetail(updated, await this.roles.getByIdOrFail(updated.roleId));
+  }
+
+  async changePassword(actor: AuthUser, dto: ChangePasswordDto): Promise<void> {
+    if (dto.newPassword !== dto.confirmationPassword) {
+      throw new InvalidPasswordChangeException({ confirmationPassword: 'Las contraseñas no coinciden' });
+    }
+
+    const user = await this.users.findByIdWithPassword(actor.id);
+    if (!user) throw new UserNotFoundException();
+    if (!(await this.passwords.compare(dto.currentPassword, user.passwordHash))) {
+      throw new InvalidPasswordChangeException({ currentPassword: 'La contraseña actual es incorrecta' });
+    }
+
+    await this.users.setPasswordHash(actor.id, await this.passwords.hash(dto.newPassword));
+    await this.refreshTokens.revokeAllByUserId(actor.id);
+
+    this.log(actor, ActivityAction.USER_PASSWORD_CHANGED, user, 'Cambió su contraseña');
+  }
+
+  // ---- Helper methods ----
+
+  private async getOrFail(id: string): Promise<UserDocument> {
+    const user = await this.users.findById(id);
+    if (!user) throw new UserNotFoundException();
+    return user;
+  }
+
+  private roleOf(map: Map<string, RoleDocument>, user: UserDocument): RoleDocument {
+    const role = map.get(user.roleId.toString());
+    if (!role) throw new RoleNotFoundException(); 
+    return role;
+  }
+
+  private async assertUnique(email?: string, username?: string, excludeId?: string): Promise<void> {
+    const [emailTaken, usernameTaken] = await Promise.all([
+      email ? this.users.existsByEmail(email, excludeId) : false,
+      username ? this.users.existsByUsername(username, excludeId) : false,
+    ]);
+    const errors: Record<string, string> = {};
+    if (emailTaken) errors.email = 'El correo ya está registrado';
+    if (usernameTaken) errors.username = 'El nombre de usuario ya está en uso';
+    if (Object.keys(errors).length) throw new UserAlreadyExistsException(errors);
+  }
+
+  private assertNotSelf(id: string, actor: AuthUser, message: string): void {
+    if (id === actor.id) throw new SelfActionNotAllowedException(message);
+  }
+
+  // The last active ADMIN can neither be deactivated nor lose the role
+  private async assertNotLastAdmin(user: UserDocument): Promise<void> {
+    if (!user.isActive) return;
+    const admin = await this.roles.getByCodeOrFail(SystemRole.ADMIN);
+    if (!user.roleId.equals(admin._id)) return;
+    if ((await this.users.countActiveByRoleId(admin._id)) <= 1) throw new LastAdminException();
+  }
+
+  private log(actor: AuthUser, action: ActivityAction, target: UserDocument,
+              description: string, metadata?: ActivityMetadataEntity): void {
+    this.activity.record({
+      actor, action, description, metadata,
+      resource: { type: ResourceType.USER, id: target.id, name: target.username },
+    });
+  }
+}

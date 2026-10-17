@@ -6,7 +6,7 @@ import { DEV_PASSWORD, DEV_USERS } from './data/dev-users.data';
 import { UsersSeeder } from './users.seeder';
 import { UsersRepository } from 'src/users/repository/users.repository';
 import { RolesRepository } from 'src/roles/repository/roles.repository';
-import { PasswordService } from 'src/users/service/password.service';
+import { PasswordService } from 'src/password/service/password.service';
 
 //Principal function to run all seeders
 async function run(): Promise<void> {

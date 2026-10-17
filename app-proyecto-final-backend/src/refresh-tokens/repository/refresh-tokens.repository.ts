@@ -30,4 +30,12 @@ export class RefreshTokensRepository {
             .updateOne({ tokenHash, revokedAt: null }, { $set: { revokedAt: new Date() } })
             .exec();
     }
+
+    //Method to revoke all user tokens by id
+    async revokeAllByUserId(userId: string): Promise<void> {
+        await this.model.updateMany(
+            { userId: new Types.ObjectId(userId), revokedAt: null },
+            { revokedAt: new Date() },
+        );
+    }
 }

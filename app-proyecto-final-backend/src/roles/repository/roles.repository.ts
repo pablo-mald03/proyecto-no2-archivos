@@ -13,6 +13,11 @@ export class RolesRepository {
         return this.model.findById(id).exec();
     }
 
+    //Method to find the roles by ids
+    findByIds(ids: string[]): Promise<RoleDocument[]> {
+        return this.model.find({ _id: { $in: ids } }).exec();
+    }
+
     //Method to find role by code (alias) 
     findByCode(code: string): Promise<RoleDocument | null> {
         return this.model.findOne({ code }).exec();

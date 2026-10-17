@@ -26,11 +26,17 @@ export const ActivityAction = {
     USER_LOGGED_IN: 'USER_LOGGED_IN',
     USER_LOGGED_OUT: 'USER_LOGGED_OUT',
     USER_SESSION_REFRESHED: 'USER_SESSION_REFRESHED',
+    USER_CREATED: 'USER_CREATED',
+    USER_UPDATED: 'USER_UPDATED',
+    USER_ROLE_CHANGED: 'USER_ROLE_CHANGED',
+    USER_ACTIVATED: 'USER_ACTIVATED',
+    USER_DEACTIVATED: 'USER_DEACTIVATED',
+    USER_QUOTA_CHANGED: 'USER_QUOTA_CHANGED',
+    USER_PASSWORD_CHANGED: 'USER_PASSWORD_CHANGED'
 } as const;
 
 
-// common/constants/activity-action-labels.ts
-// Record<ActivityAction, string> makes the compiler fail if a new action has no label
+//Activity actions
 export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
     FILE_UPLOADED: 'Archivo subido',
     FILE_DOWNLOADED: 'Archivo descargado',
@@ -54,6 +60,13 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
     USER_LOGGED_IN: 'Inicio de sesión',
     USER_LOGGED_OUT: 'Cierre de sesión',
     USER_SESSION_REFRESHED: 'Sesión renovada',
+    USER_CREATED: 'Usuario creado',
+    USER_UPDATED: 'Usuario actualizado',
+    USER_ROLE_CHANGED: 'Rol de usuario modificado',
+    USER_ACTIVATED: 'Usuario activado',
+    USER_DEACTIVATED: 'Usuario desactivado',
+    USER_QUOTA_CHANGED: 'Cuota de almacenamiento modificada',
+    USER_PASSWORD_CHANGED: 'Contraseña modificada',
 };
 
 //Constant export
