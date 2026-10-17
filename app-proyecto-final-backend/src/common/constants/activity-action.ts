@@ -1,7 +1,3 @@
-
-export const ResourceType = { FILE: 'FILE', FOLDER: 'FOLDER', USER: 'USER' } as const;
-
-
 //Activity logs action
 export const ActivityAction = {
     FILE_UPLOADED: 'FILE_UPLOADED',
@@ -32,7 +28,8 @@ export const ActivityAction = {
     USER_ACTIVATED: 'USER_ACTIVATED',
     USER_DEACTIVATED: 'USER_DEACTIVATED',
     USER_QUOTA_CHANGED: 'USER_QUOTA_CHANGED',
-    USER_PASSWORD_CHANGED: 'USER_PASSWORD_CHANGED'
+    USER_PASSWORD_CHANGED: 'USER_PASSWORD_CHANGED',
+    SETTING_UPDATED: 'SETTING_UPDATED',
 } as const;
 
 
@@ -67,6 +64,7 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
     USER_DEACTIVATED: 'Usuario desactivado',
     USER_QUOTA_CHANGED: 'Cuota de almacenamiento modificada',
     USER_PASSWORD_CHANGED: 'Contraseña modificada',
+    SETTING_UPDATED: 'Regla del sistema modificada',
 };
 
 //Constant export

@@ -8,7 +8,7 @@ import { RefreshTokensRepository } from 'src/refresh-tokens/repository/refresh-t
 import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/request/create-user.dto';
 import { AuthUser } from '../models/auth-user.model';
-import { ActivityAction, ResourceType } from 'src/common/constants/activity-action';
+import { ActivityAction } from 'src/common/constants/activity-action';
 import { UserNotFoundException } from '../exceptions/user-not-found.exception';
 import { UserDetailResponseDto } from '../dto/response/user-detail-response.dto';
 import { UserMapper } from '../mapper/users.mapper';
@@ -28,25 +28,28 @@ import { SelfActionNotAllowedException } from '../exceptions/self-action-not-all
 import { ActivityMetadataEntity } from 'src/activity/entities/activity-metadata.entity';
 import { SystemRole } from 'src/common/constants/system-roles';
 import { LastAdminException } from '../exceptions/last-admin.exception';
+import { ResourceType } from 'src/common/constants/resource-type';
+import { SettingKey } from 'src/common/constants/setting-key';
+import { SystemSettingsService } from 'src/system-settings/service/system-settings.service';
 
 /*Principal user service class */
 @Injectable()
 export class UsersService {
-  private readonly defaultQuotaBytes: number;
 
   constructor(
-    cfg: ConfigService,
     private readonly users: UsersRepository,
     private readonly roles: RolesService,
     private readonly passwords: PasswordService,
     private readonly refreshTokens: RefreshTokensRepository,
     private readonly activity: ActivityRecorderService,
-  ) {
-    this.defaultQuotaBytes = cfg.getOrThrow<number>('DEFAULT_QUOTA_BYTES');
-  }
+    private readonly settings: SystemSettingsService,
+  ) { }
 
+
+  /*Principal method to create a new user */
   async create(dto: CreateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
-    const role = await this.roles.getByCodeOrFail(dto.roleCode);
+    const roleCode = dto.roleCode ?? (await this.settings.getString(SettingKey.USERS_DEFAULT_ROLE_CODE));
+    const role = await this.roles.getByCodeOrFail(roleCode);
     await this.assertUnique(dto.email, dto.username);
 
     const user = await this.users.create({
@@ -56,13 +59,14 @@ export class UsersService {
       firstName: dto.firstName,
       lastName: dto.lastName,
       roleId: role._id,
-      storage: { quotaBytes: this.defaultQuotaBytes, usedBytes: 0 },
+      storage: { quotaBytes: await this.settings.getNumber(SettingKey.STORAGE_DEFAULT_QUOTA_BYTES), usedBytes: 0 },
     });
 
     this.log(actor, ActivityAction.USER_CREATED, user, `Creó al usuario ${user.username}`);
     return UserMapper.toDetail(user, role);
   }
 
+  /*Principal method to fetch all registered users */
   async findAll(query: ListUsersQueryDto): Promise<PageResponseDto<UserResponseDto>> {
     const role = query.roleCode ? await this.roles.getByCodeOrFail(query.roleCode) : undefined;
     const { content, total } = await this.users.findPage(
@@ -73,11 +77,13 @@ export class UsersService {
     return PageResponseDto.of(items, total, query);
   }
 
+  /*Principal method to fetch an user by id*/
   async findById(id: string): Promise<UserDetailResponseDto> {
     const user = await this.getOrFail(id);
     return UserMapper.toDetail(user, await this.roles.getByIdOrFail(user.roleId));
   }
 
+  /*Principal method to update an user */
   async update(id: string, dto: UpdateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     const user = await this.getOrFail(id);
     const changesEmail = dto.email !== undefined && dto.email !== user.email;
@@ -91,11 +97,12 @@ export class UsersService {
     return UserMapper.toDetail(updated, await this.roles.getByIdOrFail(updated.roleId));
   }
 
+  /*Principal method to assign a role to an user */
   async assignRole(id: string, dto: AssignRoleDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     this.assertNotSelf(id, actor, 'No puedes cambiar tu propio rol');
     const user = await this.getOrFail(id);
     const newRole = await this.roles.getByCodeOrFail(dto.roleCode);
-    if (user.roleId.equals(newRole._id)) return UserMapper.toDetail(user, newRole); 
+    if (user.roleId.equals(newRole._id)) return UserMapper.toDetail(user, newRole);
 
     await this.assertNotLastAdmin(user);
     const updated = await this.users.setRole(id, newRole._id);
@@ -106,6 +113,7 @@ export class UsersService {
     return UserMapper.toDetail(updated, newRole);
   }
 
+  /*Principal method to change the status of an user */
   async changeStatus(id: string, dto: ChangeUserStatusDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     this.assertNotSelf(id, actor, 'No puedes cambiar tu propio estado');
     const user = await this.getOrFail(id);
@@ -123,6 +131,7 @@ export class UsersService {
     return UserMapper.toDetail(updated, role);
   }
 
+  /*Principal method to update the storage quota of an user */
   async updateQuota(id: string, dto: UpdateQuotaDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     const user = await this.getOrFail(id);
     if (dto.quotaBytes < user.storage.usedBytes) throw new InvalidQuotaException();
@@ -137,6 +146,7 @@ export class UsersService {
     return UserMapper.toDetail(updated, await this.roles.getByIdOrFail(updated.roleId));
   }
 
+  /*Principal method to change the password of an user */
   async changePassword(actor: AuthUser, dto: ChangePasswordDto): Promise<void> {
     if (dto.newPassword !== dto.confirmationPassword) {
       throw new InvalidPasswordChangeException({ confirmationPassword: 'Las contraseñas no coinciden' });
@@ -154,20 +164,21 @@ export class UsersService {
     this.log(actor, ActivityAction.USER_PASSWORD_CHANGED, user, 'Cambió su contraseña');
   }
 
-  // ---- Helper methods ----
-
+  /*Helper method to get an user by id*/
   private async getOrFail(id: string): Promise<UserDocument> {
     const user = await this.users.findById(id);
     if (!user) throw new UserNotFoundException();
     return user;
   }
 
+  /*Helper method to get a role by id*/
   private roleOf(map: Map<string, RoleDocument>, user: UserDocument): RoleDocument {
     const role = map.get(user.roleId.toString());
-    if (!role) throw new RoleNotFoundException(); 
+    if (!role) throw new RoleNotFoundException();
     return role;
   }
 
+  /*Helper method to assert that an email and username are unique*/
   private async assertUnique(email?: string, username?: string, excludeId?: string): Promise<void> {
     const [emailTaken, usernameTaken] = await Promise.all([
       email ? this.users.existsByEmail(email, excludeId) : false,
@@ -179,11 +190,12 @@ export class UsersService {
     if (Object.keys(errors).length) throw new UserAlreadyExistsException(errors);
   }
 
+  /*Helper method to assert that an action is not performed by the same user*/
   private assertNotSelf(id: string, actor: AuthUser, message: string): void {
     if (id === actor.id) throw new SelfActionNotAllowedException(message);
   }
 
-  // The last active ADMIN can neither be deactivated nor lose the role
+  /*Helper method to assert that an action is not performed by the last admin*/
   private async assertNotLastAdmin(user: UserDocument): Promise<void> {
     if (!user.isActive) return;
     const admin = await this.roles.getByCodeOrFail(SystemRole.ADMIN);
@@ -191,8 +203,9 @@ export class UsersService {
     if ((await this.users.countActiveByRoleId(admin._id)) <= 1) throw new LastAdminException();
   }
 
+  /*Helper method to log an action performed by an user*/
   private log(actor: AuthUser, action: ActivityAction, target: UserDocument,
-              description: string, metadata?: ActivityMetadataEntity): void {
+    description: string, metadata?: ActivityMetadataEntity): void {
     this.activity.record({
       actor, action, description, metadata,
       resource: { type: ResourceType.USER, id: target.id, name: target.username },

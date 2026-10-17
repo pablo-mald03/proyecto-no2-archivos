@@ -15,5 +15,6 @@ export const FieldLimits = {
     ACTOR_USERNAME: { min: 3, max: 60 },
     ACTOR_EMAIL: { min: 5, max: 254 },
     TARGET_EMAIL: { min: 5, max: 254 },
+    SETTING_KEY: { min: 3, max: 100 }
 
 } as const;
