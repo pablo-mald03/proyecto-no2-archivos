@@ -78,7 +78,7 @@ export class SystemSettingsService {
       case SettingKey.USERS_DEFAULT_ROLE_CODE: {
         if (typeof value !== 'string') throw new InvalidSettingValueException('El rol debe ser un texto');
         const code = value.trim().toUpperCase();
-        await this.roles.getByCodeOrFail(code);
+        await this.roles.getAssignableByCodeOrFail(code);
         return code;
       }
       default:

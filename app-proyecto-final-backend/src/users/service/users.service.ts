@@ -49,7 +49,7 @@ export class UsersService {
   /*Principal method to create a new user */
   async create(dto: CreateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     const roleCode = dto.roleCode ?? (await this.settings.getString(SettingKey.USERS_DEFAULT_ROLE_CODE));
-    const role = await this.roles.getByCodeOrFail(roleCode);
+    const role = await this.roles.getAssignableByCodeOrFail(roleCode);
     await this.assertUnique(dto.email, dto.username);
 
     const user = await this.users.create({
@@ -101,7 +101,7 @@ export class UsersService {
   async assignRole(id: string, dto: AssignRoleDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     this.assertNotSelf(id, actor, 'No puedes cambiar tu propio rol');
     const user = await this.getOrFail(id);
-    const newRole = await this.roles.getByCodeOrFail(dto.roleCode);
+    const newRole = await this.roles.getAssignableByCodeOrFail(dto.roleCode);
     if (user.roleId.equals(newRole._id)) return UserMapper.toDetail(user, newRole);
 
     await this.assertNotLastAdmin(user);

@@ -234,6 +234,84 @@ mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}
 
 \> Para una instalación local se recomienda utilizar explícitamente `localhost:27017` para evitar problemas si MongoDB inicializa el replica set utilizando el hostname de la máquina.
 
+
+### Usar MongoDB nativo con el backend
+
+Una vez configurado el replica set `rs0`, se puede ejecutar el backend utilizando MongoDB instalado directamente en Linux, sin depender del contenedor Docker.
+
+#### 1. Crear el usuario administrador local
+
+Si todavía no existe un usuario administrador y la instalación permite crear el primer usuario sin autenticación, ejecutar:
+
+```javascript
+mongosh
+```
+
+```javascript
+use admin
+
+db.createUser({
+  user: "root",
+  pwd: passwordPrompt(),
+  roles: [{ role: "root", db: "admin" }]
+})
+```
+
+Si la autenticación ya está habilitada, conectarse con un usuario autorizado para crear usuarios.
+
+#### 2. Habilitar autenticación
+
+Editar `/etc/mongod.conf` y comprobar que estén configuradas ambas opciones:
+
+```yaml
+security:
+  authorization: enabled
+
+replication:
+  replSetName: rs0
+```
+
+No duplicar secciones existentes. Reiniciar el servicio:
+
+```bash
+sudo systemctl restart mongod
+```
+
+#### 3. Configurar el archivo `.env`
+
+Cambiar las URI para utilizar el usuario administrador local:
+
+```env
+MONGODB_URI=mongodb://root:<password-URL-encoded>@localhost:27017/gestion_documental?authSource=admin&replicaSet=rs0
+
+MIGRATE_MONGO_URI=mongodb://root:<password-URL-encoded>@localhost:27017/gestion_documental?authSource=admin&replicaSet=rs0
+```
+
+Sustituir `<password-URL-encoded>` por la contraseña del usuario `root`, codificada para utilizarse en una URI.
+
+Estas variables deben declararse una sola vez. Las variables `MONGO_ROOT_USER`, `MONGO_ROOT_PASSWORD`, `MONGO_APP_USER` y `MONGO_MIGRATE_USER` utilizadas por Docker no crean automáticamente usuarios en MongoDB nativo.
+
+#### 4. Alternar entre MongoDB nativo y Docker
+
+Para utilizar MongoDB nativo, detener el contenedor y arrancar el servicio local:
+
+```bash
+docker compose stop mongo
+sudo systemctl start mongod
+```
+
+Para regresar a Docker:
+
+```bash
+sudo systemctl stop mongod
+docker compose up -d mongo
+```
+
+En ambos casos, verificar que MongoDB esté disponible antes de iniciar la API.
+
+> **Importante:** MongoDB nativo y Docker mantienen bases de datos, usuarios y datos independientes. El usuario administrador local se recomienda únicamente para desarrollo; en producción deben utilizarse cuentas con permisos limitados.
+
+
 ---
 
 ## 1.3. MongoDB Atlas
