@@ -9,7 +9,7 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { type AuthUser } from 'src/users/models/auth-user.model';
 
 //Auth controller
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     //Dependencies
