@@ -2,6 +2,7 @@ import type { Connection } from 'mongoose';
 
 const COLLECTION = 'files';
 
+//Migration for create files collection and indexes
 const validator = {
   $jsonSchema: {
     bsonType: 'object',
@@ -48,22 +49,17 @@ export async function up(connection: Connection): Promise<void> {
   }
 
   await db.collection(COLLECTION).createIndexes([
-    // Unique active sibling file name per owner and folder
     {
       key: { ownerId: 1, folderId: 1, name: 1 },
       name: 'ownerId_folderId_name_active_unique',
       unique: true,
       partialFilterExpression: { isDeleted: false },
     },
-    // Listing files in folder
     { key: { ownerId: 1, folderId: 1, isDeleted: 1 }, name: 'ownerId_folderId_isDeleted' },
-    // Filter by extension and size
     { key: { ownerId: 1, extension: 1, isDeleted: 1 }, name: 'ownerId_extension_isDeleted' },
     { key: { ownerId: 1, sizeBytes: 1, isDeleted: 1 }, name: 'ownerId_sizeBytes_isDeleted' },
-    // Trash listing and batch operations
     { key: { trashBatchId: 1 }, name: 'trashBatchId' },
     { key: { ownerId: 1, isTrashRoot: 1 }, name: 'ownerId_isTrashRoot' },
-    // GridFS lookup
     { key: { gridFsId: 1 }, name: 'gridFsId' },
   ]);
 }

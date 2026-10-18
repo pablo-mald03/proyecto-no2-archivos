@@ -4,7 +4,6 @@
   (dblclick)="itemDoubleClicked.emit(item())" (contextmenu)="onRightClick($event)">
 
   <div class="flex items-center gap-3 min-w-0 flex-1">
-
     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
       [class.bg-amber-500/10]="item().type === 'folder'" [class.text-amber-500]="item().type === 'folder'"
       [class.bg-blue-500/10]="item().type === 'file' && item().extension === 'txt'"
@@ -22,7 +21,6 @@
         {{ item().updatedAt | date:'mediumDate' }} • {{ formattedSize() }}
       </p>
     </div>
-
   </div>
 
   <div class="hidden sm:block w-36 text-xs text-text-muted truncate">
@@ -33,16 +31,16 @@
     {{ formattedSize() }}
   </div>
 
-  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-
-    <button type="button" aria-label="Compartir" (click)="$event.stopPropagation(); shareClicked.emit(item())"
+  <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+    (click)="$event.stopPropagation()">
+    <button type="button" aria-label="Compartir" (click)="shareClicked.emit(item())"
       class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
       title="Compartir">
       <ng-icon [svg]="lucideShareIcon" size="16" />
     </button>
 
     @if (item().type === 'file') {
-    <button type="button" aria-label="Vista previa" (click)="$event.stopPropagation(); previewClicked.emit(item())"
+    <button type="button" aria-label="Vista previa" (click)="previewClicked.emit(item())"
       class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
       title="Vista previa">
       <ng-icon [svg]="lucideEyeIcon" size="16" />
@@ -54,11 +52,11 @@
       title="Más opciones">
       <ng-icon [svg]="lucideMoreIcon" size="16" />
     </button>
-
   </div>
 
   @if (contextMenuOpen()) {
-  <div class="fixed z-50 pointer-events-auto" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
+  <div class="fixed z-50 pointer-events-auto" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y"
+    (click)="$event.stopPropagation()">
     <app-custom-toggle-menu [isOpen]="contextMenuOpen()" (closed)="closeContextMenu()">
 
       @if (item().type === 'file') {
@@ -69,6 +67,10 @@
 
       <app-custom-toggle-menu-item [icon]="lucideShareIcon" (clicked)="shareClicked.emit(item()); closeContextMenu()">
         Compartir
+      </app-custom-toggle-menu-item>
+
+      <app-custom-toggle-menu-item [icon]="lucidePencilIcon" (clicked)="renameClicked.emit(item()); closeContextMenu()">
+        Renombrar
       </app-custom-toggle-menu-item>
 
       <app-custom-toggle-menu-item [icon]="lucideDownloadIcon"
@@ -85,5 +87,4 @@
     </app-custom-toggle-menu>
   </div>
   }
-
 </div>

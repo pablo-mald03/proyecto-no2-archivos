@@ -2,6 +2,7 @@ import type { Connection } from 'mongoose';
 
 const COLLECTION = 'shares';
 
+//Migration for create shares collection and indexes
 const validator = {
   $jsonSchema: {
     bsonType: 'object',
@@ -39,17 +40,13 @@ export async function up(connection: Connection): Promise<void> {
   }
 
   await db.collection(COLLECTION).createIndexes([
-    // Unique share entry per resource, grantee type and grantee id
     {
       key: { resourceType: 1, resourceId: 1, granteeType: 1, granteeId: 1 },
       name: 'resourceType_resourceId_grantee_unique',
       unique: true,
     },
-    // Querying all shares on a resource
     { key: { resourceType: 1, resourceId: 1 }, name: 'resourceType_resourceId' },
-    // Querying items shared with a specific user
     { key: { granteeId: 1, resourceType: 1 }, name: 'granteeId_resourceType' },
-    // Querying items shared by an owner
     { key: { ownerId: 1 }, name: 'ownerId' },
   ]);
 }

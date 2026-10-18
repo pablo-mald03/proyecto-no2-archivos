@@ -13,6 +13,7 @@ import { lucideChevronDown, lucidePlus, lucideSearch, lucideSlidersHorizontal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
 import { DriveActionService } from '../../../core/services/drive-action.service';
+import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -26,7 +27,8 @@ import { DriveActionService } from '../../../core/services/drive-action.service'
     CustomAlert,
     CustomInfiniteScroll,
     DriveItemRow,
-    UploadFileModalComponent
+    UploadFileModalComponent,
+    FolderModalComponent
   ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
@@ -64,10 +66,23 @@ export class DriveFilesPageComponent implements OnInit {
   readonly currentFolderId = signal<string | null>(null);
   readonly isInsideFolder = computed(() => !!this.currentFolderId());
 
+  readonly isFolderModalOpen = signal(false);
+  readonly folderModalMode = signal<'create' | 'rename'>('create');
+  readonly folderInitialName = signal('');
+
+  readonly folderItemType = signal<'folder' | 'file'>('folder');
+
   constructor() {
     effect(() => {
       if (this.driveAction.uploadTriggered()) {
         this.openUploadModal();
+      }
+
+      if (this.driveAction.folderModalOpen()) {
+        this.folderModalMode.set(this.driveAction.folderModalMode());
+        this.folderItemType.set(this.driveAction.folderItemType()); 
+        this.folderInitialName.set(this.driveAction.folderInitialName());
+        this.isFolderModalOpen.set(true);
       }
     });
   }
@@ -141,9 +156,31 @@ export class DriveFilesPageComponent implements OnInit {
   }
 
 
+  handleFolderSubmit(folderName: string): void {
+    const parentId = this.currentFolderId();
+    const mode = this.folderModalMode();
+    const targetId = this.driveAction.folderTargetId();
+
+    if (mode === 'create') {
+      // TODO POST /api/v1/folders
+      console.log(`Creando carpeta '${folderName}' con parentId:`, parentId);
+      this.toastService.success(`Carpeta '${folderName}' creada con éxito.`, 'Carpeta creada');
+    } else {
+      // TODO PATCH /api/v1/folders/{id}/rename[cite: 1]
+      console.log(`Renombrando carpeta ID ${targetId} a '${folderName}'`);
+      this.toastService.success(`Carpeta renombrada a '${folderName}'.`, 'Carpeta actualizada');
+    }
+
+    this.isFolderModalOpen.set(false);
+    this.loadMockFiles(parentId);
+  }
+
+
   //Pagination method
   loadMore(): void {
   }
+
+
 
   //Row actions
   onShare(item: DriveItem): void {
@@ -178,5 +215,14 @@ export class DriveFilesPageComponent implements OnInit {
   //Upload file method
   uploadFile(): void {
     this.openUploadModal();
+  }
+
+  onRename(item: DriveItem): void {
+    this.driveAction.openRenameModal(item.id, item.name, item.type);
+  }
+
+  closeFolderModal(): void {
+    this.isFolderModalOpen.set(false);
+    this.driveAction.closeFolderModal();
   }
 }

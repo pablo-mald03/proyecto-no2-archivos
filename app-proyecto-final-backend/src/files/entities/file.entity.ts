@@ -5,6 +5,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { FolderEntity } from 'src/folders/entities/folder.entity';
 import { FieldLimits } from 'src/common/constants/validation/field-limits';
 
+/*Principal file entity model */
 @Schema({ collection: 'files', timestamps: true })
 export class FileEntity extends AuditableEntity {
   @Prop({ type: Types.ObjectId, ref: UserEntity.name, required: true, index: true })
@@ -49,5 +50,7 @@ export class FileEntity extends AuditableEntity {
   isTrashRoot!: boolean;
 }
 
+/*Model POJO representation*/
 export type FileDocument = HydratedDocument<FileEntity>;
+/*Entity mapping for persistence layer*/
 export const FileSchema = SchemaFactory.createForClass(FileEntity);

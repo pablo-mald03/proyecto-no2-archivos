@@ -39,12 +39,14 @@ export class UserLayout {
 
   async uploadFile(): Promise<void> {
     await this.router.navigate(['/drive/files']);
-    
+
     this.driveAction.triggerUpload();
   }
 
   createFolder(): void {
-    // TODO: open new folder modal
+    this.router.navigate(['/drive/files']).then(() => {
+      this.driveAction.openCreateFolderModal();
+    });
   }
 
   //Logout method

@@ -50,7 +50,7 @@
     <div class="flex flex-col gap-1 divide-y divide-border/20">
       @for (driveItem of items(); track driveItem.id) {
       <app-drive-item-row [item]="driveItem" (shareClicked)="onShare($event)" (previewClicked)="onPreview($event)"
-        (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)"
+        (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)" (renameClicked)="onRename($event)"
         (itemDoubleClicked)="onOpenItem($event)" (itemClicked)="onOpenItem($event)" />
       }
     </div>
@@ -62,5 +62,7 @@
   <app-upload-file-modal-component [isOpen]="isUploadModalOpen()" (closed)="closeUploadModal()"
     (fileUploaded)="handleFileUpload($event)" />
 
+  <app-folder-modal-component [isOpen]="isFolderModalOpen()" [mode]="folderModalMode()" [itemType]="folderItemType()"
+    [initialName]="folderInitialName()" (closed)="closeFolderModal()" (submitted)="handleFolderSubmit($event)" />
 
 </div>

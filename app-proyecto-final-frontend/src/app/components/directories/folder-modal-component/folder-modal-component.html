@@ -1,0 +1,47 @@
+<app-custom-modal-component
+  [isOpen]="isOpen()" 
+  [title]="modalTitle()" 
+  [subtitle]="modalSubtitle()"
+  maxWidth="sm"
+  (closed)="close()"
+>
+  <form (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+    
+    <div class="flex flex-col gap-1">
+      <app-custom-textfield 
+        [label]="inputLabel()" 
+        [placeholder]="inputPlaceholder()" 
+        [control]="nameControl"
+        [icon]="fieldIcon()"
+        [clearable]="true"
+      />
+
+      @if (nameControl.touched && nameControl.errors) {
+        <div class="mt-1 text-xs text-error">
+          @if (nameControl.errors['required']) {
+            <span>El nombre es obligatorio.</span>
+          } @else if (nameControl.errors['invalidCharacters']) {
+            <span>Contiene caracteres no permitidos (\ / : * ? " &lt; &gt; |).</span>
+          } @else if (nameControl.errors['invalidExtension']) {
+            <span>{{ nameControl.errors['invalidExtension'] }}</span>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <app-custom-button 
+        label="Cancelar" 
+        variant="ghost" 
+        type="button"
+        (clicked)="close()" 
+      />
+      <app-custom-button 
+        [label]="submitButtonLabel()" 
+        [disabled]="nameControl.invalid" 
+        type="submit"
+      />
+    </div>
+
+  </form>
+</app-custom-modal-component>

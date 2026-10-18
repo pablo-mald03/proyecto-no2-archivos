@@ -1,6 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { DriveItem } from '../../../features/drive/drive-item.model';
-import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideMapPlus, lucideMenu, lucideOption, lucideProportions, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideMapPlus, lucideMenu, lucideOption, lucidePencil, lucideProportions, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
 import { CustomToggleMenu } from '../custom-toggle-menu/custom-toggle-menu';
 import { CustomToggleMenuItem } from '../custom-toggle-menu-item/custom-toggle-menu-item';
 import { NgIcon } from '@ng-icons/core';
@@ -18,6 +18,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
   templateUrl: './drive-item-row.html',
   styleUrl: './drive-item-row.css',
 })
+//Principal drive item row
 export class DriveItemRow {
   // Inputs & Outputs
   readonly item = input.required<DriveItem>();
@@ -29,8 +30,7 @@ export class DriveItemRow {
   readonly previewClicked = output<DriveItem>();
   readonly downloadClicked = output<DriveItem>();
   readonly deleteClicked = output<DriveItem>();
-
-
+  readonly renameClicked = output<DriveItem>(); 
 
   // State for Context Menu 
   readonly contextMenuOpen = signal(false);
@@ -45,6 +45,7 @@ export class DriveItemRow {
   readonly lucideMoreIcon = lucideMenu;
   readonly lucideDownloadIcon = lucideDownload;
   readonly lucideTrashIcon = lucideTrash2;
+  readonly lucidePencilIcon = lucidePencil;
 
   // Icon type computed logic
   readonly itemIcon = computed(() => {
