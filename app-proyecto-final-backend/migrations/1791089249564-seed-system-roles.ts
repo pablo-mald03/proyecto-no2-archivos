@@ -13,6 +13,10 @@ export async function up(connection: Connection): Promise<void> {
 
   const now = new Date();
 
+  const adminPermissions = catalog
+    .map((p) => p.code as string)
+    .filter((code) => code !== 'DRIVE_ACCESS');
+
   await connection.collection('roles').bulkWrite([
     {
       updateOne: {
@@ -21,7 +25,7 @@ export async function up(connection: Connection): Promise<void> {
           $setOnInsert: {
             name: 'Administrador',
             description: 'Supervisa la plataforma, administra usuarios y consulta información global',
-            permissions: catalog.map((p) => p.code as string),
+            permissions: adminPermissions, 
             isSystem: true,
             createdAt: now,
             updatedAt: now,

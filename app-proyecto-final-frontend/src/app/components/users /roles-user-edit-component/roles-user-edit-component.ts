@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomCard } from '../../common/custom-card/custom-card';
@@ -21,7 +21,8 @@ import { RolePage } from '../../../features/roles/models/pagination/role-paginat
   imports: [
     NgIcon,
     CustomButton,
-    CustomCard
+    CustomCard,
+    RoleSelectorComponent
   ],
   templateUrl: './roles-user-edit-component.html',
   styleUrl: './roles-user-edit-component.css',
@@ -49,6 +50,15 @@ export class RolesUserEditComponent implements OnInit {
   readonly lucideShieldIcon = lucideShield;
   readonly lucideUserIcon = lucideUserRound;
   readonly lucideMailIcon = lucideMail;
+
+
+  readonly selectedRoles = computed(() => {
+    const roleCode = this.selectedRoleCode();
+
+    return this.roles().filter(
+      role => role.code === roleCode
+    );
+  });
 
   ngOnInit(): void {
     this.loadUser();
@@ -102,10 +112,6 @@ export class RolesUserEditComponent implements OnInit {
       });
   }
 
-  selectRole(roleCode: string): void {
-    this.selectedRoleCode.set(roleCode);
-  }
-
   updateRole(): void {
     const user = this.user();
     const roleCode = this.selectedRoleCode();
@@ -147,6 +153,16 @@ export class RolesUserEditComponent implements OnInit {
           );
         },
       });
+  }
+
+  selectRole(role: Role): void {
+    this.selectedRoleCode.set(role.code);
+  }
+
+  removeRole(role: Role): void {
+    if (this.selectedRoleCode() === role.code) {
+      this.selectedRoleCode.set('');
+    }
   }
 
   goBack(): void {

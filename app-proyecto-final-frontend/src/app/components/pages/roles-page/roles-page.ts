@@ -34,19 +34,19 @@ export class RolesPage implements OnInit {
 
   //Permissions
   readonly canCreate = computed(() =>
-    this.authState.hasPermission('roles:crear')
+    this.authState.hasPermission('ROLES_CREATE')
   );
 
   readonly canEdit = computed(() =>
-    this.authState.hasPermission('roles:editar')
+    this.authState.hasPermission('ROLES_UPDATE')
   );
 
   readonly canChangeStatus = computed(() =>
-    this.authState.hasPermission('roles:eliminar')
+    this.authState.hasPermission('ROLES_DELETE')
   );
 
   readonly canAssignPermissions = computed(() =>
-    this.authState.hasPermission('roles:asignar_permisos')
+    this.authState.hasPermission('ROLES_PERMISSIONS_UPDATE')
   );
 
   //Dialog props

@@ -1,7 +1,7 @@
 
 //Principal permission model
 export interface Permission {
-    id: number;
+    code: number;
     module: string;
     action: string;
     description: string;

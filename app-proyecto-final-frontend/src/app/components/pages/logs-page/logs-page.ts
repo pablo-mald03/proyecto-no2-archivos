@@ -125,7 +125,7 @@ export class LogsPage implements OnInit {
       page: this.page(),
       size: this.size,
       sortBy: 'createdAt',
-      direction: 'DESC',
+      direction: 'asc',
       module: this.moduleFilterControl.value || undefined,
       createdFrom: this.fromDateControl.value || undefined,
       createdTo: this.toDateControl.value || undefined

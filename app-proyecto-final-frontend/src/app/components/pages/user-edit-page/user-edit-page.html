@@ -41,7 +41,7 @@
                     </ul>
 
                     <div class="mt-6 flex justify-end">
-                        <app-custom-button label="Editar información" variant="secondary" size="md"
+                        <app-custom-button label="Editar información" variant="secondary" size="md" [bordered]="true"
                             [icon]="lucideUserIcon" (clicked)="editProfile()" />
                     </div>
                 </div>
@@ -77,7 +77,7 @@
                     </ul>
 
                     <div class="mt-6 flex justify-end">
-                        <app-custom-button label="Administrar roles" variant="success" size="md"
+                        <app-custom-button label="Administrar roles" variant="success" size="md" [bordered]="true"
                             [icon]="lucideShieldIcon" (clicked)="editRoles()" />
                     </div>
                 </div>

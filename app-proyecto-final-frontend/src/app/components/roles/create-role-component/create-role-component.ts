@@ -144,14 +144,14 @@ export class CreateRoleComponent implements OnInit {
         page: 0,
         size: 50,
         sortBy: 'module',
-        direction: 'ASC'
+        direction: 'asc'
       }),
       catalog: this.permissionService.getCatalog()
     }).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: ({ permissions, catalog }) => {
-        this.permissions.set(permissions.permissions);
+        this.permissions.set(permissions.content);
         this.catalog.set(catalog);
       },
       error: (error: ErrorResponse) => {
@@ -173,7 +173,7 @@ export class CreateRoleComponent implements OnInit {
     this.selectedPermissions.update(
       permissions =>
         permissions.filter(
-          selected => selected.id !== permission.id
+          selected => selected.code !== permission.code
         )
     );
   }
@@ -191,7 +191,7 @@ export class CreateRoleComponent implements OnInit {
       name: this.form.controls.name.value,
       description: this.form.controls.description.value,
       permissionIds: this.selectedPermissions().map(
-        permission => permission.id
+        permission => permission.code
       )
     };
 

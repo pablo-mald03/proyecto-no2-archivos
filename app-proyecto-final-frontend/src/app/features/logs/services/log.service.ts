@@ -50,7 +50,7 @@ export class LogService {
         }
 
         return this.http.get<LogPage>(
-            `${this.apiUrl}/logs`,
+            `${this.apiUrl}/activity`,
             { params }
         ).pipe(
             catchError(
@@ -63,7 +63,7 @@ export class LogService {
     //Method to get the available log modules to feed the filter dropdown
     getModules(): Observable<string[]> {
         return this.http.get<string[]>(
-            `${this.apiUrl}/logs/modules`
+            `${this.apiUrl}/activity/modules`
         ).pipe(
             catchError(
                 (error: HttpErrorResponse) =>

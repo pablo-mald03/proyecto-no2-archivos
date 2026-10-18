@@ -20,6 +20,8 @@ const PERMISSIONS: readonly PermissionSeed[] = [
   ['ROLES_DELETE', 'ROLES', 'Eliminar roles', 'Eliminar roles que no sean del sistema'],
   ['ROLES_PERMISSIONS_UPDATE', 'ROLES', 'Gestionar permisos de roles', 'Agregar o quitar permisos de un rol'],
 
+  ['PERMISSIONS_VIEW', 'PERMISSIONS', 'Ver permisos', 'Consultar el catálogo de permisos disponibles'], // <--- ¡Agregado aquí!
+
   ['SETTINGS_VIEW', 'SETTINGS', 'Ver configuración', 'Consultar las reglas generales del sistema'],
   ['SETTINGS_UPDATE', 'SETTINGS', 'Modificar configuración', 'Modificar las reglas generales del sistema'],
 

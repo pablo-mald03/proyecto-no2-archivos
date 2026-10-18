@@ -28,14 +28,14 @@ export class PermissionSelectorComponent {
   //Selected ids
   readonly selectedIds = computed(() =>
     new Set(
-      this.selectedPermissions().map(permission => permission.id)
+      this.selectedPermissions().map(permission => permission.code)
     )
   );
 
   //Available permissions
   readonly availablePermissions = computed(() =>
     this.permissions().filter(
-      permission => !this.selectedIds().has(permission.id)
+      permission => !this.selectedIds().has(permission.code)
     )
   );
 

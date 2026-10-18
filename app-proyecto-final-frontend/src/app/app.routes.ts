@@ -131,13 +131,13 @@ export const routes: Routes = [
                                 path: ':id/edit/profile',
                                 component: ProfileUserEditComponent,
                                 canActivate: [permissionGuard],
-                                data: { permission: 'usuarios:editar' }
+                                data: { permission: 'USERS_UPDATE' }
                             },
                             {
                                 path: ':id/edit/roles',
                                 component: RolesUserEditComponent,
                                 canActivate: [permissionGuard],
-                                data: { permission: 'usuarios:editar' }
+                                data: { permission: 'USERS_UPDATE' }
                             }
 
                         ]
@@ -177,7 +177,7 @@ export const routes: Routes = [
                                 component: RolePermissionsComponent,
                                 canActivate: [permissionGuard],
                                 data: {
-                                    permission: 'roles:asignar_permisos'
+                                    permission: 'ROLES_PERMISSIONS_UPDATE'
                                 }
                             }
                         ]
@@ -188,7 +188,7 @@ export const routes: Routes = [
                             permissionGuard
                         ],
                         data: {
-                            permission: 'permisos:consultar'
+                            permission: 'PERMISSIONS_VIEW'
                         },
                         children: [
 

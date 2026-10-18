@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomButton } from '../../common/custom-button/custom-button';
@@ -6,6 +6,7 @@ import { User } from '../../../features/users/models/user.model';
 import { lucideMail, lucidePencil, lucidePhone, lucidePower, lucideShieldCheck, lucideUserRound } from '@ng-icons/lucide';
 import { CardActionsDirective } from '../../common/custom-card/types/card-actions.directive';
 import { DatePipe } from '@angular/common';
+import { AuthState } from '../../../stores/auth.state';
 
 @Component({
   selector: 'app-user-card',
@@ -30,12 +31,18 @@ export class UserCard {
   editClicked = output<User>();
   statusClicked = output<User>();
 
+  private readonly authState = inject(AuthState);
+
   readonly lucideUserIcon = lucideUserRound;
   readonly lucideMailIcon = lucideMail;
   readonly lucidePhoneIcon = lucidePhone;
   readonly lucideShieldIcon = lucideShieldCheck;
   readonly lucideEditIcon = lucidePencil;
   readonly lucidePowerIcon = lucidePower;
+
+  readonly hasDriveAccess = computed(() =>
+    this.authState.hasPermission('DRIVE_ACCESS')
+  );
 
   readonly storagePercentage = computed(() => {
     const { usedBytes, quotaBytes } = this.user().storage;

@@ -48,7 +48,7 @@ export class PermissionsPage implements OnInit {
       page: this.page(),
       size: this.size,
       sortBy: 'module',
-      direction: 'ASC'
+      direction: 'asc'
     }).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
@@ -56,7 +56,7 @@ export class PermissionsPage implements OnInit {
         this.permissions.update(
           permissions => [
             ...permissions,
-            ...response.permissions
+            ...(response.content || [])
           ]
         );
 

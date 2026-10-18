@@ -38,8 +38,8 @@ export class PermissionService {
             params = params.set('module', query.module);
         }
 
-        if (query.action) {
-            params = params.set('action', query.action);
+        if (query.search) {
+            params = params.set('search', query.search);
         }
 
         return this.http.get<PermissionPage>(

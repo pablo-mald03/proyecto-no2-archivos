@@ -1,123 +1,78 @@
 <div class="flex h-full min-h-0 flex-col gap-6">
-  <div class="flex items-center gap-3">
-    <app-custom-button
-      variant="ghost"
-      size="sm"
-      [icon]="lucideArrowLeftIcon"
-      ariaLabel="Volver"
-      [disabled]="saving()"
-      (clicked)="goBack()"
-    />
-
-    <div>
-      <h1 class="text-2xl font-bold text-text">
-        Rol del usuario
-      </h1>
-
-      <p class="mt-1 text-sm text-text-muted">
-        Administra el rol de acceso del usuario.
-      </p>
-    </div>
-  </div>
-
-  @if (loading()) {
-    <div class="flex min-h-64 items-center justify-center">
-      <div class="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary"></div>
-    </div>
-  } @else if (user(); as currentUser) {
-    <app-custom-card [hoverable]="false">
-      <div class="flex items-center gap-4">
-        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-800/40 bg-blue-950/60 text-blue-400">
-          <ng-icon [svg]="lucideUserIcon" size="24" />
-        </div>
-
-        <div class="min-w-0 flex-1">
-          <h2 class="truncate text-lg font-semibold text-text">
-            {{ currentUser.username }}
-          </h2>
-
-          <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <div class="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-surface-hover/50 px-2.5 py-1 text-text-muted">
-              <ng-icon [svg]="lucideMailIcon" size="16" class="text-blue-400" />
-              <span class="truncate">{{ currentUser.email }}</span>
-            </div>
-
-            <div class="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-surface-hover/50 px-2.5 py-1 text-text-muted">
-              <ng-icon [svg]="lucideShieldIcon" size="16" class="text-blue-400" />
-              <span>Rol actual: <strong class="font-semibold text-text">{{ currentUser.roleName }}</strong></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </app-custom-card>
-
-    <app-custom-card [hoverable]="false">
-      <div class="mb-6 flex items-start gap-4">
-        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-950/60 text-green-400">
-          <ng-icon [svg]="lucideShieldIcon" size="20" />
-        </div>
+    <div class="flex items-center gap-3">
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            [disabled]="saving()" (clicked)="goBack()" />
 
         <div>
-          <h2 class="text-lg font-semibold text-text">
-            Asignación de rol
-          </h2>
+            <h1 class="text-2xl font-bold text-text">
+                Rol del usuario
+            </h1>
 
-          <p class="mt-1 text-sm leading-6 text-text-muted">
-            Selecciona el rol que tendrá asignado este usuario.
-          </p>
+            <p class="mt-1 text-sm text-text-muted">
+                Administra el rol de acceso del usuario.
+            </p>
         </div>
-      </div>
+    </div>
 
-      <label
-        for="roleCode"
-        class="mb-2 block text-sm font-medium text-text"
-      >
-        Rol
-      </label>
+    @if (loading()) {
+    <div class="flex min-h-64 items-center justify-center">
+        <div class="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary"></div>
+    </div>
+    } @else if (user(); as currentUser) {
+    <app-custom-card [hoverable]="false">
+        <div class="flex items-center gap-4">
+            <div
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-blue-800/40 bg-blue-950/60 text-blue-400">
+                <ng-icon [svg]="lucideUserIcon" size="24" />
+            </div>
 
-      <select
-        id="roleCode"
-        class="w-full rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text outline-none focus:ring-2 focus:ring-primary"
-        [value]="selectedRoleCode()"
-        (change)="selectRole($any($event.target).value)"
-        [disabled]="rolesLoading() || saving() || roles().length === 0"
-      >
-        <option value="" disabled>
-          {{
-            rolesLoading()
-              ? 'Cargando roles...'
-              : roles().length === 0
-                ? 'No hay roles activos disponibles'
-                : 'Seleccione un rol'
-          }}
-        </option>
+            <div class="min-w-0 flex-1">
+                <h2 class="truncate text-lg font-semibold text-text">
+                    {{ currentUser.username }}
+                </h2>
 
-        @for (role of roles(); track role.id) {
-          <option [value]="role.code">
-            {{ role.name }}
-          </option>
-        }
-      </select>
+                <div class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                    <div
+                        class="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-surface-hover/50 px-2.5 py-1 text-text-muted">
+                        <ng-icon [svg]="lucideMailIcon" size="16" class="text-blue-400" />
+                        <span class="truncate">{{ currentUser.email }}</span>
+                    </div>
 
-      <div class="mt-6 flex justify-end gap-3 border-t border-border pt-5">
-        <app-custom-button
-          label="Cancelar"
-          variant="ghost"
-          size="md"
-          [disabled]="saving()"
-          (clicked)="goBack()"
-        />
-
-        <app-custom-button
-          label="Guardar rol"
-          variant="success"
-          size="md"
-          [icon]="lucideSaveIcon"
-          [loading]="saving()"
-          [disabled]="rolesLoading() || roles().length === 0"
-          (clicked)="updateRole()"
-        />
-      </div>
+                    <div
+                        class="inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-surface-hover/50 px-2.5 py-1 text-text-muted">
+                        <ng-icon [svg]="lucideShieldIcon" size="16" class="text-blue-400" />
+                        <span>Rol actual: <strong class="font-semibold text-text">{{ currentUser.roleName
+                                }}</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </app-custom-card>
-  }
+
+    <app-custom-card [hoverable]="false">
+        <div class="mb-6 flex items-start gap-4">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-950/60 text-green-400">
+                <ng-icon [svg]="lucideShieldIcon" size="20" />
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-text">
+                    Asignación de rol
+                </h2>
+
+                <p class="mt-1 text-sm leading-6 text-text-muted">
+                    Selecciona el rol que tendrá asignado este usuario.
+                </p>
+            </div>
+        </div>
+
+        <app-role-selector-component [roles]="roles()" [selectedRoles]="selectedRoles()" [loading]="rolesLoading()"
+            (roleSelected)="selectRole($event)" (roleRemoved)="removeRole($event)" />
+
+        <div class="mt-6 flex justify-end border-t border-border pt-5">
+            <app-custom-button label="Guardar rol" variant="success" size="md" [icon]="lucideSaveIcon" [bordered]="true"
+                [loading]="saving()" [disabled]="rolesLoading() || roles().length === 0" (clicked)="updateRole()" />
+        </div>
+    </app-custom-card>
+    }
 </div>
