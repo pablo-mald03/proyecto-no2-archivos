@@ -1,21 +1,22 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft, lucideAtSign, lucideCake, lucideCheck, lucideCircleCheck, lucideCircleX, lucideIdCard, lucideMail, lucidePhone, lucideShield, lucideUser } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideAtSign, lucideCake, lucideCalendar, lucideCheck, lucideChevronRight, lucideCircleCheck, lucideCircleX, lucideHardDrive, lucideIdCard, lucideKeyRound, lucideMail, lucidePhone, lucideShield, lucideShieldCheck, lucideUser, lucideUserPen } from '@ng-icons/lucide';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { Router } from '@angular/router';
 import { UserService } from '../../../features/users/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { UserProfile } from '../../../features/users/models/user-profile.model';
 import { finalize } from 'rxjs';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { AuthState } from '../../../stores/auth.state';
+import { UserProfile } from '../../../features/users/models/response/user-profile.model';
 
 @Component({
   selector: 'app-profile-component',
   standalone: true,
   host: { class: 'flex flex-col h-full min-h-0' },
-  imports: [NgIcon, DatePipe, CustomCard, CustomAlert],
+  imports: [NgIcon, CustomCard, CustomAlert,DatePipe],
   viewProviders: [
     provideIcons({
       lucideArrowLeft,
@@ -45,6 +46,8 @@ export class ProfileComponent implements OnInit {
   readonly profile = signal<UserProfile | null>(null);
   readonly loading = signal(false);
 
+  private readonly authState = inject(AuthState);
+
   //Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
   readonly lucideMailIcon = lucideMail;
@@ -56,20 +59,35 @@ export class ProfileComponent implements OnInit {
   readonly lucideCheckIcon = lucideCircleCheck;
   readonly lucideXIcon = lucideCircleX;
   readonly lucideUserIcon = lucideUser;
+  readonly lucideShieldCheckIcon = lucideShieldCheck;
+  readonly lucideUserEditIcon = lucideUserPen;
+  readonly lucideKeyRoundIcon = lucideKeyRound;
+  readonly lucideChevronRightIcon = lucideChevronRight;
+  readonly lucideCalendarIcon = lucideCalendar;
+  readonly lucideHardDriveIcon = lucideHardDrive;
 
-  //Initials for the avatar
+  // Iniciales del Avatar basadas en firstName y lastName
   readonly initials = computed(() => {
     const p = this.profile();
     if (!p) return '';
-    return `${p.name[0] ?? ''}${p.firstName[0] ?? ''}`.toUpperCase();
+    return `${p.firstName?.[0] ?? ''}${p.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
-  //Full name
+  // Nombre completo
   readonly fullName = computed(() => {
     const p = this.profile();
     if (!p) return '';
-    return `${p.name} ${p.firstName}`;
+    return `${p.firstName} ${p.lastName}`;
   });
+
+  // Porcentaje de almacenamiento usado
+  readonly storagePercentage = computed(() => {
+    const s = this.profile()?.storage;
+    if (!s || s.quotaBytes === 0) return 0;
+    const percentage = (s.usedBytes / s.quotaBytes) * 100;
+    return Math.min(Math.round(percentage), 100);
+  });
+
 
   ngOnInit(): void {
     this.loadProfile();
@@ -92,8 +110,31 @@ export class ProfileComponent implements OnInit {
       });
   }
 
+  // Formateador limpio de bytes a MB o GB
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 MB';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+  openEditProfileModal(): void {
+
+  }
+
+  openChangePasswordModal(): void {
+
+  }
+
+
   //Go back method
   goBack(): void {
-    this.router.navigate(['/dashboard']);
+    const user = this.authState.user();
+    if (user?.roleCode === 'USER') {
+      this.router.navigate(['/drive']);
+    } else {
+      this.router.navigate(['/dashboard']);
+    }
   }
 }

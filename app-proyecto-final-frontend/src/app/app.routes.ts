@@ -25,6 +25,7 @@ import { CreateRoleComponent } from './components/roles/create-role-component/cr
 import { RoleEditComponent } from './components/roles/role-edit-component/role-edit-component';
 import { RolePermissionsComponent } from './components/roles/role-permissions-component/role-permissions-component';
 import { PermissionsPage } from './components/pages/permissions-page/permissions-page';
+import { RegisterUserComponent } from './components/auth/register-user-component/register-user-component';
 
 export const routes: Routes = [
 
@@ -51,10 +52,13 @@ export const routes: Routes = [
                 path: 'login',
                 component: LoginComponent
             },
-
             {
                 path: 'forgot-password',
                 component: ForgotPasswordComponent
+            },
+            {
+                path: 'register',
+                component: RegisterUserComponent
             }
 
         ]
@@ -66,6 +70,7 @@ export const routes: Routes = [
         data: { role: ROLES.USER },
         children: [
             { path: '', component: DriveHome },
+            { path: 'profile', component: ProfileComponent },
 
         ],
     },

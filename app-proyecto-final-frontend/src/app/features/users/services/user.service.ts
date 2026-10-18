@@ -12,7 +12,8 @@ import { User } from "../models/user.model";
 import { UpdateUserRequest } from "../models/request/update-user-request.model";
 import { UpdateUserRolesRequest } from "../models/request/update-user-roles-request.model";
 import { UserRoleAssignment } from "../models/request/user-role-assignment.model";
-import { UserProfile } from "../models/user-profile.model";
+import { RegisterUserSelfRequest } from "../models/request/register-user-self.request";
+import { UserProfile } from "../models/response/user-profile.model";
 
 @Injectable({
     providedIn: 'root'
@@ -81,6 +82,18 @@ export class UserService {
         );
     }
 
+
+    // Self register user endpoint request
+    registerSelf(request: RegisterUserSelfRequest): Observable<void> {
+        return this.http.post<void>(
+            `${this.apiUrl}/users/register`,
+            request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
+        );
+    }
 
     //Register user endpoint request
     registerUser(request: RegisterUserRequest): Observable<RegisterUserResponse> {
@@ -214,7 +227,4 @@ export class UserService {
         };
 
     }
-
-
-
 }
