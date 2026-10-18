@@ -2,7 +2,6 @@
     <app-custom-button [label]="collapsed() ? undefined : 'Nuevo'" ariaLabel="Nuevo" [icon]="lucidePlusIcon" size="lg"
         class="w-full" (clicked)="toggle()" />
 
-
     @if (open()) {
     <div role="menu"
         class="absolute left-0 top-full z-30 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-surface p-1.5 shadow-2xl">
@@ -18,5 +17,4 @@
         </button>
     </div>
     }
-
 </div>

@@ -1,9 +1,18 @@
 import { Module } from '@nestjs/common';
-import { FoldersService } from './folders.service';
-import { FoldersController } from './folders.controller';
+import { MongooseModule } from '@nestjs/mongoose';
+import { FolderEntity, FolderSchema } from './entities/folder.entity';
+import { FoldersRepository } from './repository/folders.repository';
+import { FoldersService } from './service/folders.service';
+import { FoldersController } from './controller/folders.controller';
+import { ActivityModule } from 'src/activity/activity.module';
 
 @Module({
+  imports: [
+    MongooseModule.forFeature([{ name: FolderEntity.name, schema: FolderSchema }]),
+    ActivityModule,
+  ],
   controllers: [FoldersController],
-  providers: [FoldersService],
+  providers: [FoldersRepository, FoldersService],
+  exports: [FoldersRepository, FoldersService],
 })
-export class FoldersModule {}
+export class FoldersModule { }
