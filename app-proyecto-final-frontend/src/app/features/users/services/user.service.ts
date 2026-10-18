@@ -192,20 +192,14 @@ export class UserService {
 
 
     //Principal method to update the user roles
-    updateUserRoles(id: string, request: UpdateUserRolesRequest
-    ): Observable<void> {
-        return this.http.put<void>(
-            `${this.apiUrl}/users/${id}/roles`,
-            request
+    updateUserRole(id: string,request: UpdateUserRolesRequest): Observable<User> {
+        return this.http.patch<User>(
+            `${this.apiUrl}/users/${id}/role`,
+            request,
         ).pipe(
-
-            catchError(
-                (error: HttpErrorResponse) =>
-                    throwError(
-                        () => this.parseError(error)
-                    )
-            )
-
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error)),
+            ),
         );
     }
 

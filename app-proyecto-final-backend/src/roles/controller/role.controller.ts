@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Patch, Post, Put, Query } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { RolesAdminService } from "../service/role-admin.service";
 import { RequirePermissions } from "src/common/decorators/require-permissions.decorator";
 import { Permission } from "src/common/constants/permissions/permissions";
@@ -11,6 +11,7 @@ import { ParseObjectIdPipe } from "@nestjs/mongoose";
 import { UpdateRolePermissionsDto } from "../dto/request/update-role-permissions.dto";
 import { UpdateRoleDto } from "../dto/request/update-role.dto";
 import { ChangeRoleStatusDto } from "../dto/request/change-role-status.dto";
+import { PaginatedRolesResponseDto } from "../dto/response/role-response.dto";
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -29,6 +30,7 @@ export class RolesController {
   @Get()
   @RequirePermissions(Permission.ROLES_VIEW)
   @ApiOperation({ summary: 'List roles with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedRolesResponseDto })
   findAll(@Query() query: ListRolesQueryDto) {
     return this.roles.findAll(query);
   }

@@ -77,7 +77,7 @@ export class RoleService {
     }
 
     //Method change the role status
-    changeStatus(id: number, status: boolean): Observable<void> {
+    changeStatus(id: string, status: boolean): Observable<void> {
         return this.http.patch<void>(
             `${this.apiUrl}/roles/${id}/status`,
             { status }

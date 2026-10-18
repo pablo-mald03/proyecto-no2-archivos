@@ -5,5 +5,5 @@ export interface UserQuery {
   page?: number;
   size?: number;
   sortBy?: string;
-  direction?: 'ASC' | 'DESC';
+  direction?: 'asc' | 'desc';
 }

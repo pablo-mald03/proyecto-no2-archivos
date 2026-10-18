@@ -1,0 +1,67 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+  <div
+    class="flex flex-col gap-4 sm:flex-row sm:items-center
+           sm:justify-between"
+  >
+    <div>
+      <h1 class="text-2xl font-bold text-text">
+        Usuarios
+      </h1>
+
+      <p class="mt-1 text-sm text-text-muted">
+        Administra los usuarios del sistema.
+      </p>
+    </div>
+
+    @if (canCreate()) {
+      <app-custom-button
+        label="Crear usuario"
+        [icon]="lucidePlusIcon"
+        (clicked)="createUser()"
+      />
+    }
+  </div>
+
+  @if (initialized() && users().length === 0 && !loading()) {
+    <app-custom-alert
+      type="info"
+      title="No hay usuarios"
+      message="No existen usuarios registrados en el sistema."
+    />
+  }
+
+  @if (users().length > 0) {
+    <app-custom-infinite-scroll
+      class="min-h-0 flex-1"
+      [loading]="loading()"
+      [hasMore]="hasMore()"
+      (loadMore)="loadMore()"
+    >
+      <div
+        class="grid grid-cols-1 gap-5 sm:grid-cols-2
+               lg:grid-cols-3 xl:grid-cols-4"
+      >
+        @for (user of users(); track user.id) {
+          <app-user-card
+            [user]="user"
+            [canEdit]="canEdit()"
+            [canChangeStatus]="canChangeStatus()"
+            (editClicked)="editUser($event)"
+            (statusClicked)="toggleUserStatus($event)"
+          />
+        }
+      </div>
+    </app-custom-infinite-scroll>
+  }
+</div>
+
+<app-custom-confirm-dialog
+  [open]="statusDialogOpen()"
+  [title]="statusDialogTitle()"
+  [message]="statusDialogMessage()"
+  [confirmLabel]="selectedUser()?.isActive ? 'Desactivar' : 'Activar'"
+  [type]="selectedUser()?.isActive ? 'danger' : 'success'"
+  [loading]="statusDialogLoading()"
+  (confirmed)="confirmUserStatus()"
+  (cancelled)="closeStatusDialog()"
+/>

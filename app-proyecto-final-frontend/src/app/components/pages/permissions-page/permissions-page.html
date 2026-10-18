@@ -1,0 +1,53 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div>
+
+        <h1 class="text-2xl font-bold text-text">
+            Permisos
+        </h1>
+
+        <p class="mt-1 text-sm text-text-muted">
+            Catálogo de permisos disponibles en el sistema.
+        </p>
+
+    </div>
+
+    @if (
+    initialized() &&
+    permissions().length === 0
+    ) {
+
+    <app-custom-alert type="info" title="No hay permisos" message="No existen permisos registrados en el sistema." />
+
+    }
+
+    @if (permissions().length > 0) {
+
+    <app-custom-infinite-scroll class="min-h-0 flex-1" [loading]="loading()" [hasMore]="hasMore()"
+        (loadMore)="loadMore()">
+
+        <div class="
+                grid
+                grid-cols-1
+                gap-5
+                sm:grid-cols-2
+                lg:grid-cols-3
+                xl:grid-cols-4
+            ">
+
+            @for (
+            permission of permissions();
+            track permission.id
+            ) {
+
+            <app-permission-card [permission]="permission" />
+
+            }
+
+        </div>
+
+    </app-custom-infinite-scroll>
+
+    }
+
+</div>

@@ -6,7 +6,7 @@ import { Model, Types } from "mongoose";
 /*Principal system settings repository */
 @Injectable()
 export class SystemSettingsRepository {
-  constructor(@InjectModel(SystemSettingEntity.name) private readonly model: Model<SystemSettingEntity>) {}
+  constructor(@InjectModel(SystemSettingEntity.name) private readonly model: Model<SystemSettingEntity>) { }
 
   //Method to find all settings
   findAll(): Promise<SystemSettingDocument[]> {
@@ -19,8 +19,16 @@ export class SystemSettingsRepository {
   }
 
   //Method to update the value for the setting
-  updateValue(key: string, value: string | number, updatedBy: string): Promise<SystemSettingDocument | null> {
+  updateValue(key: string,value: string | number,updatedBy: string,): Promise<SystemSettingDocument | null> {
     return this.model.findOneAndUpdate(
-      { key }, { $set: { value, updatedBy: new Types.ObjectId(updatedBy) } }, { new: true }).exec();
+      { key },
+      {
+        $set: {
+          value,
+          updatedBy: new Types.ObjectId(updatedBy),
+        },
+      },
+      { returnDocument: 'after' },
+    ).exec();
   }
 }

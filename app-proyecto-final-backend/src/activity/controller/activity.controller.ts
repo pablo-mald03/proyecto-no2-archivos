@@ -1,12 +1,13 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ActivityService } from '../service/activity.service';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
 import { Permission } from 'src/common/constants/permissions/permissions';
 import { ListActivityQueryDto } from '../dto/request/list-activity-query.dto';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/users/models/auth-user.model';
 import { MyActivityQueryDto } from '../dto/request/my-activity-query.dto';
+import { PaginatedActivityLogResponseDto } from '../dto/response/activity-log-response.dto';
 
 //Principal activity controller
 @ApiTags('Activity')
@@ -18,6 +19,7 @@ export class ActivityController {
   @Get()
   @RequirePermissions(Permission.ACTIVITY_VIEW_ALL)
   @ApiOperation({ summary: 'List the activity history with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedActivityLogResponseDto })
   findAll(@Query() query: ListActivityQueryDto) {
     return this.activity.findAll(query);
   }

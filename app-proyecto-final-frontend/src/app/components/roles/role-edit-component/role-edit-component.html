@@ -1,0 +1,64 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex items-center gap-3">
+
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            [disabled]="saving()" (clicked)="goBack()" />
+
+        <div>
+            <h1 class="text-2xl font-bold text-text">
+                Editar rol
+            </h1>
+
+            <p class="mt-1 text-sm text-text-muted">
+                Actualiza la información del rol seleccionado.
+            </p>
+        </div>
+
+    </div>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-6 flex items-start gap-4">
+
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <ng-icon [svg]="lucideShieldIcon" size="20" />
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-text">
+                    Información del rol
+                </h2>
+
+                <p class="mt-1 text-sm leading-6 text-text-muted">
+                    Modifica la información básica del rol.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="space-y-5">
+
+            <app-custom-textfield label="Alias" placeholder="Ej. SALES_MANAGER" [control]="form.controls.alias" [clearable]="true" />
+
+            <app-custom-textfield label="Nombre" placeholder="Ej. Gerente de ventas" [control]="form.controls.name" [clearable]="true" />
+
+            <app-custom-text-area label="Descripción" placeholder="Describe la finalidad de este rol..."
+                [control]="form.controls.description" [rows]="4" [clearable]="true" />
+
+
+        </div>
+
+    </app-custom-card>
+
+    <div class="flex justify-end gap-3 border-t border-border pt-5">
+
+        <app-custom-button label="Cancelar" variant="ghost" size="md" [disabled]="saving()" [bordered]="true"
+            (clicked)="goBack()" />
+
+        <app-custom-button label="Guardar cambios" variant="primary" size="md" [icon]="lucideSaveIcon"
+            [loading]="saving()" [bordered]="true" (clicked)="updateRole()" />
+
+    </div>
+
+</div>

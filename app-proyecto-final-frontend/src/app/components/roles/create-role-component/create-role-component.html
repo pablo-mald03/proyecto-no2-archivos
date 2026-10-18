@@ -1,0 +1,119 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex items-center gap-3">
+
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            [disabled]="saving()" (clicked)="goBack()" />
+
+        <div>
+            <h1 class="text-2xl font-bold text-text">
+                Crear rol
+            </h1>
+
+            <p class="mt-1 text-sm text-text-muted">
+                Crea un rol y define los permisos que tendrá asignados.
+            </p>
+        </div>
+
+    </div>
+
+
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+
+
+        <app-custom-card [hoverable]="false">
+
+            <div class="mb-6 flex items-start gap-4">
+
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <ng-icon [svg]="lucideShieldIcon" size="20" />
+                </div>
+
+                <div>
+                    <h2 class="text-lg font-semibold text-text">
+                        Información del rol
+                    </h2>
+
+                    <p class="mt-1 text-sm leading-6 text-text-muted">
+                        Define la información básica del nuevo rol.
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="space-y-5">
+
+                <app-custom-textfield label="Alias" placeholder="Ej. SALES_MANAGER" [control]="form.controls.alias"
+                    [clearable]="true" />
+
+                <app-custom-textfield label="Nombre" placeholder="Ej. Gerente de ventas" [control]="form.controls.name"
+                    [clearable]="true" />
+
+                <app-custom-text-area label="Descripción" placeholder="Describe la finalidad de este rol..."
+                    [control]="form.controls.description" [rows]="4" [clearable]="true" />
+
+
+            </div>
+
+        </app-custom-card>
+
+
+
+        <app-custom-card [hoverable]="false">
+
+            <div class="mb-6">
+
+                <div class="flex items-start gap-4">
+
+                    <div
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-950/60 text-green-400">
+                        <ng-icon [svg]="lucideShieldCheckIcon" size="20" />
+                    </div>
+
+                    <div>
+                        <h2 class="text-lg font-semibold text-text">
+                            Permisos
+                        </h2>
+
+                        <p class="mt-1 text-sm leading-6 text-text-muted">
+                            Selecciona las operaciones que podrá realizar este rol.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <div class="mb-5 grid gap-4 sm:grid-cols-2">
+
+                <app-custom-dropdown label="Módulo" [options]="permissionModules()" optionKey="value"
+                    optionLabel="label" [control]="moduleFilterControl" />
+
+                <app-custom-dropdown label="Acción" [options]="filteredActions()" optionKey="value" optionLabel="label"
+                    [control]="actionFilterControl" />
+
+            </div>
+
+
+            <app-permission-selector-component [permissions]="filteredPermissions()"
+                [selectedPermissions]="selectedPermissions()" [loading]="loading()"
+                (permissionSelected)="selectPermission($event)" (permissionRemoved)="removePermission($event)" />
+
+        </app-custom-card>
+
+    </div>
+
+
+    <div class="flex justify-end gap-3 border-t border-border pt-5">
+
+        <app-custom-button label="Cancelar" variant="ghost" size="md" [disabled]="saving()" (clicked)="goBack()"
+            [bordered]="true" />
+
+        <app-custom-button label="Crear rol" variant="primary" size="md" [icon]="lucideSaveIcon" [loading]="saving()"
+            (clicked)="createRole()" [bordered]="true" />
+
+    </div>
+
+</div>

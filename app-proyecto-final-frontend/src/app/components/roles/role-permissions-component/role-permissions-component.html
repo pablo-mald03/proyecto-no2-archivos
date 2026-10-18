@@ -1,0 +1,78 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex items-center gap-3">
+
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            [disabled]="saving()" (clicked)="goBack()" />
+
+        <div>
+            <h1 class="text-2xl font-bold text-text">
+                Editar permisos
+            </h1>
+
+            @if (role(); as currentRole) {
+            <p class="mt-1 text-sm text-text-muted">
+                Configura los permisos asignados al rol
+                <span class="font-medium text-text">
+                    {{ currentRole.name }}
+                </span>.
+            </p>
+            }
+        </div>
+
+    </div>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-6">
+
+            <div class="flex items-start gap-4">
+
+                <div
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-950/60 text-green-400">
+                    <ng-icon [svg]="lucideShieldCheckIcon" size="20" />
+                </div>
+
+                <div>
+                    <h2 class="text-lg font-semibold text-text">
+                        Permisos del rol
+                    </h2>
+
+                    @if (role(); as currentRole) {
+                    <p class="mt-1 text-sm leading-6 text-text-muted">
+                        {{ currentRole.description }}
+                    </p>
+                    }
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="mb-5 grid gap-4 sm:grid-cols-2">
+
+            <app-custom-dropdown label="Módulo" [options]="permissionModules()" optionKey="value" optionLabel="label"
+                [control]="moduleFilterControl" />
+
+            <app-custom-dropdown label="Acción" [options]="filteredActions()" optionKey="value" optionLabel="label"
+                [control]="actionFilterControl" />
+
+        </div>
+
+        <app-permission-selector-component [permissions]="filteredPermissions()"
+            [selectedPermissions]="selectedPermissions()" [loading]="loading()"
+            (permissionSelected)="selectPermission($event)" (permissionRemoved)="removePermission($event)" />
+
+    </app-custom-card>
+
+    <div class="flex justify-end gap-3 border-t border-border pt-5">
+
+        <app-custom-button label="Cancelar" variant="ghost" size="md" [disabled]="saving()" [bordered]="true"
+            (clicked)="goBack()" />
+
+        <app-custom-button label="Guardar permisos" variant="primary" size="md" [icon]="lucideSaveIcon"
+            [loading]="saving()" [bordered]="true" (clicked)="updatePermissions()" />
+
+    </div>
+
+</div>

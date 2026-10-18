@@ -73,11 +73,23 @@ export class AuthService {
     async logout(rawRefreshToken?: string): Promise<void> {
         if (!rawRefreshToken) return;
 
-        const userId = await this.refreshTokens.revoke(this.hashToken(rawRefreshToken));
-        if (!userId) return;
+        const revokedToken = await this.refreshTokens.revoke(
+            this.hashToken(rawRefreshToken),
+        );
 
-        const user = await this.users.findById(userId.toString());
-        if (user) this.logAuth(user, ActivityAction.USER_LOGGED_OUT, 'Cerró sesión');
+        if (!revokedToken) return;
+
+        const user = await this.users.findById(
+            revokedToken.userId.toString(),
+        );
+
+        if (user) {
+            this.logAuth(
+                user,
+                ActivityAction.USER_LOGGED_OUT,
+                'Cerró sesión',
+            );
+        }
     }
 
     //Helper method to get the acces token

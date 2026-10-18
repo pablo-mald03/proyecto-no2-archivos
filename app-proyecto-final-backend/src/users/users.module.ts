@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UsersService } from './service/users.service';
 import { UsersController } from './controller/users.controller';
 import { UsersRepository } from './repository/users.repository';
@@ -13,7 +13,11 @@ import { SystemSettingsModule } from 'src/system-settings/system-settings.module
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: UserEntity.name, schema: UserSchema }]),
-    RolesModule, RefreshTokensModule, ActivityModule, PasswordModule,SystemSettingsModule
+    forwardRef(() => RolesModule),
+    RefreshTokensModule, 
+    ActivityModule, 
+    PasswordModule,
+    SystemSettingsModule
   ],
   controllers: [UsersController],
   providers: [UsersRepository, UsersService],

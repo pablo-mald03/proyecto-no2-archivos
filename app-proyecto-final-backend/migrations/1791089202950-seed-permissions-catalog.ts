@@ -6,6 +6,7 @@ type PermissionSeed = readonly [code: string, module: string, name: string, desc
 const PERMISSIONS: readonly PermissionSeed[] = [
   ['DRIVE_ACCESS', 'BUSINESS', 'Acceso al drive', 'Usar el drive propio y acceder a lo que otros usuarios compartan'],
 
+  ['ADMINISTRATION_VIEW', 'ADMINISTRATION', 'Acceder a administración', 'Acceder al módulo de administración de usuarios, roles y permisos'],
   ['USERS_VIEW', 'USERS', 'Ver usuarios', 'Listar y consultar usuarios, su perfil y su espacio usado'],
   ['USERS_CREATE', 'USERS', 'Crear usuarios', 'Crear nuevos usuarios en la plataforma'],
   ['USERS_UPDATE', 'USERS', 'Editar usuarios', 'Editar los datos de un usuario (nombre de usuario, correo y nombres)'],

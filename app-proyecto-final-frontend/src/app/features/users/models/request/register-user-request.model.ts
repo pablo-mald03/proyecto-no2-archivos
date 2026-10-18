@@ -1,13 +1,11 @@
 
 /*Register user request model */
+/* Register user request model */
 export interface RegisterUserRequest {
-  identification: string;
-  name: string;
-  firstName: string;
-  userRegistry: string;
-  phoneNumber: string;
-  rawPassword: string;
-  birthDate: string;
+  username: string;
   email: string;
-  roleAliases: string[];
+  firstName: string;
+  lastName: string;
+  password: string;
+  roleCode: string;
 }

@@ -27,7 +27,13 @@ export class RefreshTokensRepository {
     //Principal method to revoke que jwt
     revoke(tokenHash: string) {
         return this.model
-            .updateOne({ tokenHash, revokedAt: null }, { $set: { revokedAt: new Date() } })
+            .findOneAndUpdate(
+                { tokenHash, revokedAt: null },
+                { $set: { revokedAt: new Date() } },
+                { new: true },
+            )
+            .select({ userId: 1 })
+            .lean()
             .exec();
     }
 

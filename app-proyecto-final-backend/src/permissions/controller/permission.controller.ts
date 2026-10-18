@@ -1,9 +1,10 @@
 import { Controller, Get, Query } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { RequirePermissions } from "src/common/decorators/require-permissions.decorator";
 import { PermissionsService } from "../service/permission.service";
 import { Permission } from "src/common/constants/permissions/permissions";
 import { ListPermissionsQueryDto } from "../dto/request/list-permission-query.dto";
+import { PaginatedPermissionResponseDto } from "../dto/response/permission-response.dto";
 
 
 //Principal permission controller
@@ -16,6 +17,7 @@ export class PermissionsController {
   @Get()
   @RequirePermissions(Permission.ROLES_VIEW)
   @ApiOperation({ summary: 'List permissions with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedPermissionResponseDto })
   findAll(@Query() query: ListPermissionsQueryDto) {
     return this.permissions.findAll(query);
   }

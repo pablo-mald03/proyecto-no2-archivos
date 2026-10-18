@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpCode } from '@nestjs/common';
 import { UsersService } from '../service/users.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/request/create-user.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
 import { Permission } from 'src/common/constants/permissions/permissions';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -12,6 +12,7 @@ import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { AssignRoleDto } from '../dto/request/assign-role.dto';
 import { ChangeUserStatusDto } from '../dto/request/change-user-status.dto';
 import { UpdateQuotaDto } from '../dto/request/update-quota.dto';
+import { PaginatedUsersResponseDto } from '../dto/response/user-response.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -28,6 +29,7 @@ export class UsersController {
   @Get()
   @RequirePermissions(Permission.USERS_VIEW)
   @ApiOperation({ summary: 'List users with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedUsersResponseDto })
   findAll(@Query() query: ListUsersQueryDto) {
     return this.users.findAll(query);
   }
