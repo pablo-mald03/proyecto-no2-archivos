@@ -26,6 +26,8 @@ import { RoleEditComponent } from './components/roles/role-edit-component/role-e
 import { RolePermissionsComponent } from './components/roles/role-permissions-component/role-permissions-component';
 import { PermissionsPage } from './components/pages/permissions-page/permissions-page';
 import { RegisterUserComponent } from './components/auth/register-user-component/register-user-component';
+import { SettingsPage } from './components/pages/settings-page/settings-page';
+import { UpdateSettingsComponent } from './components/settings/update-settings-component/update-settings-component';
 
 export const routes: Routes = [
 
@@ -206,6 +208,29 @@ export const routes: Routes = [
 
                 ]
             },
+            //SYSTEM SETTINGS
+            {
+                path: 'settings',
+                canActivate: [
+                    permissionGuard
+                ],
+                data: {
+                    permission: 'SETTINGS_VIEW'
+                },
+                children: [
+
+                    {
+                        path: '',
+                        component: SettingsPage
+                    },
+                    {
+                        path: ':key/edit',
+                        canActivate: [permissionGuard],
+                        data: { permission: 'SETTINGS_VIEW' },
+                        component: UpdateSettingsComponent
+                    }
+                ]
+            }
         ],
     },
 

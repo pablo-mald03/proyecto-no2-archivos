@@ -152,7 +152,7 @@ export const SIDEBAR_OPTIONS: SidebarOption[] = [
     },
     {
         label: 'Configuraciones',
-        route: '/dashboard/configurations',
+        route: '/dashboard/settings',
         icon: lucideSettings2,
         permission: 'SETTINGS_VIEW'
     }
