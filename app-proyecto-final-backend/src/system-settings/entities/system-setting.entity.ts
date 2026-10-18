@@ -10,7 +10,12 @@ export class SystemSettingEntity extends AuditableEntity {
     @Prop({ required: true, trim: true, minlength: FieldLimits.SETTING_KEY.min, maxlength: FieldLimits.SETTING_KEY.max })
     key!: string;
 
-    // Validated by the service according to the key (number for quotas, string for codes)
+    @Prop({ required: true, trim: true })
+    label!: string;
+
+    @Prop({ required: true, trim: true, uppercase: true })
+    category!: string;
+
     @Prop({ type: MongooseSchema.Types.Mixed, required: true })
     value!: string | number;
 

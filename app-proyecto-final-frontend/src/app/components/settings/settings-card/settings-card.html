@@ -5,23 +5,23 @@
         <div class="flex items-start gap-4">
 
             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner">
-                <ng-icon [svg]="isStorageSetting() ? lucideStorageIcon : lucideSettingsIcon" size="24" />
+                <ng-icon [svg]="setting().category === 'STORAGE' ? lucideStorageIcon : lucideSettingsIcon" size="24" />
             </div>
 
             <div class="min-w-0">
-                <h2 class="truncate text-base font-bold tracking-wide text-text uppercase">
-                    {{ setting().key }}
+                <h2 class="truncate text-base font-bold tracking-tight text-text">
+                    {{ setting().label }}
                 </h2>
 
-                <p class="mt-0.5 text-xs font-medium text-text-muted">
-                    {{ isStorageSetting() ? 'Cuota / Almacenamiento' : 'Parámetro general' }}
+                <p class="mt-0.5 text-xs font-mono font-medium text-text-muted">
+                    {{ setting().key }}
                 </p>
             </div>
 
         </div>
 
-        <span class="shrink-0 rounded-full bg-surface-raised border border-border px-2.5 py-1 text-[11px] font-semibold tracking-wider text-text-muted uppercase">
-            {{ isStorageSetting() ? 'Storage' : 'Config' }}
+        <span [class]="categoryBadgeClass()">
+            {{ setting().category }}
         </span>
 
     </div>
@@ -36,9 +36,9 @@
             <p class="text-[11px] font-bold uppercase tracking-wider text-text-muted">
                 Valor Actual
             </p>
-            @if (isStorageSetting()) {
+            @if (setting().category === 'STORAGE') {
                 <span class="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-md">
-                    Autoconvertido
+                    Convertido
                 </span>
             }
         </div>
