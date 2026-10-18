@@ -1,6 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { DriveItem } from '../../../features/drive/drive-item.model';
-import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideMapPlus, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideMapPlus, lucideMenu, lucideOption, lucideProportions, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
 import { CustomToggleMenu } from '../custom-toggle-menu/custom-toggle-menu';
 import { CustomToggleMenuItem } from '../custom-toggle-menu-item/custom-toggle-menu-item';
 import { NgIcon } from '@ng-icons/core';
@@ -30,6 +30,8 @@ export class DriveItemRow {
   readonly downloadClicked = output<DriveItem>();
   readonly deleteClicked = output<DriveItem>();
 
+
+
   // State for Context Menu 
   readonly contextMenuOpen = signal(false);
   readonly menuPosition = signal({ x: 0, y: 0 });
@@ -40,7 +42,7 @@ export class DriveItemRow {
   readonly lucideFileCodeIcon = lucideFileCode;
   readonly lucideShareIcon = lucideShare2;
   readonly lucideEyeIcon = lucideEye;
-  readonly lucideMoreIcon = lucideMapPlus;
+  readonly lucideMoreIcon = lucideMenu;
   readonly lucideDownloadIcon = lucideDownload;
   readonly lucideTrashIcon = lucideTrash2;
 
@@ -63,12 +65,31 @@ export class DriveItemRow {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   });
 
+
   // Handle right click to open context menu at cursor position
   onRightClick(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
 
-    this.menuPosition.set({ x: event.clientX, y: event.clientY });
+    const ESTIMATED_MENU_WIDTH = 200;
+    const ESTIMATED_MENU_HEIGHT = 220;
+    const PADDING = 12;
+
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let x = event.clientX;
+    let y = event.clientY;
+
+    if (x + ESTIMATED_MENU_WIDTH > viewportWidth) {
+      x = Math.max(PADDING, x - ESTIMATED_MENU_WIDTH);
+    }
+
+    if (y + ESTIMATED_MENU_HEIGHT > viewportHeight) {
+      y = Math.max(PADDING, y - ESTIMATED_MENU_HEIGHT);
+    }
+
+    this.menuPosition.set({ x, y });
     this.contextMenuOpen.set(true);
   }
 

@@ -1,23 +1,16 @@
-<div 
+<div
   class="group relative flex items-center justify-between gap-4 rounded-xl border border-transparent px-4 py-3 text-sm transition-all duration-150 hover:border-border/60 hover:bg-surface-raised/80 select-none cursor-pointer"
-  [class.bg-primary/10]="isSelected()"
-  [class.border-primary/30]="isSelected()"
-  (click)="itemClicked.emit(item())"
-  (dblclick)="itemDoubleClicked.emit(item())"
-  (contextmenu)="onRightClick($event)"
->
+  [class.bg-primary/10]="isSelected()" [class.border-primary/30]="isSelected()" (click)="itemClicked.emit(item())"
+  (dblclick)="itemDoubleClicked.emit(item())" (contextmenu)="onRightClick($event)">
 
   <div class="flex items-center gap-3 min-w-0 flex-1">
-    
-    <div 
-      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
-      [class.bg-amber-500/10]="item().type === 'folder'"
-      [class.text-amber-500]="item().type === 'folder'"
+
+    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
+      [class.bg-amber-500/10]="item().type === 'folder'" [class.text-amber-500]="item().type === 'folder'"
       [class.bg-blue-500/10]="item().type === 'file' && item().extension === 'txt'"
       [class.text-blue-400]="item().type === 'file' && item().extension === 'txt'"
       [class.bg-purple-500/10]="item().type === 'file' && item().extension === 'md'"
-      [class.text-purple-400]="item().type === 'file' && item().extension === 'md'"
-    >
+      [class.text-purple-400]="item().type === 'file' && item().extension === 'md'">
       <ng-icon [svg]="itemIcon()" size="22" />
     </div>
 
@@ -41,71 +34,56 @@
   </div>
 
   <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-    
-    <button 
-      type="button"
-      aria-label="Compartir"
-      (click)="$event.stopPropagation(); shareClicked.emit(item())"
+
+    <button type="button" aria-label="Compartir" (click)="$event.stopPropagation(); shareClicked.emit(item())"
       class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
-      title="Compartir"
-    >
+      title="Compartir">
       <ng-icon [svg]="lucideShareIcon" size="16" />
     </button>
 
     @if (item().type === 'file') {
-      <button 
-        type="button"
-        aria-label="Vista previa"
-        (click)="$event.stopPropagation(); previewClicked.emit(item())"
-        class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
-        title="Vista previa"
-      >
-        <ng-icon [svg]="lucideEyeIcon" size="16" />
-      </button>
+    <button type="button" aria-label="Vista previa" (click)="$event.stopPropagation(); previewClicked.emit(item())"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
+      title="Vista previa">
+      <ng-icon [svg]="lucideEyeIcon" size="16" />
+    </button>
     }
 
-    <button 
-      type="button"
-      aria-label="Más opciones"
-      (click)="onRightClick($event)"
+    <button type="button" aria-label="Más opciones" (click)="onRightClick($event)"
       class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-text transition-colors"
-      title="Más opciones"
-    >
+      title="Más opciones">
       <ng-icon [svg]="lucideMoreIcon" size="16" />
     </button>
 
   </div>
 
   @if (contextMenuOpen()) {
-    <div 
-      class="fixed z-50"
-      [style.left.px]="menuPosition().x"
-      [style.top.px]="menuPosition().y"
-    >
-      <app-custom-toggle-menu [isOpen]="contextMenuOpen()" (closed)="closeContextMenu()">
-        
-        @if (item().type === 'file') {
-          <app-custom-toggle-menu-item [icon]="lucideEyeIcon" (clicked)="previewClicked.emit(item()); closeContextMenu()">
-            Vista previa
-          </app-custom-toggle-menu-item>
-        }
+  <div class="fixed z-50 pointer-events-auto" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
+    <app-custom-toggle-menu [isOpen]="contextMenuOpen()" (closed)="closeContextMenu()">
 
-        <app-custom-toggle-menu-item [icon]="lucideShareIcon" (clicked)="shareClicked.emit(item()); closeContextMenu()">
-          Compartir
-        </app-custom-toggle-menu-item>
+      @if (item().type === 'file') {
+      <app-custom-toggle-menu-item [icon]="lucideEyeIcon" (clicked)="previewClicked.emit(item()); closeContextMenu()">
+        Vista previa
+      </app-custom-toggle-menu-item>
+      }
 
-        <app-custom-toggle-menu-item [icon]="lucideDownloadIcon" (clicked)="downloadClicked.emit(item()); closeContextMenu()">
-          Descargar
-        </app-custom-toggle-menu-item>
+      <app-custom-toggle-menu-item [icon]="lucideShareIcon" (clicked)="shareClicked.emit(item()); closeContextMenu()">
+        Compartir
+      </app-custom-toggle-menu-item>
 
-        <div class="my-1 h-[1px] bg-border/50"></div>
+      <app-custom-toggle-menu-item [icon]="lucideDownloadIcon"
+        (clicked)="downloadClicked.emit(item()); closeContextMenu()">
+        Descargar
+      </app-custom-toggle-menu-item>
 
-        <app-custom-toggle-menu-item [icon]="lucideTrashIcon" (clicked)="deleteClicked.emit(item()); closeContextMenu()">
-          <span class="text-error">Eliminar</span>
-        </app-custom-toggle-menu-item>
+      <div class="my-1 h-px bg-border/50"></div>
 
-      </app-custom-toggle-menu>
-    </div>
+      <app-custom-toggle-menu-item [icon]="lucideTrashIcon" (clicked)="deleteClicked.emit(item()); closeContextMenu()">
+        <span class="text-error">Eliminar</span>
+      </app-custom-toggle-menu-item>
+
+    </app-custom-toggle-menu>
+  </div>
   }
 
 </div>

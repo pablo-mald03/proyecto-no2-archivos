@@ -34,7 +34,7 @@ export class DriveHome {
 
   onOpenItem(item: DriveItem): void {
     if (item.type === 'folder') {
-      this.router.navigate(['/dashboard/drive/files/folder', item.id]);
+      this.router.navigate(['/drive/files/folder', item.id]);
     } else {
       this.toastService.success(`Abriendo previsualización de ${item.name}`, 'Vista Previa');
     }

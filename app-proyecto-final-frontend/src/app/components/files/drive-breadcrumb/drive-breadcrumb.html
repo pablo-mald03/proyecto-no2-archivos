@@ -1,6 +1,6 @@
 <nav class="flex items-center gap-2 text-sm font-medium text-text-muted">
 
-    <a routerLink="/dashboard/drive/files" class="flex items-center gap-1 hover:text-primary transition-colors">
+    <a routerLink="/drive/files" class="flex items-center gap-1 hover:text-primary transition-colors">
         <ng-icon [svg]="lucideHomeIcon" size="16" />
         <span>Mi unidad</span>
     </a>
@@ -12,11 +12,11 @@
     @for (item of items(); track item.label; let last = $last) {
     <div class="flex items-center gap-2">
         @if (!last && item.route) {
-        <a [routerLink]="item.route" class="hover:text-primary transition-colors truncate max-w-[150px]">
+        <a [routerLink]="item.route" class="hover:text-primary transition-colors truncate max-w-37.5">
             {{ item.label }}
         </a>
         } @else {
-        <span class="text-text font-semibold truncate max-w-[200px]">
+        <span class="text-text font-semibold truncate max-w-50">
             {{ item.label }}
         </span>
         }

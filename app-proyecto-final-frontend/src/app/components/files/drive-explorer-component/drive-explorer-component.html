@@ -1,7 +1,11 @@
 <div class="flex h-full min-h-0 flex-col gap-6">
-    <app-drive-breadcrumb [items]="[]" />
+
+    <div class="flex items-center justify-between border-b border-border/40 pb-4">
+        <app-drive-breadcrumb [items]="breadcrumbItems()" />
+    </div>
 
     <div class="min-h-0 flex-1 overflow-y-auto">
         <router-outlet />
     </div>
+
 </div>
