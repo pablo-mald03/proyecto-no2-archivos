@@ -12,7 +12,9 @@ import { User } from "../models/user.model";
 import { UpdateUserRequest } from "../models/request/update-user-request.model";
 import { UpdateUserRolesRequest } from "../models/request/update-user-roles-request.model";
 import { UserRoleAssignment } from "../models/request/user-role-assignment.model";
-import { UserProfile } from "../models/user-profile.model";
+import { RegisterUserSelfRequest } from "../models/request/register-user-self.request";
+import { UserProfile } from "../models/response/user-profile.model";
+import { ChangeSelfPasswordRequest } from "../models/request/change-self-password-request.model";
 
 @Injectable({
     providedIn: 'root'
@@ -20,11 +22,11 @@ import { UserProfile } from "../models/user-profile.model";
 /*Service for all endpoints of users */
 export class UserService {
 
+
     //variables to make the http services
     private readonly http = inject(HttpClient);
 
     private readonly apiUrl = inject(API_URL);
-
 
     //User profile query
     getUserProfile(): Observable<UserProfile> {
@@ -39,50 +41,58 @@ export class UserService {
 
 
     /*Get all users query request endpoint*/
-    getUsers(query: UserQuery = {}): Observable<UserPage> {
 
+    getUsers(query: UserQuery = {}): Observable<UserPage> {
         let params = new HttpParams();
 
         if (query.page !== undefined) {
-            params = params.set(
-                'page',
-                query.page
-            );
+            params = params.set('page', query.page);
         }
 
         if (query.size !== undefined) {
-            params = params.set(
-                'size',
-                query.size
-            );
+            params = params.set('size', query.size);
         }
 
         if (query.sortBy) {
-            params = params.set(
-                'sortBy',
-                query.sortBy
-            );
+            params = params.set('sortBy', query.sortBy);
         }
 
         if (query.direction) {
-            params = params.set(
-                'direction',
-                query.direction
-            );
+            params = params.set('direction', query.direction);
+        }
+
+        if (query.search?.trim()) {
+            params = params.set('search', query.search.trim());
+        }
+
+        if (query.isActive !== undefined) {
+            params = params.set('isActive', query.isActive);
+        }
+
+        if (query.roleCode) {
+            params = params.set('roleCode', query.roleCode);
         }
 
         return this.http.get<UserPage>(
             `${this.apiUrl}/users`,
             { params }
         ).pipe(
-
-            catchError(
-                (error: HttpErrorResponse) =>
-                    throwError(
-                        () => this.parseError(error)
-                    )
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
             )
+        );
+    }
 
+
+    // Self register user endpoint request
+    registerSelf(request: RegisterUserSelfRequest): Observable<void> {
+        return this.http.post<void>(
+            `${this.apiUrl}/users/register`,
+            request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
         );
     }
 
@@ -90,7 +100,7 @@ export class UserService {
     registerUser(request: RegisterUserRequest): Observable<RegisterUserResponse> {
 
         return this.http.post<RegisterUserResponse>(
-            `${this.apiUrl}/users/register`,
+            `${this.apiUrl}/users`,
             request
         ).pipe(
 
@@ -127,10 +137,10 @@ export class UserService {
 
 
     //Principal disable/enable status for users endpoint
-    changeStatus(id: string, status: boolean): Observable<void> {
+    changeStatus(id: string, isActive: boolean): Observable<void> {
         return this.http.patch<void>(
             `${this.apiUrl}/users/${id}/status`,
-            { status }
+            { isActive }
         ).pipe(
 
             catchError(
@@ -154,6 +164,36 @@ export class UserService {
                     )
             )
 
+        );
+    }
+
+
+    /**
+     * Update current authenticated user profile endpoint request
+     */
+    updateSelfProfile(request: UpdateUserRequest): Observable<User> {
+        return this.http.patch<User>(
+            `${this.apiUrl}/users/profile`,
+            request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
+        );
+    }
+
+    
+    /**
+     * Change password for the current authenticated user
+     */
+    changeSelfPassword(request: ChangeSelfPasswordRequest): Observable<void> {
+        return this.http.patch<void>(
+            `${this.apiUrl}/users/profile/password`,
+            request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
         );
     }
 
@@ -192,20 +232,14 @@ export class UserService {
 
 
     //Principal method to update the user roles
-    updateUserRoles(id: string, request: UpdateUserRolesRequest
-    ): Observable<void> {
-        return this.http.put<void>(
-            `${this.apiUrl}/users/${id}/roles`,
-            request
+    updateUserRole(id: string, request: UpdateUserRolesRequest): Observable<User> {
+        return this.http.patch<User>(
+            `${this.apiUrl}/users/${id}/role`,
+            request,
         ).pipe(
-
-            catchError(
-                (error: HttpErrorResponse) =>
-                    throwError(
-                        () => this.parseError(error)
-                    )
-            )
-
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error)),
+            ),
         );
     }
 
@@ -224,7 +258,4 @@ export class UserService {
         };
 
     }
-
-
-
 }

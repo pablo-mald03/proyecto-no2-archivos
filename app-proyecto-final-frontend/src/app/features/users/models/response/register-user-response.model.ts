@@ -4,5 +4,5 @@ export interface RegisterUserResponse {
 
     userId: string;
     email: string;
-    roleAliases: string[];
+    roleCode: string[];
 }

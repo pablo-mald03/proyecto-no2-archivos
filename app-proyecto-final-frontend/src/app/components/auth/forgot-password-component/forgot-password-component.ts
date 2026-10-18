@@ -44,8 +44,8 @@ export class ForgotPasswordComponent {
 
   //FORM GROUP PROPS
   readonly loginForm = new FormGroup({
-    dpi: new FormControl('', {
-      validators: [Validators.required, Validators.minLength(8)]
+    username: new FormControl('', {
+      validators: [Validators.required, Validators.minLength(3)]
     }),
     email: new FormControl('', {
       validators: [Validators.required, Validators.email]
@@ -72,7 +72,7 @@ export class ForgotPasswordComponent {
   recoverPassword(): void {
 
     const {
-      dpi,
+      username,
       email,
       newPassword,
       confirmPassword
@@ -103,7 +103,7 @@ export class ForgotPasswordComponent {
 
 
     const request = {
-      dpi: dpi!,
+      username: username!,
       email: email!,
       password: newPassword!,
       confirmationPassword: confirmPassword!

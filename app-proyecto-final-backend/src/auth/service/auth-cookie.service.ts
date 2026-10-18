@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { CookieOptions, Request, Response } from 'express';
-import { AUTH_COOKIE_PATH } from 'src/common/constants/api.constants';
+import { AUTH_COOKIE_PATH } from 'src/common/constants/api/api.constants';
 
 /*Principal auth cookie service */
 @Injectable()

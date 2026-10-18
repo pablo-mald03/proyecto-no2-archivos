@@ -1,0 +1,88 @@
+<div class="space-y-5">
+
+  <div class="text-center">
+
+    <h1 class="text-2xl font-bold text-text">
+      Crear una cuenta
+    </h1>
+
+    <p class="mt-2 text-sm leading-6 text-text-muted">
+      Ingresa tus datos personales para registrarte en la plataforma.
+    </p>
+
+  </div>
+
+  <form class="space-y-4" [formGroup]="registerForm" (ngSubmit)="register()">
+
+    <app-custom-textfield
+      label="Nombre de usuario"
+      placeholder="usuario123"
+      [control]="controls.username"
+      [icon]="lucideUserCheckIcon"
+    />
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-custom-textfield
+        label="Nombre"
+        placeholder="Juan"
+        [control]="controls.firstName"
+        [icon]="lucideUserIcon"
+      />
+
+      <app-custom-textfield
+        label="Apellido"
+        placeholder="Pérez"
+        [control]="controls.lastName"
+        [icon]="lucideUserIcon"
+      />
+    </div>
+
+    <app-custom-textfield
+      label="Correo electrónico"
+      placeholder="correo@empresa.com"
+      type="email"
+      [control]="controls.email"
+      [icon]="lucideMailIcon"
+    />
+
+    <app-custom-textfield
+      label="Contraseña"
+      placeholder="••••••••"
+      type="password"
+      [control]="controls.password"
+      [icon]="lucideLockIcon"
+    />
+
+    <app-custom-textfield
+      label="Confirmar contraseña"
+      placeholder="••••••••"
+      type="password"
+      [control]="controls.confirmPassword"
+      [icon]="lucideLockIcon"
+    />
+
+    <app-custom-button
+      label="Registrarse"
+      type="submit"
+      class="w-full pt-2"
+      [loading]="loading()"
+    />
+
+  </form>
+
+  <div class="text-center">
+
+    <p class="text-sm text-text-muted">
+      ¿Ya tienes una cuenta?
+      <button
+        type="button"
+        (click)="goToLogin()"
+        class="font-medium text-primary transition-opacity hover:opacity-80"
+      >
+        Inicia sesión aquí
+      </button>
+    </p>
+
+  </div>
+
+</div>

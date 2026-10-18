@@ -3,7 +3,7 @@ export interface PermissionQuery {
     page?: number;
     size?: number;
     sortBy?: string;
-    direction?: 'ASC' | 'DESC';
+    direction?: 'asc' | 'desc';
     module?: string;
-    action?: string;
+    search?: string;
 }

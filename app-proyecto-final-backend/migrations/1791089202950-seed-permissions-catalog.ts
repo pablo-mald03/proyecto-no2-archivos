@@ -6,6 +6,7 @@ type PermissionSeed = readonly [code: string, module: string, name: string, desc
 const PERMISSIONS: readonly PermissionSeed[] = [
   ['DRIVE_ACCESS', 'BUSINESS', 'Acceso al drive', 'Usar el drive propio y acceder a lo que otros usuarios compartan'],
 
+  ['ADMINISTRATION_VIEW', 'ADMINISTRATION', 'Acceder a administración', 'Acceder al módulo de administración de usuarios, roles y permisos'],
   ['USERS_VIEW', 'USERS', 'Ver usuarios', 'Listar y consultar usuarios, su perfil y su espacio usado'],
   ['USERS_CREATE', 'USERS', 'Crear usuarios', 'Crear nuevos usuarios en la plataforma'],
   ['USERS_UPDATE', 'USERS', 'Editar usuarios', 'Editar los datos de un usuario (nombre de usuario, correo y nombres)'],
@@ -18,6 +19,8 @@ const PERMISSIONS: readonly PermissionSeed[] = [
   ['ROLES_UPDATE', 'ROLES', 'Editar roles', 'Editar el nombre y la descripción de un rol'],
   ['ROLES_DELETE', 'ROLES', 'Eliminar roles', 'Eliminar roles que no sean del sistema'],
   ['ROLES_PERMISSIONS_UPDATE', 'ROLES', 'Gestionar permisos de roles', 'Agregar o quitar permisos de un rol'],
+
+  ['PERMISSIONS_VIEW', 'PERMISSIONS', 'Ver permisos', 'Consultar el catálogo de permisos disponibles'], // <--- ¡Agregado aquí!
 
   ['SETTINGS_VIEW', 'SETTINGS', 'Ver configuración', 'Consultar las reglas generales del sistema'],
   ['SETTINGS_UPDATE', 'SETTINGS', 'Modificar configuración', 'Modificar las reglas generales del sistema'],

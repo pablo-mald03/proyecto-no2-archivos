@@ -6,11 +6,12 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './controller/auth.controller';
 import { AuthCookieService } from './service/auth-cookie.service';
 import { AuthService } from './service/auth.service';
-import { PasswordService } from 'src/users/service/password.service';
+import { PasswordService } from 'src/password/service/password.service';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { RefreshTokensModule } from 'src/refresh-tokens/refresh-token.module';
 import { AuthUserService } from './service/auth-user.service';
 import { RolesModule } from 'src/roles/roles.module';
+import { ActivityModule } from 'src/activity/activity.module';
 
 
 //Principal module pipeline for users
@@ -21,6 +22,7 @@ import { RolesModule } from 'src/roles/roles.module';
     RefreshTokensModule,
     RolesModule,
     PassportModule,
+    ActivityModule, 
 
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -33,9 +35,7 @@ import { RolesModule } from 'src/roles/roles.module';
     }),
   ],
 
-  controllers: [
-    AuthController,
-  ],
+  controllers: [AuthController],
 
   providers: [
     AuthService,
@@ -50,4 +50,4 @@ import { RolesModule } from 'src/roles/roles.module';
     PasswordService,
   ],
 })
-export class AuthModule { }
+export class AuthModule {}

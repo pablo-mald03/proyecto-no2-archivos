@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "migrate": "migrate",
     "migrate:list": "migrate list",
     "migrate:up": "migrate up",
     "migrate:up:all": "migrate up --autosync true",

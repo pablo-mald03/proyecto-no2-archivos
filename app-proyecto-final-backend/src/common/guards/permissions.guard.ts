@@ -3,7 +3,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 import { PERMISSIONS_KEY } from '../decorators/require-permissions.decorator';
-import { Permission } from '../constants/permissions';
+import { Permission } from '../constants/permissions/permissions';
 import { AuthUser } from 'src/users/models/auth-user.model';
 import { AuthenticationException } from '../exceptions/authentication.exception';
 import { AccessDeniedException } from '../exceptions/access-deniend.exception';

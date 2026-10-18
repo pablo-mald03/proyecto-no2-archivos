@@ -7,7 +7,7 @@ import cookieParser from 'cookie-parser';
 import { AppException } from './common/exceptions/app.exception';
 import { flattenErrors } from './common/utils/flatten-errors';
 import { setupSwagger } from './config/swagger.config';
-import { API_DEFAULT_VERSION, API_PREFIX } from './common/constants/api.constants';
+import { API_DEFAULT_VERSION, API_PREFIX } from './common/constants/api/api.constants';
 
 //Principal application configurations
 async function bootstrap() {

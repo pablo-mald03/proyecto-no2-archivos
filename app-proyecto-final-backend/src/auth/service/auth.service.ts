@@ -3,13 +3,17 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes } from 'crypto';
 import { UsersRepository } from 'src/users/repository/users.repository';
-import { PasswordService } from 'src/users/service/password.service';
+import { PasswordService } from 'src/password/service/password.service';
 import { RefreshTokensRepository } from '../../refresh-tokens/repository/refresh-tokens.repository';
 import { LoginDto } from '../dto/login.dto';
 import { AuthenticationException } from 'src/common/exceptions/authentication.exception';
 import { UserDisabledException } from 'src/common/exceptions/user-disabled.exception';
 import { UserDocument } from 'src/users/entities/user.entity';
 import { AuthUserService } from './auth-user.service';
+import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
+import { ActivityAction } from 'src/common/constants/actions/activity-action';
+import { AuthUser } from 'src/users/models/auth-user.model';
+import { ResourceType } from 'src/common/constants/actions/resource-type';
 
 //Principal auth service for the API
 @Injectable()
@@ -24,10 +28,12 @@ export class AuthService {
         private readonly jwt: JwtService,
         private readonly refreshTokens: RefreshTokensRepository,
         private readonly authUsers: AuthUserService,
+        private readonly activity: ActivityRecorderService,
     ) {
         this.refreshTtlSeconds = cfg.getOrThrow<number>('REFRESH_EXPIRES_IN_SECONDS');
     }
 
+    //Principal login method
     async login(dto: LoginDto) {
         const user = await this.users.findByEmailWithPassword(dto.email);
 
@@ -41,9 +47,13 @@ export class AuthService {
         if (!user.isActive) throw new UserDisabledException();
 
         await this.users.touchLastLogin(user.id);
-        return this.issueSession(user);
+
+        const session = await this.issueSession(user);
+        this.logAuth(session.user, ActivityAction.USER_LOGGED_IN, 'Inició sesión en la plataforma');
+        return session;
     }
 
+    //Principal refresh jwt method
     async refresh(rawRefreshToken?: string) {
         if (!rawRefreshToken) throw new AuthenticationException('Sesión no válida');
 
@@ -54,15 +64,35 @@ export class AuthService {
         if (!user) throw new AuthenticationException();
         if (!user.isActive) throw new UserDisabledException();
 
-        return this.issueSession(user);
+        const session = await this.issueSession(user);
+        this.logAuth(session.user, ActivityAction.USER_SESSION_REFRESHED, 'Renovó su sesión');
+        return session;
     }
 
+    //Principal logout jwt method
     async logout(rawRefreshToken?: string): Promise<void> {
-        if (rawRefreshToken) {
-            await this.refreshTokens.revoke(this.hashToken(rawRefreshToken));
+        if (!rawRefreshToken) return;
+
+        const revokedToken = await this.refreshTokens.revoke(
+            this.hashToken(rawRefreshToken),
+        );
+
+        if (!revokedToken) return;
+
+        const user = await this.users.findById(
+            revokedToken.userId.toString(),
+        );
+
+        if (user) {
+            this.logAuth(
+                user,
+                ActivityAction.USER_LOGGED_OUT,
+                'Cerró sesión',
+            );
         }
     }
 
+    //Helper method to get the acces token
     private async issueSession(user: UserDocument) {
         const accessToken = await this.jwt.signAsync({ sub: user.id });
         const refreshToken = randomBytes(48).toString('base64url');
@@ -74,6 +104,20 @@ export class AuthService {
         );
 
         return { accessToken, refreshToken, user: await this.authUsers.fromUser(user) };
+    }
+
+    //Principal method to log the actions at the auth service
+    private logAuth(
+        actor: Pick<AuthUser, 'id' | 'username' | 'email'>,
+        action: ActivityAction,
+        description: string,
+    ): void {
+        this.activity.record({
+            actor,
+            action,
+            resource: { type: ResourceType.USER, id: actor.id, name: actor.username },
+            description,
+        });
     }
 
     // Encriptation method

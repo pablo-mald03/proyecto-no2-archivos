@@ -27,7 +27,21 @@ export class RefreshTokensRepository {
     //Principal method to revoke que jwt
     revoke(tokenHash: string) {
         return this.model
-            .updateOne({ tokenHash, revokedAt: null }, { $set: { revokedAt: new Date() } })
+            .findOneAndUpdate(
+                { tokenHash, revokedAt: null },
+                { $set: { revokedAt: new Date() } },
+                { new: true },
+            )
+            .select({ userId: 1 })
+            .lean()
             .exec();
+    }
+
+    //Method to revoke all user tokens by id
+    async revokeAllByUserId(userId: string): Promise<void> {
+        await this.model.updateMany(
+            { userId: new Types.ObjectId(userId), revokedAt: null },
+            { revokedAt: new Date() },
+        );
     }
 }

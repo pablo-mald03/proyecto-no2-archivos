@@ -2,7 +2,7 @@ import { Permission } from "./permission.model";
 
 //Principal permission pagination response
 export interface PermissionPage {
-    permissions: Permission[];
+    content: Permission[];
     page: number;
     size: number;
     totalPages: number;

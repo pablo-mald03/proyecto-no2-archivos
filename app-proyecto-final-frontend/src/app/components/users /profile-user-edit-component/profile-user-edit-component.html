@@ -1,0 +1,107 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+  <div class="flex items-center gap-3">
+    <app-custom-button
+      variant="ghost"
+      size="sm"
+      [icon]="lucideArrowLeftIcon"
+      ariaLabel="Volver"
+      [disabled]="saving()"
+      (clicked)="goBack()"
+    />
+
+    <div>
+      <h1 class="text-2xl font-bold text-text">
+        Información del usuario
+      </h1>
+      <p class="mt-1 text-sm text-text-muted">
+        Actualiza el nombre, usuario y correo electrónico.
+      </p>
+    </div>
+  </div>
+
+  <app-custom-card [hoverable]="false">
+    <div class="mb-6 flex items-center gap-3">
+      <div
+        class="flex h-10 w-10 shrink-0 items-center justify-center
+               rounded-lg bg-blue-950/60 text-blue-400"
+      >
+        <ng-icon [svg]="lucideUserIcon" size="20" />
+      </div>
+
+      <div>
+        <h2 class="text-lg font-semibold text-text">
+          Datos del usuario
+        </h2>
+        <p class="text-sm text-text-muted">
+          Modifica la información registrada en el sistema.
+        </p>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="flex min-h-64 items-center justify-center">
+        <div
+          class="h-8 w-8 animate-spin rounded-full border-2
+                 border-border border-t-primary"
+        ></div>
+      </div>
+    } @else {
+      <form
+        class="space-y-6"
+        [formGroup]="userForm"
+        (ngSubmit)="updateUser()"
+      >
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <app-custom-textfield
+            label="Nombre de usuario"
+            placeholder="Ingrese el nombre de usuario"
+            [control]="controls.username"
+            [clearable]="true"
+          />
+
+          <app-custom-textfield
+            label="Correo electrónico"
+            placeholder="correo@ejemplo.com"
+            type="email"
+            [control]="controls.email"
+            [clearable]="true"
+          />
+
+          <app-custom-textfield
+            label="Nombre"
+            placeholder="Ingrese el nombre"
+            [control]="controls.firstName"
+            [clearable]="true"
+          />
+
+          <app-custom-textfield
+            label="Apellido"
+            placeholder="Ingrese el apellido"
+            [control]="controls.lastName"
+            [clearable]="true"
+          />
+        </div>
+
+        <div
+          class="flex justify-end gap-3 border-t border-border pt-5"
+        >
+          <app-custom-button
+            label="Cancelar"
+            variant="ghost"
+            size="md"
+            [disabled]="saving()"
+            (clicked)="goBack()"
+          />
+
+          <app-custom-button
+            label="Guardar cambios"
+            type="submit"
+            size="md"
+            [icon]="lucideSaveIcon"
+            [loading]="saving()"
+          />
+        </div>
+      </form>
+    }
+  </app-custom-card>
+</div>

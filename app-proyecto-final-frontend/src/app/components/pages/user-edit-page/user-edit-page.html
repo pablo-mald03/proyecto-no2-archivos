@@ -1,0 +1,87 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+    <div class="flex items-center gap-3">
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            (clicked)="goBack()" />
+
+        <div>
+            <h1 class="text-2xl font-bold text-text">Editar usuario</h1>
+            <p class="mt-1 text-sm text-text-muted">
+                Selecciona qué información deseas modificar.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        <app-custom-card class="h-full">
+            <div class="flex h-full flex-col">
+                <div class="flex items-start gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-950/60 text-blue-400">
+                        <ng-icon [svg]="lucideUserIcon" size="24" />
+                    </div>
+
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-semibold text-text">
+                            Información personal
+                        </h2>
+
+                        <p class="mt-1 text-sm leading-6 text-text-muted">
+                            Modifica los datos personales y de contacto del usuario.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-1 flex-col justify-between">
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li>• Identificación</li>
+                        <li>• Nombre y apellido</li>
+                        <li>• Registro de usuario</li>
+                        <li>• Teléfono y correo electrónico</li>
+                        <li>• Fecha de nacimiento</li>
+                    </ul>
+
+                    <div class="mt-6 flex justify-end">
+                        <app-custom-button label="Editar información" variant="secondary" size="md" [bordered]="true"
+                            [icon]="lucideUserIcon" (clicked)="editProfile()" />
+                    </div>
+                </div>
+            </div>
+        </app-custom-card>
+
+        <app-custom-card class="h-full">
+            <div class="flex h-full flex-col">
+                <div class="flex items-start gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-950/60 text-green-400">
+                        <ng-icon [svg]="lucideShieldIcon" size="24" />
+                    </div>
+
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-semibold text-text">
+                            Roles del usuario
+                        </h2>
+
+                        <p class="mt-1 text-sm leading-6 text-text-muted">
+                            Administra los roles asignados al usuario y sus permisos de acceso.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-1 flex-col justify-between">
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li>• Consultar roles asignados</li>
+                        <li>• Agregar roles</li>
+                        <li>• Retirar roles</li>
+                        <li>• Actualizar la asignación de roles</li>
+                        <li>• Consultar informacion sobre roles asignados</li>
+                    </ul>
+
+                    <div class="mt-6 flex justify-end">
+                        <app-custom-button label="Administrar roles" variant="success" size="md" [bordered]="true"
+                            [icon]="lucideShieldIcon" (clicked)="editRoles()" />
+                    </div>
+                </div>
+            </div>
+        </app-custom-card>
+    </div>
+</div>

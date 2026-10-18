@@ -14,12 +14,12 @@ import {
     lucideClipboard,
     lucideMailbox,
     lucideArchive,
-    lucideDollarSign,
     lucideFeather,
     lucideFileArchive,
     lucidePackageCheck,
     lucideBadgeDollarSign,
-    lucideCoins
+    lucideCoins,
+    lucideSettings2
 } from '@ng-icons/lucide';
 
 //Sidebar option menu model
@@ -93,12 +93,6 @@ export const SIDEBAR_OPTIONS: SidebarOption[] = [
         permission: 'facturas:consultar'
     },
     {
-        label: 'Reporte de Logs',
-        route: '/dashboard/logs',
-        icon: lucideLogs,
-        permission: 'logs:consultar'
-    },
-    {
         label: 'Reportes',
         route: '/dashboard/reports',
         icon: lucideFileArchive,
@@ -126,39 +120,41 @@ export const SIDEBAR_OPTIONS: SidebarOption[] = [
         ]
     },
     {
+        label: 'Actividad',
+        route: '/dashboard/activity',
+        icon: lucideLogs,
+        permission: 'REPORTS_ACTIVITY_VIEW'
+    },
+    {
         label: 'Administración',
         icon: lucideSettings,
-        permission: 'administracion:consultar',
-
+        permission: 'ADMINISTRATION_VIEW',
         children: [
-
             {
                 label: 'Usuarios',
                 route: '/dashboard/administration/users',
                 icon: lucideUsers,
-                permission: 'usuarios:consultar'
+                permission: 'USERS_VIEW'
             },
-
             {
                 label: 'Roles',
                 route: '/dashboard/administration/roles',
                 icon: lucideShield,
-                permission: 'roles:consultar'
+                permission: 'ROLES_VIEW'
             },
             {
                 label: 'Permisos',
                 route: '/dashboard/administration/permissions',
                 icon: lucideKey,
-                permission: 'permisos:consultar'
+                permission: 'ROLES_VIEW'
             }
-
         ]
     },
     {
-        label: 'Iva',
-        route: '/dashboard/iva',
-        icon: lucideDollarSign,
-        permission: 'iva:consultar'
+        label: 'Configuraciones',
+        route: '/dashboard/settings',
+        icon: lucideSettings2,
+        permission: 'SETTINGS_VIEW'
     }
 
 ];

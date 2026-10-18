@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { FieldLimits } from 'src/common/constants/field-limits';
+import { FieldLimits } from 'src/common/constants/validation/field-limits';
 import { AuditableEntity } from 'src/common/entities/auditable.entity';
 
 //Principal entity model for the roles table
@@ -28,6 +28,12 @@ export class RoleEntity extends AuditableEntity {
     //Principal flag protection for the role
     @Prop({ default: false })
     isSystem!: boolean;
+
+    @Prop({ default: true })
+    isActive!: boolean;
+
+    @Prop({ type: Date, default: null })
+    deactivatedAt!: Date | null;
 }
 
 //Model POJO representation

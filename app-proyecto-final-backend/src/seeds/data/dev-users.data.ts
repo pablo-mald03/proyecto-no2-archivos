@@ -1,4 +1,4 @@
-import { SystemRole } from '../../common/constants/system-roles';
+import { SystemRole } from '../../common/constants/validation/system-roles';
 
 //Seeder model
 export interface SeedUser {

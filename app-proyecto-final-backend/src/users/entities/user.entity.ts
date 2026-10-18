@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { RoleEntity } from 'src/roles/entities/role.entity';
 import { StorageEntity, StorageSchema } from './storage.entity';
-import { FieldLimits } from 'src/common/constants/field-limits';
+import { FieldLimits } from 'src/common/constants/validation/field-limits';
 import { AuditableEntity } from 'src/common/entities/auditable.entity';
 
 

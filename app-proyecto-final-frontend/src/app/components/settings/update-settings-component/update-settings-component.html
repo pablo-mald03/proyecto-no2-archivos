@@ -1,0 +1,113 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+        <div class="flex items-center gap-3">
+
+            <button type="button" (click)="goBack()" aria-label="Volver" class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface
+          text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+
+            <div>
+                <h1 class="text-2xl font-bold text-text">Editar Configuración</h1>
+                <p class="mt-1 text-sm text-text-muted">Modifica el valor del parámetro general del sistema.</p>
+            </div>
+
+        </div>
+
+        <div class="flex items-center gap-3">
+
+            <app-custom-button label="Cancelar" variant="secondary" [disabled]="saving()" (clicked)="goBack()" />
+
+            <app-custom-button label="Guardar cambios" [icon]="lucideSaveIcon" [disabled]="!canSubmit"
+                [loading]="saving()" (clicked)="openConfirmDialog()" />
+
+        </div>
+
+    </div>
+
+    @if (loading()) {
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        <div class="h-64 animate-pulse rounded-xl border border-border bg-surface"></div>
+        <div class="h-64 animate-pulse rounded-xl border border-border bg-surface"></div>
+    </div>
+
+    } @else if (setting()) {
+
+    <form [formGroup]="settingForm" (ngSubmit)="openConfirmDialog()" class="min-h-0 flex-1 overflow-y-auto">
+
+        <div class="grid gap-6 lg:grid-cols-2">
+
+            <app-custom-card>
+
+                <div class="flex flex-col gap-5">
+
+                    <div class="flex items-start gap-4">
+
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                            <ng-icon [svg]="lucideSettingsIcon" size="24" />
+                        </div>
+
+                        <div class="min-w-0">
+                            <h2 class="text-base font-semibold text-text uppercase">{{ setting()!.key }}</h2>
+                            <p class="mt-1 text-sm text-text-muted">{{ setting()!.description }}</p>
+                        </div>
+
+                    </div>
+
+                    <div class="rounded-xl border border-border bg-surface-raised p-4">
+
+                        <p class="text-xs font-medium uppercase tracking-wide text-text-muted">
+                            Valor actual
+                        </p>
+
+                        <p class="mt-1 flex items-baseline gap-1 text-text truncate">
+                            <span class="text-2xl font-bold tracking-tight truncate">{{ setting()!.value }}</span>
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </app-custom-card>
+
+            <app-custom-card>
+
+                <div class="flex flex-col gap-5">
+
+                    <div>
+                        <h2 class="text-base font-semibold text-text">Nuevo valor</h2>
+                        <p class="mt-1 text-sm text-text-muted">Ingresa el nuevo valor para esta regla del sistema.</p>
+                    </div>
+
+                    <app-custom-textfield 
+                        label="Valor del parámetro" 
+                        placeholder="Ej. 104857600 o verdadero"
+                        [control]="settingForm.controls.value" 
+                        [clearable]="true" 
+                    />
+
+                </div>
+
+            </app-custom-card>
+
+        </div>
+
+    </form>
+
+    }
+
+</div>
+
+<app-custom-confirm-dialog 
+    [open]="dialogOpen()" 
+    type="warning" 
+    title="¿Actualizar configuración?"
+    [message]="dialogMessage" 
+    confirmLabel="Guardar cambios" 
+    [loading]="saving()" 
+    (confirmed)="confirmUpdate()"
+    (cancelled)="closeDialog()" 
+/>

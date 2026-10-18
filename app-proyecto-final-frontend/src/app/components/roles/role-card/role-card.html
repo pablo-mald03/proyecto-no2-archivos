@@ -1,0 +1,76 @@
+<app-custom-card [hoverable]="true">
+  <div class="flex items-start gap-4">
+    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      <ng-icon [svg]="lucideShieldIcon" size="24" />
+    </div>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h2 class="truncate text-lg font-semibold text-text">
+            {{ role().name }}
+          </h2>
+
+          <p class="mt-1 text-xs font-medium uppercase tracking-wide text-text-muted">
+            {{ role().code }}
+          </p>
+        </div>
+
+        <span
+          class="shrink-0 rounded-full px-2.5 py-1 text-xs font-medium"
+          [class.bg-green-950/60]="role().isActive"
+          [class.text-green-400]="role().isActive"
+          [class.bg-red-950/60]="!role().isActive"
+          [class.text-red-400]="!role().isActive"
+        >
+          {{ role().isActive ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-5">
+    <p class="min-h-12 text-sm leading-6 text-text-muted">
+      {{ role().description || 'Sin descripción disponible.' }}
+    </p>
+
+    <p class="mt-2 text-xs text-text-muted">
+      Permisos: {{ role().permissionsCount }}
+    </p>
+  </div>
+
+  <div class="mt-5 flex flex-wrap gap-2 border-t border-border pt-4">
+    @if (canEdit()) {
+      <app-custom-button
+        label="Editar"
+        variant="warning"
+        size="sm"
+        [bordered]="true"
+        [icon]="lucideEditIcon"
+        (clicked)="edit()"
+      />
+    }
+
+    @if (canAssignPermissions()) {
+      <app-custom-button
+        label="Permisos"
+        variant="secondary"
+        size="sm"
+        [bordered]="true"
+        [icon]="lucideKeyIcon"
+        (clicked)="assignPermissions()"
+      />
+    }
+
+    @if (canChangeStatus()) {
+      <app-custom-button
+        [label]="role().isActive ? 'Desactivar' : 'Activar'"
+        [variant]="role().isActive ? 'danger' : 'success'"
+        size="sm"
+        [bordered]="true"
+        [icon]="lucidePowerIcon"
+        (clicked)="toggleStatus()"
+      />
+    }
+  </div>
+</app-custom-card>

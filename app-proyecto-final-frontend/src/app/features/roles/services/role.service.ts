@@ -77,10 +77,10 @@ export class RoleService {
     }
 
     //Method change the role status
-    changeStatus(id: number, status: boolean): Observable<void> {
+    changeStatus(id: string, isActive: boolean): Observable<void> {
         return this.http.patch<void>(
             `${this.apiUrl}/roles/${id}/status`,
-            { status }
+            { isActive }
         ).pipe(
 
             catchError(
@@ -94,7 +94,7 @@ export class RoleService {
     }
 
     /*Method to get the role permissions */
-    getRolePermissions(id: number): Observable<RolePermissions> {
+    getRolePermissions(id: string): Observable<RolePermissions> {
         return this.http.get<RolePermissions>(
             `${this.apiUrl}/roles/${id}/permissions`
         ).pipe(
@@ -111,7 +111,7 @@ export class RoleService {
 
     /*Method to update the role permissions */
     updateRolePermissions(
-        id: number,
+        id: string,
         request: UpdateRolePermissionsRequest
     ): Observable<void> {
         return this.http.put<void>(
@@ -130,7 +130,7 @@ export class RoleService {
     }
 
     /*Method to find role by id */
-    getRoleById(id: number): Observable<RoleEdit> {
+    getRoleById(id: string): Observable<RoleEdit> {
         return this.http.get<RoleEdit>(
             `${this.apiUrl}/roles/${id}`
         ).pipe(
@@ -146,7 +146,7 @@ export class RoleService {
     }
 
     /*Method to update role */
-    updateRole(id: number, request: UpdateRoleRequest): Observable<void> {
+    updateRole(id: string, request: UpdateRoleRequest): Observable<void> {
         return this.http.patch<void>(
             `${this.apiUrl}/roles/${id}/role`,
             request

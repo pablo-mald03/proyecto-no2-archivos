@@ -1,0 +1,199 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex items-center gap-3">
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            [disabled]="saving()" (clicked)="goBack()" />
+
+        <div>
+            <h1 class="text-2xl font-bold text-text">
+                Editar rol
+            </h1>
+
+            <p class="mt-1 text-sm text-text-muted">
+                Administra la información y consulta los detalles del rol.
+            </p>
+        </div>
+    </div>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-6 flex items-start gap-4">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ng-icon [svg]="lucideShieldIcon" size="22" />
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-text">
+                    Información general
+                </h2>
+
+                <p class="mt-1 text-sm leading-6 text-text-muted">
+                    Actualiza el nombre, código y descripción que identifican este rol.
+                </p>
+            </div>
+        </div>
+
+        <div class="space-y-5">
+
+            <app-custom-textfield label="Código del rol" placeholder="Ej. SALES_MANAGER" [control]="form.controls.alias"
+                [clearable]="true" />
+
+            <app-custom-textfield label="Nombre" placeholder="Ej. Gerente de ventas" [control]="form.controls.name"
+                [clearable]="true" />
+
+            <app-custom-text-area label="Descripción" placeholder="Describe la finalidad de este rol..."
+                [control]="form.controls.description" [rows]="4" [clearable]="true" />
+
+        </div>
+    </app-custom-card>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-6 flex items-start gap-4">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ng-icon [svg]="lucideClipboardListIcon" size="22" />
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold text-text">
+                    Detalles del rol
+                </h2>
+
+                <p class="mt-1 text-sm leading-6 text-text-muted">
+                    Consulta el estado, los permisos y el historial de este rol.
+                </p>
+            </div>
+        </div>
+
+        @if (roleDetails(); as details) {
+
+        <div class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+            <div class="flex items-center gap-3 rounded-xl border border-border p-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <ng-icon [svg]="lucideActivityIcon" size="20" />
+                </div>
+
+                <div class="min-w-0">
+                    <p class="text-sm text-text-muted">
+                        Estado
+                    </p>
+
+                    <span class="mt-1 inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold"
+                        [class.bg-success/10]="details.isActive" [class.text-success]="details.isActive"
+                        [class.bg-danger/10]="!details.isActive" [class.text-danger]="!details.isActive">
+
+                        <span class="h-1.5 w-1.5 rounded-full" [class.bg-success]="details.isActive"
+                            [class.bg-danger]="!details.isActive">
+                        </span>
+
+                        {{ details.isActive ? 'Activo' : 'Inactivo' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-xl border border-border p-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <ng-icon [svg]="lucideShieldCheckIcon" size="20" />
+                </div>
+
+                <div class="min-w-0">
+                    <p class="text-sm text-text-muted">
+                        Tipo de rol
+                    </p>
+
+                    <p class="mt-1 text-sm font-semibold text-text">
+                        {{ details.isSystem ? 'Rol del sistema' : 'Rol personalizado' }}
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mb-5 flex items-center gap-4 rounded-xl border border-border p-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                <ng-icon [svg]="lucideKeyRoundIcon" size="23" />
+            </div>
+
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-text">
+                    Permisos asignados
+                </p>
+
+                <p class="mt-1 text-sm text-text-muted">
+                    Cantidad de permisos vinculados a este rol.
+                </p>
+            </div>
+
+            <div class="text-right">
+                <p class="text-2xl font-bold text-text">
+                    {{ details.permissionsCount }}
+                </p>
+                <p class="text-xs text-text-muted">
+                    permisos
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="mb-3 flex items-center gap-2 text-sm font-semibold text-text">
+                <ng-icon [svg]="lucideCalendarClockIcon" size="17" />
+                Historial
+            </h3>
+
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+                <div class="flex items-start gap-3 rounded-lg bg-surface-secondary p-4">
+                    <ng-icon [svg]="lucideCalendarPlusIcon" size="19" class="mt-0.5 shrink-0 text-text-muted" />
+
+                    <div>
+                        <p class="text-xs text-text-muted">
+                            Fecha de creación
+                        </p>
+                        <p class="mt-1 text-sm font-medium text-text">
+                            {{ formattedCreatedAt() }}
+                        </p>
+                    </div>
+                </div>
+
+
+                @if (details.deactivatedAt) {
+                <div class="flex items-start gap-3 rounded-lg bg-surface-secondary p-4 sm:col-span-2">
+                    <ng-icon [svg]="lucideCalendarXIcon" size="19" class="mt-0.5 shrink-0 text-text-muted" />
+
+                    <div>
+                        <p class="text-xs text-text-muted">
+                            Fecha de desactivación
+                        </p>
+                        <p class="mt-1 text-sm font-medium text-text">
+                            {{ formattedDeactivatedAt() }}
+                        </p>
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+
+        } @else {
+        <div class="flex items-center gap-3 rounded-lg border border-border p-4">
+            <ng-icon [svg]="lucideInfoIcon" size="20" class="text-text-muted" />
+            <p class="text-sm text-text-muted">
+                Cargando los detalles del rol...
+            </p>
+        </div>
+        }
+
+    </app-custom-card>
+
+    <div class="flex justify-end gap-2 border-t border-border pt-5 pb-6">
+
+        <app-custom-button label="Cancelar" variant="ghost" size="md" [disabled]="saving()" [bordered]="true"
+            (clicked)="goBack()" />
+
+        <app-custom-button label="Guardar cambios" variant="primary" size="md" [icon]="lucideSaveIcon"
+            [loading]="saving()" [bordered]="true" (clicked)="updateRole()" />
+
+    </div>
+
+</div>

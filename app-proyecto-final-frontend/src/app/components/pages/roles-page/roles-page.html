@@ -1,0 +1,89 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="
+        flex
+        flex-col
+        gap-4
+        sm:flex-row
+        sm:items-center
+        sm:justify-between
+    ">
+
+        <div>
+
+            <h1 class="text-2xl font-bold text-text">
+                Roles
+            </h1>
+
+            <p class="mt-1 text-sm text-text-muted">
+                Administra los roles y permisos del sistema.
+            </p>
+
+        </div>
+
+        @if (canCreate()) {
+        <app-custom-button label="Crear rol" [icon]="lucidePlusIcon" (clicked)="createRole()" />
+        }
+
+    </div>
+
+    @if (
+    initialized() &&
+    roles().length === 0
+    ) {
+
+    <app-custom-alert type="info" title="No hay roles" message="No existen roles registrados en el sistema." />
+
+    }
+
+    @if (roles().length > 0) {
+
+    <app-custom-infinite-scroll class="min-h-0 flex-1" [loading]="loading()" [hasMore]="hasMore()"
+        (loadMore)="loadMore()">
+
+        <div class="
+                grid
+                grid-cols-1
+                gap-5
+                sm:grid-cols-2
+                lg:grid-cols-3
+                xl:grid-cols-4
+            ">
+
+            @for (
+            role of roles();
+            track role.id
+            ) {
+
+            <app-role-card [role]="role" [canEdit]="canEdit()" [canChangeStatus]="canChangeStatus()"
+                [canAssignPermissions]="canAssignPermissions()" (editClicked)="editRole($event)"
+                (statusClicked)="toggleRoleStatus($event)" (permissionsClicked)="assignPermissions($event)" />
+
+            }
+
+        </div>
+
+    </app-custom-infinite-scroll>
+
+    }
+
+</div>
+
+<app-custom-confirm-dialog
+    [open]="statusDialogOpen()"
+    [title]="statusDialogTitle()"
+    [message]="statusDialogMessage()"
+    [confirmLabel]="
+        selectedRole()?.isActive
+            ? 'Desactivar'
+            : 'Activar'
+    "
+    [type]="
+        selectedRole()?.isActive
+            ? 'danger'
+            : 'success'
+    "
+    [loading]="statusDialogLoading()"
+    (confirmed)="confirmRoleStatus()"
+    (cancelled)="closeStatusDialog()"
+/>

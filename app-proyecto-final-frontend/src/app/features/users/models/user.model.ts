@@ -1,4 +1,5 @@
 import { Role } from "../../roles/models/role.model";
+import { UserStorage } from "./response/user-storage.response.model";
 
 
 /**
@@ -6,15 +7,15 @@ import { Role } from "../../roles/models/role.model";
  * 
 */
 export interface User {
-
-    id: string;
-    identification: string;
-    name: string;
-    firstName: string;
-    phoneNumber: string;
-    userRegistry: string;
-    birthDate: string;
-    email: string;
-    status: boolean;
-    roles: Role[];
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  isActive: boolean;
+  roleCode: string;
+  roleName: string;
+  storage: UserStorage;
+  lastLoginAt: string | null;
+  createdAt: string;
 }

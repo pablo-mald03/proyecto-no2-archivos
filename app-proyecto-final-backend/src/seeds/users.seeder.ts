@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import type { SeedUser } from './data/dev-users.data';
 import { UsersRepository } from 'src/users/repository/users.repository';
 import { RolesRepository } from 'src/roles/repository/roles.repository';
-import { PasswordService } from 'src/users/service/password.service';
+import { PasswordService } from 'src/password/service/password.service';
 
 //Principal class to create the users seeders
 export class UsersSeeder {

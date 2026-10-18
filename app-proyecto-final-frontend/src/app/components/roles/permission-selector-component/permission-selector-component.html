@@ -1,0 +1,153 @@
+<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+
+    <div class="overflow-hidden rounded-xl border border-border bg-surface">
+
+        <div class="flex items-center justify-between border-b border-border px-4 py-3">
+            <div>
+                <h3 class="text-sm font-semibold text-text">
+                    Permisos disponibles
+                </h3>
+                <p class="mt-1 text-xs text-text-muted">
+                    Selecciona los permisos que tendrá el rol.
+                </p>
+            </div>
+
+            <span class="rounded-lg border border-border bg-surface-raised px-2.5 py-1 text-xs font-semibold tabular-nums text-text-muted">
+                {{ availablePermissions().length }}
+            </span>
+        </div>
+
+        <div class="max-h-96 space-y-2 overflow-y-auto p-3">
+
+            @if (loading()) {
+
+            <div class="flex h-40 items-center justify-center">
+                <div class="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary"></div>
+            </div>
+
+            } @else if (availablePermissions().length === 0) {
+
+            <div class="flex min-h-36 flex-col items-center justify-center px-5 text-center">
+                <p class="text-sm font-medium text-text">
+                    No hay permisos disponibles
+                </p>
+                <p class="mt-1 text-xs text-text-muted">
+                    Prueba cambiando los filtros seleccionados.
+                </p>
+            </div>
+
+            } @else {
+
+            @for (permission of availablePermissions(); track permission.code) {
+
+            <button
+                type="button"
+                class="group flex w-full items-start gap-3 rounded-lg border border-border/70 bg-surface px-3 py-3 text-left transition-all duration-150 hover:border-primary/40 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 active:scale-[0.99]"
+                (click)="selectPermission(permission)">
+
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15">
+                    <ng-icon [svg]="lucidePlusIcon" size="16" />
+                </div>
+
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm font-semibold text-text">
+                            {{ permission.action }}
+                        </span>
+
+                        <span class="rounded-md bg-surface-raised px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-muted">
+                            {{ permission.module }}
+                        </span>
+                    </div>
+
+                    <p class="mt-1.5 text-xs leading-5 text-text-muted">
+                        {{ permission.description }}
+                    </p>
+                </div>
+
+            </button>
+
+            }
+
+            }
+
+        </div>
+    </div>
+
+    <div class="overflow-hidden rounded-xl border border-border bg-surface">
+
+        <div class="flex items-center justify-between border-b border-border px-4 py-3">
+            <div>
+                <h3 class="text-sm font-semibold text-text">
+                    Permisos seleccionados
+                </h3>
+                <p class="mt-1 text-xs text-text-muted">
+                    Permisos asignados al rol.
+                </p>
+            </div>
+
+            <span class="rounded-lg border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold tabular-nums text-primary">
+                {{ selectedPermissions().length }}
+            </span>
+        </div>
+
+        <div class="max-h-96 space-y-2 overflow-y-auto p-3">
+
+            @if (selectedPermissions().length === 0) {
+
+            <div class="flex min-h-36 flex-col items-center justify-center px-5 text-center">
+                <div class="mb-3 flex h-9 w-9 items-center justify-center rounded-full bg-surface-raised text-text-muted">
+                    <ng-icon [svg]="lucideShieldCheckIcon" size="18" />
+                </div>
+
+                <p class="text-sm font-medium text-text">
+                    Ningún permiso seleccionado
+                </p>
+                <p class="mt-1 text-xs text-text-muted">
+                    Los permisos que agregues aparecerán aquí.
+                </p>
+            </div>
+
+            } @else {
+
+            @for (permission of selectedPermissions(); track permission.code) {
+
+            <button
+                type="button"
+                class="group flex w-full items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 px-3 py-3 text-left transition-all duration-150 hover:border-red-400/40 hover:bg-red-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 active:scale-[0.99]"
+                (click)="removePermission(permission)">
+
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <ng-icon [svg]="lucideCheckIcon" size="16" />
+                </div>
+
+                <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-sm font-semibold text-text">
+                            {{ permission.action }}
+                        </span>
+
+                        <span class="rounded-md bg-surface-raised px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-text-muted">
+                            {{ permission.module }}
+                        </span>
+                    </div>
+
+                    <p class="mt-1.5 text-xs leading-5 text-text-muted">
+                        {{ permission.description }}
+                    </p>
+                </div>
+
+                <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-text-muted transition-colors group-hover:bg-red-500/10 group-hover:text-red-400">
+                    <ng-icon [svg]="lucideXIcon" size="15" />
+                </div>
+
+            </button>
+
+            }
+
+            }
+
+        </div>
+    </div>
+
+</div>

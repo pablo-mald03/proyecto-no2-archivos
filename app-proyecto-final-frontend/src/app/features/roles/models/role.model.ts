@@ -4,9 +4,12 @@
  * 
 */
 export interface Role {
-  id: number;
-  alias: string;
+  id: string;
+  code: string;
   name: string;
   description: string;
-  active: boolean;
+  isSystem: boolean;
+  isActive: boolean;
+  permissionsCount: number;
+  createdAt: string;
 }

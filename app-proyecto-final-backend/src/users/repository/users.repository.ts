@@ -1,13 +1,25 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, QueryFilter, Types } from 'mongoose';
 import { UserEntity, UserDocument } from '../entities/user.entity';
+import { UserFilter } from '../types/user-filter';
+import { PageRequest } from 'src/common/types/page-request';
+import { UserProfilePatch } from '../types/user-profile-patch';
+import { escapeRegex } from 'src/common/utils/escape-regex';
 
 /*Principal users respository for the persinstence layer */
 @Injectable()
 export class UsersRepository {
+
     constructor(@InjectModel(UserEntity.name) private readonly model: Model<UserEntity>) { }
+
+
+    // Principal method to find a user by username
+    findByUsername(username: string): Promise<UserDocument | null> {
+        return this.model.findOne({ username }).exec();
+    }
+
 
     //Principal method to find user by id
     findById(id: string): Promise<UserDocument | null> {
@@ -30,8 +42,90 @@ export class UsersRepository {
         return this.model.create(data);
     }
 
+    //Principal method to verify if the user already exists by email or username
     async existsByEmailOrUsername(email: string, username: string): Promise<boolean> {
         const found = await this.model.exists({ $or: [{ email }, { username }] });
         return found !== null;
+    }
+
+    //Pageable get all method
+    async findPage(filter: UserFilter, page: PageRequest) {
+        const mongoFilter = this.buildFilter(filter);
+        const [content, total] = await Promise.all([
+            this.model.find(mongoFilter)
+                .sort({ [page.sortBy]: page.direction === 'asc' ? 1 : -1, _id: 1 })
+                .skip(page.page * page.size).limit(page.size).exec(),
+            this.model.countDocuments(mongoFilter).exec(),
+        ]);
+        return { content, total };
+    }
+
+    // Method to find by id with password
+    findByIdWithPassword(id: string): Promise<UserDocument | null> {
+        return this.model.findById(id).select('+passwordHash').exec();
+    }
+
+    //Method to verify if the user exists by email
+    existsByEmail(email: string, excludeId?: string): Promise<boolean> {
+        return this.exists({ email }, excludeId);
+    }
+    //Method to verify if the user exists by username
+    existsByUsername(username: string, excludeId?: string): Promise<boolean> {
+        return this.exists({ username }, excludeId);
+    }
+
+    //Method to update the profile
+    updateProfile(id: string, data: UserProfilePatch): Promise<UserDocument | null> {
+        const patch = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== undefined));
+        return this.model.findByIdAndUpdate(id, { $set: patch }, { new: true }).exec();
+    }
+
+    //Method to change the user status
+    setActive(id: string, isActive: boolean): Promise<UserDocument | null> {
+        return this.model.findByIdAndUpdate(
+            id, { $set: { isActive, deactivatedAt: isActive ? null : new Date() } }, { new: true }).exec();
+    }
+
+    //Method to set the user role
+    setRole(id: string, roleId: Types.ObjectId): Promise<UserDocument | null> {
+        return this.model.findByIdAndUpdate(id, { $set: { roleId } }, { new: true }).exec();
+    }
+
+    //Method to set the user quota
+    setQuota(id: string, quotaBytes: number): Promise<UserDocument | null> {
+        return this.model.findByIdAndUpdate(id, { $set: { 'storage.quotaBytes': quotaBytes } }, { new: true }).exec();
+    }
+
+    ///Password change method
+    async setPasswordHash(id: string, passwordHash: string): Promise<void> {
+        await this.model.updateOne({ _id: id }, { $set: { passwordHash } }).exec();
+    }
+
+    //Method to count the active rile by is
+    countActiveByRoleId(roleId: Types.ObjectId): Promise<number> {
+        return this.model.countDocuments({ roleId, isActive: true }).exec();
+    }
+
+    //Method to count the users with the role granted
+    countByRoleId(roleId: Types.ObjectId): Promise<number> {
+        return this.model.countDocuments({ roleId }).exec();
+    }
+
+    //Method to verify if the user exists
+    private async exists(match: Record<string, string>, excludeId?: string): Promise<boolean> {
+        const filter = excludeId ? { ...match, _id: { $ne: excludeId } } : match;
+        return (await this.model.exists(filter)) !== null;
+    }
+
+    //Filter builder helper method
+    private buildFilter(f: UserFilter): QueryFilter<UserDocument> {
+        const q: QueryFilter<UserDocument> = {};
+        if (f.isActive !== undefined) q.isActive = f.isActive;
+        if (f.roleId) q.roleId = f.roleId;
+        if (f.search) {
+            const rx = new RegExp(escapeRegex(f.search), 'i');
+            q.$or = [{ username: rx }, { email: rx }, { firstName: rx }, { lastName: rx }];
+        }
+        return q;
     }
 }

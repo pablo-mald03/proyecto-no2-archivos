@@ -1,26 +1,26 @@
-import { Module } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
+import { forwardRef, Module } from '@nestjs/common';
+import { UsersService } from './service/users.service';
+import { UsersController } from './controller/users.controller';
 import { UsersRepository } from './repository/users.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserEntity, UserSchema } from './entities/user.entity';
+import { RolesModule } from 'src/roles/roles.module';
+import { RefreshTokensModule } from 'src/refresh-tokens/refresh-token.module';
+import { ActivityModule } from 'src/activity/activity.module';
+import { PasswordModule } from 'src/password/password.module';
+import { SystemSettingsModule } from 'src/system-settings/system-settings.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      {
-        name: UserEntity.name,
-        schema: UserSchema,
-      },
-    ]),
+    MongooseModule.forFeature([{ name: UserEntity.name, schema: UserSchema }]),
+    forwardRef(() => RolesModule),
+    RefreshTokensModule, 
+    ActivityModule, 
+    PasswordModule,
+    SystemSettingsModule
   ],
   controllers: [UsersController],
-  providers: [
-    UsersService,
-    UsersRepository,
-  ],
-  exports: [
-    UsersRepository,
-  ],
+  providers: [UsersRepository, UsersService],
+  exports: [UsersRepository],
 })
-export class UsersModule { }
+export class UsersModule {}

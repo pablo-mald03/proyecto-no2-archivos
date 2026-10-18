@@ -1,0 +1,87 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+    <div class="flex items-start gap-3">
+
+
+        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
+            (clicked)="cancel()" />
+        <div>
+            <h1 class="text-2xl font-bold text-text">
+                Crear usuario
+            </h1>
+
+            <p class="mt-1 text-sm text-text-muted">
+                Registra un nuevo usuario y configura su rol de acceso.
+            </p>
+        </div>
+    </div>
+
+    <form class="min-h-0 flex-1 overflow-y-auto" [formGroup]="userForm" (ngSubmit)="createUser()">
+        <div class="mx-auto max-w-6xl space-y-6 pb-6">
+            <section class="rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                <div class="mb-5">
+                    <h2 class="text-base font-semibold text-text">
+                        Información personal
+                    </h2>
+
+                    <p class="mt-1 text-sm text-text-muted">
+                        Información básica del usuario.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <app-custom-textfield label="Nombre" placeholder="Ingrese el nombre" [control]="controls.firstName"
+                        [icon]="lucideUserIcon" [clearable]="true" />
+
+                    <app-custom-textfield label="Apellidos" placeholder="Ingrese los apellidos"
+                        [control]="controls.lastName" [icon]="lucideUserIcon" [clearable]="true" />
+
+                    <app-custom-textfield label="Nombre de usuario" placeholder="Ingrese el nombre de usuario"
+                        [control]="controls.username" [icon]="lucideAtSignIcon" [clearable]="true" />
+
+                    <app-custom-textfield label="Correo electrónico" placeholder="correo@empresa.com" type="email"
+                        [control]="controls.email" [icon]="lucideMailIcon" [clearable]="true" />
+                </div>
+            </section>
+
+            <section class="rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                <div class="mb-5">
+                    <h2 class="text-base font-semibold text-text">
+                        Información de acceso
+                    </h2>
+
+                    <p class="mt-1 text-sm text-text-muted">
+                        Configura las credenciales de acceso del usuario.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <app-custom-textfield label="Contraseña" placeholder="Ingrese una contraseña" type="password"
+                        [control]="controls.password" [icon]="lucideLockIcon" />
+
+                    <app-custom-textfield label="Confirmar contraseña" placeholder="Repita la contraseña"
+                        type="password" [control]="controls.confirmPassword" [icon]="lucideLockIcon" />
+                </div>
+            </section>
+
+            <section class="rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+                <div class="mb-5">
+                    <h2 class="text-base font-semibold text-text">
+                        Rol de acceso
+                    </h2>
+
+                    <p class="mt-1 text-sm text-text-muted">
+                        Selecciona el rol que tendrá el usuario.
+                    </p>
+                </div>
+
+                <app-role-selector-component [roles]="roles()" [selectedRoles]="selectedRoles()"
+                    [loading]="rolesLoading()" (roleSelected)="selectRole($event)" (roleRemoved)="removeRole($event)" />
+            </section>
+            <div class="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-end">
+
+                <app-custom-button label="Crear usuario" type="submit" [icon]="lucideUserPlusIcon"
+                    [loading]="loading()" />
+            </div>
+        </div>
+    </form>
+</div>

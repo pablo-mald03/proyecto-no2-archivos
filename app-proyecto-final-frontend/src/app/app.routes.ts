@@ -11,8 +11,23 @@ import { ROLES } from './core/constants/roles';
 import { DashboardLayout } from './layouts/dashboard-layout/dashboard-layout';
 import { managementGuard } from './core/guards/management.guard';
 import { DashboardHome } from './components/pages/dashboard-home/dashboard-home';
-import { ProfileComponent } from './components/users/profile-component/profile-component';
 import { DriveHome } from './components/pages/drive-home/drive-home';
+import { permissionGuard } from './core/guards/permission.guard';
+import { LogsPage } from './components/pages/logs-page/logs-page';
+import { ProfileComponent } from './components/users /profile-component/profile-component';
+import { UsersPage } from './components/pages/users-page/users-page';
+import { CreateUserComponent } from './components/users /create-user-component/create-user-component';
+import { UserEditPage } from './components/pages/user-edit-page/user-edit-page';
+import { ProfileUserEditComponent } from './components/users /profile-user-edit-component/profile-user-edit-component';
+import { RolesUserEditComponent } from './components/users /roles-user-edit-component/roles-user-edit-component';
+import { RolesPage } from './components/pages/roles-page/roles-page';
+import { CreateRoleComponent } from './components/roles/create-role-component/create-role-component';
+import { RoleEditComponent } from './components/roles/role-edit-component/role-edit-component';
+import { RolePermissionsComponent } from './components/roles/role-permissions-component/role-permissions-component';
+import { PermissionsPage } from './components/pages/permissions-page/permissions-page';
+import { RegisterUserComponent } from './components/auth/register-user-component/register-user-component';
+import { SettingsPage } from './components/pages/settings-page/settings-page';
+import { UpdateSettingsComponent } from './components/settings/update-settings-component/update-settings-component';
 
 export const routes: Routes = [
 
@@ -39,10 +54,13 @@ export const routes: Routes = [
                 path: 'login',
                 component: LoginComponent
             },
-
             {
                 path: 'forgot-password',
                 component: ForgotPasswordComponent
+            },
+            {
+                path: 'register',
+                component: RegisterUserComponent
             }
 
         ]
@@ -54,6 +72,7 @@ export const routes: Routes = [
         data: { role: ROLES.USER },
         children: [
             { path: '', component: DriveHome },
+            { path: 'profile', component: ProfileComponent },
 
         ],
     },
@@ -65,7 +84,153 @@ export const routes: Routes = [
         children: [
             { path: '', component: DashboardHome },
             { path: 'profile', component: ProfileComponent },
-            // ...el resto igual
+            {
+                path: 'activity',
+                canActivate: [
+                    permissionGuard
+                ],
+                data: {
+                    permission: 'REPORTS_ACTIVITY_VIEW'
+                },
+                children: [
+
+                    {
+                        path: '',
+                        component: LogsPage
+                    },
+                ]
+            },
+            // ADMINISTRATION
+            {
+                path: 'administration',
+                children: [
+                    {
+                        path: '',
+                        component: DashboardHome
+                    },
+                    {
+
+                        path: 'users',
+                        canActivate: [
+                            permissionGuard
+                        ],
+                        data: {
+                            permission: 'USERS_VIEW'
+                        },
+                        children: [
+
+                            {
+                                path: '',
+                                component: UsersPage
+                            },
+                            {
+                                path: 'create',
+                                component: CreateUserComponent,
+                                canActivate: [permissionGuard],
+                                data: { permission: 'USERS_CREATE' }
+                            },
+                            {
+                                path: ':id/edit',
+                                component: UserEditPage,
+                                data: { permission: 'USERS_UPDATE' }
+                            },
+                            {
+                                path: ':id/edit/profile',
+                                component: ProfileUserEditComponent,
+                                canActivate: [permissionGuard],
+                                data: { permission: 'USERS_UPDATE' }
+                            },
+                            {
+                                path: ':id/edit/roles',
+                                component: RolesUserEditComponent,
+                                canActivate: [permissionGuard],
+                                data: { permission: 'USERS_UPDATE' }
+                            }
+
+                        ]
+                    },
+                    {
+                        path: 'roles',
+                        canActivate: [
+                            permissionGuard
+                        ],
+                        data: {
+                            permission: 'ROLES_VIEW'
+                        },
+                        children: [
+
+                            {
+                                path: '',
+                                component: RolesPage
+                            },
+                            {
+                                path: 'create',
+                                component: CreateRoleComponent,
+                                canActivate: [permissionGuard],
+                                data: {
+                                    permission: 'ROLES_CREATE'
+                                }
+                            },
+                            {
+                                path: ':id/edit',
+                                component: RoleEditComponent,
+                                canActivate: [permissionGuard],
+                                data: {
+                                    permission: 'ROLES_UPDATE'
+                                }
+                            },
+                            {
+                                path: ':id/permissions',
+                                component: RolePermissionsComponent,
+                                canActivate: [permissionGuard],
+                                data: {
+                                    permission: 'ROLES_PERMISSIONS_UPDATE'
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        path: 'permissions',
+                        canActivate: [
+                            permissionGuard
+                        ],
+                        data: {
+                            permission: 'PERMISSIONS_VIEW'
+                        },
+                        children: [
+
+                            {
+                                path: '',
+                                component: PermissionsPage
+                            },
+                        ]
+                    }
+
+                ]
+            },
+            //SYSTEM SETTINGS
+            {
+                path: 'settings',
+                canActivate: [
+                    permissionGuard
+                ],
+                data: {
+                    permission: 'SETTINGS_VIEW'
+                },
+                children: [
+
+                    {
+                        path: '',
+                        component: SettingsPage
+                    },
+                    {
+                        path: ':key/edit',
+                        canActivate: [permissionGuard],
+                        data: { permission: 'SETTINGS_VIEW' },
+                        component: UpdateSettingsComponent
+                    }
+                ]
+            }
         ],
     },
 

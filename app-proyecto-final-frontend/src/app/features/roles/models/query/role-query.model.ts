@@ -5,5 +5,6 @@ export interface RoleQuery {
   page?: number;
   size?: number;
   sortBy?: string;
-  direction?: 'ASC' | 'DESC';
+  direction?: 'asc' | 'desc';
+  isActive?: boolean;
 }
