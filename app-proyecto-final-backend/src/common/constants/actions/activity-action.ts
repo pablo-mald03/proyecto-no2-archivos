@@ -36,6 +36,7 @@ export const ActivityAction = {
     ROLE_ACTIVATED: 'ROLE_ACTIVATED',
     ROLE_DEACTIVATED: 'ROLE_DEACTIVATED',
     USER_REGISTERED: 'USER_REGISTERED',
+    USER_PASSWORD_RECOVERED: 'USER_PASSWORD_RECOVERED',
 } as const;
 
 
@@ -77,6 +78,7 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
     ROLE_ACTIVATED: 'Rol activado',
     ROLE_DEACTIVATED: 'Rol desactivado',
     USER_REGISTERED: 'Usuario registrado',
+    USER_PASSWORD_RECOVERED: 'Contraseña recuperada',
 };
 
 //Constant export

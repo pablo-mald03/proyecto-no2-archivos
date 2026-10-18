@@ -11,7 +11,15 @@ import { escapeRegex } from 'src/common/utils/escape-regex';
 /*Principal users respository for the persinstence layer */
 @Injectable()
 export class UsersRepository {
+
     constructor(@InjectModel(UserEntity.name) private readonly model: Model<UserEntity>) { }
+
+
+    // Principal method to find a user by username
+    findByUsername(username: string): Promise<UserDocument | null> {
+        return this.model.findOne({ username }).exec();
+    }
+
 
     //Principal method to find user by id
     findById(id: string): Promise<UserDocument | null> {

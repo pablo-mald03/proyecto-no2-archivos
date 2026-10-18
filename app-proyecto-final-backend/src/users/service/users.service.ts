@@ -32,6 +32,8 @@ import { ResourceType } from 'src/common/constants/actions/resource-type';
 import { SettingKey } from 'src/common/constants/validation/setting-key';
 import { SystemSettingsService } from 'src/system-settings/service/system-settings.service';
 import { RegisterUserDto } from '../dto/request/register-user.dto';
+import { RecoverPasswordDto } from '../dto/request/recovery-password.dto';
+import { InvalidRecoveryDataException } from '../exceptions/invalid-recovery-data.exception';
 
 /*Principal user service class */
 @Injectable()
@@ -48,7 +50,6 @@ export class UsersService {
 
 
   /*Principal method to create a new user */
-  /*Principal method to create a new user (administration)*/
   async create(dto: CreateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     const roleCode = dto.roleCode ?? (await this.settings.getString(SettingKey.USERS_DEFAULT_ROLE_CODE));
     const role = await this.roles.getAssignableByCodeOrFail(roleCode);
@@ -57,6 +58,25 @@ export class UsersService {
     this.log(actor, ActivityAction.USER_CREATED, user, `Creó al usuario ${user.username}`);
     return UserMapper.toDetail(user, role);
   }
+
+  /* Principal method to recover the password  */
+  async recoverPassword(dto: RecoverPasswordDto): Promise<void> {
+    if (dto.password !== dto.confirmationPassword) {
+      throw new InvalidPasswordChangeException({ confirmationPassword: 'Las contraseñas no coinciden' });
+    }
+
+    const user = await this.users.findByUsername(dto.username);
+
+    if (!user || !user.isActive || user.email !== dto.email) {
+      throw new InvalidRecoveryDataException();
+    }
+
+    await this.users.setPasswordHash(user.id, await this.passwords.hash(dto.password));
+    await this.refreshTokens.revokeAllByUserId(user.id);
+    this.log(user, ActivityAction.USER_PASSWORD_RECOVERED, user, 'Recuperó su contraseña');
+  }
+
+
 
   /*Principal method for the public self-registration: the role is always USER*/
   async register(dto: RegisterUserDto): Promise<UserResponseDto> {
