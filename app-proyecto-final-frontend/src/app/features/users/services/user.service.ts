@@ -39,58 +39,54 @@ export class UserService {
 
 
     /*Get all users query request endpoint*/
-    getUsers(query: UserQuery = {}): Observable<UserPage> {
 
+    getUsers(query: UserQuery = {}): Observable<UserPage> {
         let params = new HttpParams();
 
         if (query.page !== undefined) {
-            params = params.set(
-                'page',
-                query.page
-            );
+            params = params.set('page', query.page);
         }
 
         if (query.size !== undefined) {
-            params = params.set(
-                'size',
-                query.size
-            );
+            params = params.set('size', query.size);
         }
 
         if (query.sortBy) {
-            params = params.set(
-                'sortBy',
-                query.sortBy
-            );
+            params = params.set('sortBy', query.sortBy);
         }
 
         if (query.direction) {
-            params = params.set(
-                'direction',
-                query.direction
-            );
+            params = params.set('direction', query.direction);
+        }
+
+        if (query.search?.trim()) {
+            params = params.set('search', query.search.trim());
+        }
+
+        if (query.isActive !== undefined) {
+            params = params.set('isActive', query.isActive);
+        }
+
+        if (query.roleCode) {
+            params = params.set('roleCode', query.roleCode);
         }
 
         return this.http.get<UserPage>(
             `${this.apiUrl}/users`,
             { params }
         ).pipe(
-
-            catchError(
-                (error: HttpErrorResponse) =>
-                    throwError(
-                        () => this.parseError(error)
-                    )
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
             )
-
         );
     }
+
 
     //Register user endpoint request
     registerUser(request: RegisterUserRequest): Observable<RegisterUserResponse> {
 
         return this.http.post<RegisterUserResponse>(
-            `${this.apiUrl}/users/register`,
+            `${this.apiUrl}/users`,
             request
         ).pipe(
 
@@ -192,7 +188,7 @@ export class UserService {
 
 
     //Principal method to update the user roles
-    updateUserRole(id: string,request: UpdateUserRolesRequest): Observable<User> {
+    updateUserRole(id: string, request: UpdateUserRolesRequest): Observable<User> {
         return this.http.patch<User>(
             `${this.apiUrl}/users/${id}/role`,
             request,

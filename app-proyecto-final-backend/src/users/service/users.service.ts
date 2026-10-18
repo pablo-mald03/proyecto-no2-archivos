@@ -31,6 +31,7 @@ import { LastAdminException } from '../exceptions/last-admin.exception';
 import { ResourceType } from 'src/common/constants/actions/resource-type';
 import { SettingKey } from 'src/common/constants/validation/setting-key';
 import { SystemSettingsService } from 'src/system-settings/service/system-settings.service';
+import { RegisterUserDto } from '../dto/request/register-user.dto';
 
 /*Principal user service class */
 @Injectable()
@@ -47,12 +48,29 @@ export class UsersService {
 
 
   /*Principal method to create a new user */
+  /*Principal method to create a new user (administration)*/
   async create(dto: CreateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     const roleCode = dto.roleCode ?? (await this.settings.getString(SettingKey.USERS_DEFAULT_ROLE_CODE));
     const role = await this.roles.getAssignableByCodeOrFail(roleCode);
-    await this.assertUnique(dto.email, dto.username);
+    const user = await this.createUser(dto, role);
 
-    const user = await this.users.create({
+    this.log(actor, ActivityAction.USER_CREATED, user, `Creó al usuario ${user.username}`);
+    return UserMapper.toDetail(user, role);
+  }
+
+  /*Principal method for the public self-registration: the role is always USER*/
+  async register(dto: RegisterUserDto): Promise<UserResponseDto> {
+    const role = await this.roles.getAssignableByCodeOrFail(SystemRole.USER);
+    const user = await this.createUser(dto, role);
+
+    this.log(user, ActivityAction.USER_REGISTERED, user, 'Se registró en la plataforma'); // the new user is the actor
+    return UserMapper.toResponse(user, role);
+  }
+
+  /*Helper method shared by create and register: uniqueness, hash, default quota and persistence*/
+  private async createUser(dto: RegisterUserDto, role: RoleDocument): Promise<UserDocument> {
+    await this.assertUnique(dto.email, dto.username);
+    return this.users.create({
       username: dto.username,
       email: dto.email,
       passwordHash: await this.passwords.hash(dto.password),
@@ -61,9 +79,6 @@ export class UsersService {
       roleId: role._id,
       storage: { quotaBytes: await this.settings.getNumber(SettingKey.STORAGE_DEFAULT_QUOTA_BYTES), usedBytes: 0 },
     });
-
-    this.log(actor, ActivityAction.USER_CREATED, user, `Creó al usuario ${user.username}`);
-    return UserMapper.toDetail(user, role);
   }
 
   /*Principal method to fetch all registered users */
@@ -204,7 +219,7 @@ export class UsersService {
   }
 
   /*Helper method to log an action performed by an user*/
-  private log(actor: AuthUser, action: ActivityAction, target: UserDocument,
+  private log(actor: Pick<AuthUser, 'id' | 'username' | 'email'>, action: ActivityAction, target: UserDocument,
     description: string, metadata?: ActivityMetadataEntity): void {
     this.activity.record({
       actor, action, description, metadata,

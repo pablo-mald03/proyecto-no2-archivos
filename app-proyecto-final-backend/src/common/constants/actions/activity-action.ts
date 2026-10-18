@@ -35,6 +35,7 @@ export const ActivityAction = {
     ROLE_PERMISSIONS_CHANGED: 'ROLE_PERMISSIONS_CHANGED',
     ROLE_ACTIVATED: 'ROLE_ACTIVATED',
     ROLE_DEACTIVATED: 'ROLE_DEACTIVATED',
+    USER_REGISTERED: 'USER_REGISTERED',
 } as const;
 
 
@@ -75,6 +76,7 @@ export const ACTIVITY_ACTION_LABELS: Record<ActivityAction, string> = {
     ROLE_PERMISSIONS_CHANGED: 'Permisos de rol modificados',
     ROLE_ACTIVATED: 'Rol activado',
     ROLE_DEACTIVATED: 'Rol desactivado',
+    USER_REGISTERED: 'Usuario registrado',
 };
 
 //Constant export

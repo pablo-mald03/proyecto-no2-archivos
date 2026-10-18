@@ -4,6 +4,9 @@
 export interface UserQuery {
   page?: number;
   size?: number;
-  sortBy?: string;
+  sortBy?: 'username' | 'email' | 'firstName' | 'lastName' | 'createdAt' | 'lastLoginAt';
   direction?: 'asc' | 'desc';
+  search?: string;
+  isActive?: boolean;
+  roleCode?: string;
 }

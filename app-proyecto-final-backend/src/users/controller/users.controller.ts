@@ -13,6 +13,9 @@ import { AssignRoleDto } from '../dto/request/assign-role.dto';
 import { ChangeUserStatusDto } from '../dto/request/change-user-status.dto';
 import { UpdateQuotaDto } from '../dto/request/update-quota.dto';
 import { PaginatedUsersResponseDto } from '../dto/response/user-response.dto';
+import { Public } from 'src/common/decorators/public.decorator';
+import { Throttle } from '@nestjs/throttler';
+import { RegisterUserDto } from '../dto/request/register-user.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -24,6 +27,14 @@ export class UsersController {
   @ApiOperation({ summary: 'Register a new user' })
   create(@Body() dto: CreateUserDto, @CurrentUser() actor: AuthUser) {
     return this.users.create(dto, actor);
+  }
+
+  @Public()
+  @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Register a new user by themselves' })
+  register(@Body() dto: RegisterUserDto) {
+    return this.users.register(dto);
   }
 
   @Get()

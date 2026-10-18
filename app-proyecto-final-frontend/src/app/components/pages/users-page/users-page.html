@@ -1,67 +1,98 @@
 <div class="flex h-full min-h-0 flex-col gap-6">
-  <div
-    class="flex flex-col gap-4 sm:flex-row sm:items-center
-           sm:justify-between"
-  >
+
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
     <div>
       <h1 class="text-2xl font-bold text-text">
         Usuarios
       </h1>
 
       <p class="mt-1 text-sm text-text-muted">
-        Administra los usuarios del sistema.
+        Administra los usuarios, sus estados y los roles asignados.
       </p>
     </div>
 
     @if (canCreate()) {
-      <app-custom-button
-        label="Crear usuario"
-        [icon]="lucidePlusIcon"
-        (clicked)="createUser()"
-      />
+    <app-custom-button label="Crear usuario" [icon]="lucidePlusIcon" (clicked)="createUser()" />
     }
   </div>
 
+
+  <app-custom-card [hoverable]="false">
+
+    <button type="button" class="flex w-full items-center justify-between gap-3 text-left"
+      [attr.aria-expanded]="filtersExpanded()" (click)="filtersExpanded.set(!filtersExpanded())">
+
+      <div class="flex min-w-0 items-center gap-3">
+        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+          <ng-icon [svg]="lucideSlidersHorizontalIcon" size="20" />
+        </div>
+
+        <div class="min-w-0">
+          <h2 class="font-semibold text-text">
+            Filtros de búsqueda
+          </h2>
+
+          <p class="mt-1 text-sm text-text-muted">
+            Busca por usuario, estado o rol.
+          </p>
+        </div>
+      </div>
+
+      <ng-icon [svg]="lucideChevronDownIcon" size="20"
+        class="shrink-0 text-text-muted transition-transform duration-200" [class.rotate-180]="filtersExpanded()" />
+
+    </button>
+
+    @if (filtersExpanded()) {
+    <div class="mt-5 border-t border-border pt-5">
+
+      <div class="grid grid-cols-1 gap-4 lg:grid-cols-5">
+
+        <app-custom-textfield label="Buscar usuario" placeholder="Usuario, correo o nombre..." [control]="searchControl"
+          [icon]="lucideSearchIcon" [clearable]="true" />
+
+        <app-custom-dropdown label="Estado" [options]="statusOptions" optionKey="value" optionLabel="label"
+          [control]="statusControl" />
+
+        <app-custom-dropdown label="Rol asignado" [options]="roleOptions()" optionKey="value" optionLabel="label"
+          [control]="roleControl" />
+
+        <app-custom-dropdown label="Ordenar por" [options]="sortOptions" optionKey="value" optionLabel="label"
+          [control]="sortControl" />
+
+        <app-custom-dropdown label="Dirección" [options]="directionOptions" optionKey="value" optionLabel="label"
+          [control]="directionControl" />
+
+      </div>
+
+    </div>
+    }
+
+  </app-custom-card>
+
+
   @if (initialized() && users().length === 0 && !loading()) {
-    <app-custom-alert
-      type="info"
-      title="No hay usuarios"
-      message="No existen usuarios registrados en el sistema."
-    />
+  <app-custom-alert type="info" title="Sin resultados"
+    message="No hay usuarios que coincidan con los filtros seleccionados." />
   }
 
   @if (users().length > 0) {
-    <app-custom-infinite-scroll
-      class="min-h-0 flex-1"
-      [loading]="loading()"
-      [hasMore]="hasMore()"
-      (loadMore)="loadMore()"
-    >
-      <div
-        class="grid grid-cols-1 gap-5 sm:grid-cols-2
-               lg:grid-cols-3 xl:grid-cols-4"
-      >
-        @for (user of users(); track user.id) {
-          <app-user-card
-            [user]="user"
-            [canEdit]="canEdit()"
-            [canChangeStatus]="canChangeStatus()"
-            (editClicked)="editUser($event)"
-            (statusClicked)="toggleUserStatus($event)"
-          />
-        }
-      </div>
-    </app-custom-infinite-scroll>
+  <app-custom-infinite-scroll class="min-h-0 flex-1" [loading]="loading()" [hasMore]="hasMore()"
+    (loadMore)="loadMore()">
+
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      @for (user of users(); track user.id) {
+      <app-user-card [user]="user" [canEdit]="canEdit()" [canChangeStatus]="canChangeStatus()"
+        (editClicked)="editUser($event)" (statusClicked)="toggleUserStatus($event)" />
+      }
+    </div>
+
+  </app-custom-infinite-scroll>
   }
+
 </div>
 
-<app-custom-confirm-dialog
-  [open]="statusDialogOpen()"
-  [title]="statusDialogTitle()"
-  [message]="statusDialogMessage()"
+<app-custom-confirm-dialog [open]="statusDialogOpen()" [title]="statusDialogTitle()" [message]="statusDialogMessage()"
   [confirmLabel]="selectedUser()?.isActive ? 'Desactivar' : 'Activar'"
-  [type]="selectedUser()?.isActive ? 'danger' : 'success'"
-  [loading]="statusDialogLoading()"
-  (confirmed)="confirmUserStatus()"
-  (cancelled)="closeStatusDialog()"
-/>
+  [type]="selectedUser()?.isActive ? 'danger' : 'success'" [loading]="statusDialogLoading()"
+  (confirmed)="confirmUserStatus()" (cancelled)="closeStatusDialog()" />
