@@ -1,42 +1,141 @@
-<div class="flex h-full min-h-0 flex-col gap-6">
+
+<div class="flex min-h-0 flex-col gap-6">
 
     <div>
         <h1 class="text-2xl font-bold text-text">Logs</h1>
-        <p class="mt-1 text-sm text-text-muted">Historial de actividad registrada en el sistema.</p>
+        <p class="mt-1 text-sm text-text-muted">
+            Historial de actividad registrada en el sistema.
+        </p>
     </div>
 
     <app-custom-card [hoverable]="false">
 
-        <div class="mb-5 grid gap-4 sm:grid-cols-3">
+        <div class="mb-5 flex flex-col gap-1">
+            <h2 class="text-base font-semibold text-text">
+                Filtros de actividad
+            </h2>
+            <p class="text-sm text-text-muted">
+                Filtra por acción, recurso, fechas u orden de los registros.
+            </p>
+        </div>
 
-            <app-custom-dropdown label="Módulo" placeholder="Todos los módulos" [options]="modules()" optionKey="value"
-                optionLabel="label" [control]="moduleFilterControl" [clearable]="true" />
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
 
-            <app-custom-datepicker label="Desde" [control]="fromDateControl" [max]="toDate()" [clearable]="true" />
+            <app-custom-dropdown
+                label="Acción"
+                placeholder="Todas las acciones"
+                [options]="actions()"
+                optionKey="value"
+                optionLabel="label"
+                [control]="actionFilterControl"
+                [clearable]="true" />
 
-            <app-custom-datepicker label="Hasta" [control]="toDateControl" [min]="fromDate()" [clearable]="true" />
+            <app-custom-dropdown
+                label="Tipo de recurso"
+                placeholder="Todos los recursos"
+                [options]="resourceTypes()"
+                optionKey="value"
+                optionLabel="label"
+                [control]="resourceTypeFilterControl"
+                [clearable]="true" />
+
+            <app-custom-textfield
+                label="ID del recurso"
+                placeholder="Buscar por ID..."
+                [control]="resourceIdFilterControl"
+                [clearable]="true" />
+
+            <app-custom-datepicker
+                label="Desde"
+                [control]="fromDateControl"
+                [max]="toDate()"
+                [clearable]="true" />
+
+            <app-custom-datepicker
+                label="Hasta"
+                [control]="toDateControl"
+                [min]="fromDate()"
+                [clearable]="true" />
+
+            <app-custom-dropdown
+                label="Ordenar por"
+                [options]="[
+                    { value: 'createdAt', label: 'Fecha' },
+                    { value: 'action', label: 'Acción' },
+                    { value: 'actorUsername', label: 'Usuario' }
+                ]"
+                optionKey="value"
+                optionLabel="label"
+                [control]="sortControl" />
+
+            <app-custom-dropdown
+                label="Dirección"
+                [options]="[
+                    { value: 'desc', label: 'Descendente' },
+                    { value: 'asc', label: 'Ascendente' }
+                ]"
+                optionKey="value"
+                optionLabel="label"
+                [control]="directionControl" />
 
         </div>
 
-        <app-custom-table [columns]="logColumns" [data]="logs()" [loading]="loading()" [hoverable]="true"
-            [striped]="true" [numbered]="true" [startIndex]="page() * size" headerVariant="primary"
+    </app-custom-card>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-base font-semibold text-text">
+                Registro de actividad
+            </h2>
+
+            <p class="text-sm text-text-muted">
+                {{ totalElements() }} registros encontrados
+            </p>
+        </div>
+
+        <app-custom-table
+            [columns]="logColumns"
+            [data]="logs()"
+            [loading]="loading()"
+            [hoverable]="true"
+            [striped]="true"
+            [numbered]="true"
+            [startIndex]="page() * size"
+            headerVariant="primary"
             emptyMessage="No hay registros que coincidan con los filtros.">
 
             <ng-template appTableCell="createdAt" let-row>
                 {{ row.createdAt | date: 'dd/MM/yyyy HH:mm' }}
             </ng-template>
 
-            <ng-template appTableCell="module" let-row>
-                <span class="rounded-full bg-surface-raised px-2 py-0.5 text-xs font-medium">
-                    {{ row.module }}
+            <ng-template appTableCell="actionLabel" let-row>
+                <span class="rounded-full bg-surface-raised px-2 py-1 text-xs font-medium">
+                    {{ row.actionLabel }}
                 </span>
+            </ng-template>
+
+            <ng-template appTableCell="resourceTypeLabel" let-row>
+                {{ row.resourceTypeLabel || '—' }}
+            </ng-template>
+
+            <ng-template appTableCell="actorUsername" let-row>
+                {{ row.actorUsername || 'Sistema' }}
+            </ng-template>
+
+            <ng-template appTableCell="description" let-row>
+                {{ row.description || '—' }}
             </ng-template>
 
         </app-custom-table>
 
         <div class="mt-4">
-            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
-                [loading]="loading()" (pageChange)="onPageChange($event)" />
+            <app-custom-pagination
+                [page]="page()"
+                [totalPages]="totalPages()"
+                [totalElements]="totalElements()"
+                [loading]="loading()"
+                (pageChange)="onPageChange($event)" />
         </div>
 
     </app-custom-card>
