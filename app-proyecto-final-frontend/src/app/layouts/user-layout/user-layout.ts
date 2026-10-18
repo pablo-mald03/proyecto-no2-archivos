@@ -6,6 +6,7 @@ import { DriveSidebar } from '../../components/drive/drive-sidebar/drive-sidebar
 import { DriveMobileSidebar } from '../../components/drive/drive-mobile-sidebar/drive-mobile-sidebar';
 import { ToastService } from '../../core/services/toast.service';
 import { ErrorResponse } from '../../features/errors/models/error-response.model';
+import { DriveActionService } from '../../core/services/drive-action.service';
 
 @Component({
   selector: 'app-user-layout',
@@ -19,6 +20,7 @@ export class UserLayout {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly driveAction = inject(DriveActionService);
 
   sidebarCollapsed = signal(false);
   mobileSidebarOpen = signal(false);
@@ -35,8 +37,10 @@ export class UserLayout {
     this.mobileSidebarOpen.set(false);
   }
 
-  uploadFile(): void {
-    // TODO: abrir el modal de subida
+  async uploadFile(): Promise<void> {
+    await this.router.navigate(['/drive/files']);
+    
+    this.driveAction.triggerUpload();
   }
 
   createFolder(): void {

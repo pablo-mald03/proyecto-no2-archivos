@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
@@ -11,6 +11,8 @@ import { ToastService } from '../../../core/services/toast.service';
 import { DriveItem } from '../../../features/drive/drive-item.model';
 import { lucideChevronDown, lucidePlus, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
+import { DriveActionService } from '../../../core/services/drive-action.service';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -23,18 +25,21 @@ import { ActivatedRoute, Router } from '@angular/router';
     CustomTextfield,
     CustomAlert,
     CustomInfiniteScroll,
-    DriveItemRow
+    DriveItemRow,
+    UploadFileModalComponent
   ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
   host: { class: 'flex flex-col h-full min-h-0' }
 })
+//Drive files page component model
 export class DriveFilesPageComponent implements OnInit {
 
   // Services
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly driveAction = inject(DriveActionService);
 
   // Filters State
   readonly filtersExpanded = signal(false);
@@ -52,17 +57,30 @@ export class DriveFilesPageComponent implements OnInit {
   readonly lucideSearchIcon = lucideSearch;
   readonly lucidePlusIcon = lucidePlus;
 
+  // Modal status
+  readonly isUploadModalOpen = signal(false);
 
-  //Flag to validate if the route is inside a folder
-  readonly isInsideFolder = computed(() => this.route.snapshot.paramMap.has('id'));
+  // Folder id directory
+  readonly currentFolderId = signal<string | null>(null);
+  readonly isInsideFolder = computed(() => !!this.currentFolderId());
+
+  constructor() {
+    effect(() => {
+      if (this.driveAction.uploadTriggered()) {
+        this.openUploadModal();
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
-      const folderId = params.get('id'); 
+      const folderId = params.get('id');
+      this.currentFolderId.set(folderId);
       this.loadMockFiles(folderId);
     });
   }
 
+  //Mocks
   loadMockFiles(folderId: string | null): void {
     this.loading.set(true);
     this.initialized.set(false);
@@ -99,27 +117,56 @@ export class DriveFilesPageComponent implements OnInit {
     }, 400);
   }
 
+  //open modal for upload
+  openUploadModal(): void {
+    this.isUploadModalOpen.set(true);
+  }
+  //Upload modal
+  closeUploadModal(): void {
+    this.isUploadModalOpen.set(false);
+  }
+
+  //Hanlde filde upload method
+  handleFileUpload(file: File): void {
+    const parentId = this.currentFolderId();
+
+    // TODO: Backend connection
+    // this.driveService.uploadFile(file, parentId).subscribe(...)
+
+    console.log(`Subiendo archivo '${file.name}' al directorio parentId:`, parentId);
+    this.toastService.success(`Archivo '${file.name}' subido con éxito.`, 'Subida completada');
+
+    //todo reload or update localy
+    this.loadMockFiles(parentId);
+  }
+
+
+  //Pagination method
   loadMore(): void {
   }
 
-  // Acciones de las filas
+  //Row actions
   onShare(item: DriveItem): void {
     this.toastService.success(`Enlace de '${item.name}' copiado al portapapeles.`, 'Compartir');
   }
 
+  //Preview event
   onPreview(item: DriveItem): void {
     this.toastService.success(`Abriendo vista previa de ${item.name}`, 'Vista Previa');
   }
 
+  //Download event
   onDownload(item: DriveItem): void {
     this.toastService.success(`Descargando ${item.name}...`, 'Descarga');
   }
 
+  //On delete event
   onDelete(item: DriveItem): void {
     this.items.update(list => list.filter(i => i.id !== item.id));
     this.toastService.success(`Se eliminó '${item.name}' correctamente.`, 'Eliminado');
   }
 
+  //open event method
   onOpenItem(item: DriveItem): void {
     if (item.type === 'folder') {
       this.router.navigate(['/drive/files/folder', item.id]);
@@ -128,7 +175,8 @@ export class DriveFilesPageComponent implements OnInit {
     }
   }
 
+  //Upload file method
   uploadFile(): void {
-    this.toastService.success('Simulando modal de subida de archivos (.txt / .md)', 'Subir Archivo');
+    this.openUploadModal();
   }
 }
