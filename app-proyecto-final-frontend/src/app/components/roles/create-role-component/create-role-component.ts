@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { Permission } from '../../../features/permissions/models/permission.model';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { finalize, forkJoin } from 'rxjs';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { CreateRoleRequest } from '../../../features/roles/models/request/create-role-request.model';
 import { CustomButton } from '../../common/custom-button/custom-button';
@@ -18,6 +17,16 @@ import { lucideArrowLeft, lucideSave, lucideShield, lucideShieldCheck } from '@n
 import { CustomTextarea } from '../../common/custom-text-area/custom-text-area';
 import { PermissionCatalog } from '../../../features/permissions/models/permission-catalog.model';
 import { toFilterOptions } from '../../../features/permissions/constants/permission-filters';
+import { combineLatest, EMPTY } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  startWith,
+  switchMap
+} from 'rxjs/operators';
+import { sanitizeCode } from '../../../core/utils/string.util';
 
 @Component({
   selector: 'app-create-role-component',
@@ -34,35 +43,37 @@ export class CreateRoleComponent implements OnInit {
   private readonly permissionService = inject(PermissionService);
   private readonly toastService = inject(ToastService);
 
+  // Signals
   readonly loading = signal(false);
   readonly saving = signal(false);
 
   readonly permissions = signal<Permission[]>([]);
   readonly selectedPermissions = signal<Permission[]>([]);
 
-  // Add these:
-  readonly catalog = signal<PermissionCatalog>({ modules: [], actions: [] });
+  // Permissions catalog and filters
+  readonly catalog = signal<PermissionCatalog>({
+    modules: []
+  });
 
-  readonly permissionModules = computed(() => toFilterOptions(this.catalog().modules));
-  readonly permissionActions = computed(() => toFilterOptions(this.catalog().actions));
-
-  readonly selectedModule = signal('');
-  readonly selectedAction = signal('');
+  readonly permissionModules = computed(() =>
+    toFilterOptions(this.catalog().modules)
+  );
 
   readonly moduleFilterControl = new FormControl('', {
     nonNullable: true
   });
 
-  readonly actionFilterControl = new FormControl('', {
+  readonly searchFilterControl = new FormControl('', {
     nonNullable: true
   });
 
-  //Icons
+  // Icons
   readonly lucideSaveIcon = lucideSave;
   readonly lucideShieldCheckIcon = lucideShieldCheck;
   readonly lucideShieldIcon = lucideShield;
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
+  // Role form
   readonly form = new FormGroup({
     alias: new FormControl('', {
       nonNullable: true,
@@ -87,88 +98,80 @@ export class CreateRoleComponent implements OnInit {
     })
   });
 
-  readonly filteredPermissions = computed(() => {
-
-    const module = this.selectedModule();
-    const action = this.selectedAction();
-
-    return this.permissions().filter(permission => {
-
-      const matchesModule =
-        !module || permission.module === module;
-
-      const matchesAction =
-        !action || permission.action === action;
-
-      return matchesModule && matchesAction;
-    });
-  });
-
-  readonly filteredActions = computed(() => {
-
-    const module = this.selectedModule();
-
-    if (!module) {
-      return this.permissionActions();
-    }
-
-    const actions = new Set(
-      this.permissions()
-        .filter(permission => permission.module === module)
-        .map(permission => permission.action)
-    );
-
-    return this.permissionActions().filter(
-      action => !action.value || actions.has(action.value)
-    );
-  });
-
+  // Initialize filters and load data
   ngOnInit(): void {
-    this.loadPermissions();
+    this.loadCatalog();
 
-    this.moduleFilterControl.valueChanges.subscribe(value => {
-      this.selectedModule.set(value);
-      this.actionFilterControl.setValue('');
-    });
+    combineLatest([
+      this.moduleFilterControl.valueChanges.pipe(
+        startWith(this.moduleFilterControl.value)
+      ),
+      this.searchFilterControl.valueChanges.pipe(
+        startWith(this.searchFilterControl.value)
+      )
+    ]).pipe(
+      debounceTime(300),
 
-    this.actionFilterControl.valueChanges.subscribe(value => {
-      this.selectedAction.set(value);
+      distinctUntilChanged(
+        ([previousModule, previousSearch], [module, search]) =>
+          previousModule === module &&
+          previousSearch === search
+      ),
+
+      switchMap(([module, search]) => {
+        this.loading.set(true);
+
+        return this.permissionService.getPermissions({
+          page: 0,
+          size: 50,
+          sortBy: 'module',
+          direction: 'asc',
+          module: module || undefined,
+          search: search.trim() || undefined
+        }).pipe(
+          finalize(() => this.loading.set(false)),
+          catchError((error: ErrorResponse) => {
+            this.toastService.error(
+              error.message || 'No fue posible cargar los permisos.',
+              'Error al cargar permisos'
+            );
+
+            return EMPTY;
+          })
+        );
+      })
+    ).subscribe(page => {
+      this.permissions.set(page.content);
     });
   }
 
-  loadPermissions(): void {
-    this.loading.set(true);
-
-    forkJoin({
-      permissions: this.permissionService.getPermissions({
-        page: 0,
-        size: 50,
-        sortBy: 'module',
-        direction: 'asc'
-      }),
-      catalog: this.permissionService.getCatalog()
-    }).pipe(
-      finalize(() => this.loading.set(false))
-    ).subscribe({
-      next: ({ permissions, catalog }) => {
-        this.permissions.set(permissions.content);
+  // Load available modules
+  loadCatalog(): void {
+    this.permissionService.getCatalog().subscribe({
+      next: catalog => {
         this.catalog.set(catalog);
       },
       error: (error: ErrorResponse) => {
         this.toastService.error(
-          error.message || 'No fue posible cargar los permisos.',
-          'Error al cargar permisos'
+          error.message || 'No fue posible cargar los módulos.',
+          'Error al cargar módulos'
         );
       }
     });
   }
 
+  // Select permission
   selectPermission(permission: Permission): void {
-    this.selectedPermissions.update(
-      permissions => [...permissions, permission]
-    );
+    this.selectedPermissions.update(permissions => {
+      if (permissions.some(selected => selected.code === permission.code)) {
+        return permissions;
+      }
+
+      return [...permissions, permission];
+    });
   }
 
+  // Remove permission
   removePermission(permission: Permission): void {
     this.selectedPermissions.update(
       permissions =>
@@ -178,6 +181,8 @@ export class CreateRoleComponent implements OnInit {
     );
   }
 
+
+  // Create role request
   createRole(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -187,10 +192,10 @@ export class CreateRoleComponent implements OnInit {
     this.saving.set(true);
 
     const request: CreateRoleRequest = {
-      alias: this.form.controls.alias.value,
+      code: sanitizeCode(this.form.controls.alias.value), 
       name: this.form.controls.name.value,
       description: this.form.controls.description.value,
-      permissionIds: this.selectedPermissions().map(
+      permissions: this.selectedPermissions().map(
         permission => permission.code
       )
     };
@@ -215,6 +220,7 @@ export class CreateRoleComponent implements OnInit {
     });
   }
 
+  // Go back
   goBack(): void {
     this.router.navigate([
       '/dashboard/administration/roles'

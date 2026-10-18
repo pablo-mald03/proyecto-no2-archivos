@@ -25,8 +25,8 @@ export class CreateRoleDto {
   description?: string;
 
   @Transform(trimUpperCaseEach)
-  @IsArray({ message: 'Los permisos deben enviarse como una lista' })
-  @IsString({ each: true, message: 'Cada permiso debe ser un texto' })
   @Matches(/^[A-Z][A-Z0-9_]*$/, { each: true, message: 'Hay un código de permiso con formato inválido' })
+  @IsString({ each: true, message: 'Cada permiso debe ser un texto' })
+  @IsArray({ message: 'Los permisos deben enviarse como una lista' })
   permissions!: string[];
 }

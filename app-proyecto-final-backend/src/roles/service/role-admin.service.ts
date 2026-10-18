@@ -72,7 +72,8 @@ export class RolesAdminService {
     /*Principal method for updating a role's permissions by its ID*/
     async updatePermissions(id: string, dto: UpdateRolePermissionsDto, actor: AuthUser): Promise<RolePermissionsResponseDto> {
         const role = await this.roles.getByIdOrFail(id);
-        const permissions = await this.validatePermissions(dto.permissions, role);
+        this.assertNotSystem(role);
+        const permissions = await this.validatePermissions(dto.permissions);
 
         const added = permissions.filter((c) => !role.permissions.includes(c));
         const removed = role.permissions.filter((c) => !permissions.includes(c));
@@ -89,6 +90,7 @@ export class RolesAdminService {
     /*Principal method for updating a role's information by its ID*/
     async updateInfo(id: string, dto: UpdateRoleDto, actor: AuthUser): Promise<RoleDetailResponseDto> {
         const role = await this.roles.getByIdOrFail(id);
+        this.assertNotSystem(role);
         if (dto.name === undefined && dto.description === undefined) return RoleMapper.toDetail(role);
 
         const updated = await this.repo.updateInfo(id, dto);
@@ -98,13 +100,14 @@ export class RolesAdminService {
         return RoleMapper.toDetail(updated);
     }
 
+
     /*Principal method for changing a role's status by its ID*/
     async changeStatus(id: string, dto: ChangeRoleStatusDto, actor: AuthUser): Promise<RoleDetailResponseDto> {
         const role = await this.roles.getByIdOrFail(id);
+        this.assertNotSystem(role);
         if (role.isActive === dto.isActive) return RoleMapper.toDetail(role);
 
         if (!dto.isActive) {
-            if (role.isSystem) throw new RoleProtectedException('Los roles del sistema no se pueden desactivar');
             const assigned = await this.users.countByRoleId(role._id);
             if (assigned > 0) throw new RoleInUseException(assigned);
         }
@@ -125,8 +128,14 @@ export class RolesAdminService {
     }
 
     /*Helper method for validating permissions*/
-    private async validatePermissions(codes: string[], role?: RoleDocument): Promise<string[]> {
+    private async validatePermissions(codes: string[]): Promise<string[]> {
         const unique = [...new Set(codes)];
+
+        if (unique.includes(Permission.DRIVE_ACCESS)) {
+            throw new InvalidRolePermissionsException(
+                `${Permission.DRIVE_ACCESS} está reservado al rol ${SystemRole.USER} y no se puede asignar a otros roles`);
+        }
+
         const found = await this.permissions.resolveOrFail(unique);
 
         const selected = new Set(unique);
@@ -135,19 +144,14 @@ export class RolesAdminService {
             .map((p) => `${p.code} requiere ${p.module}_VIEW`);
         if (missingView.length) throw new InvalidRolePermissionsException(missingView.join('; '));
 
-        if (role?.isSystem) await this.assertSystemRoleKeeps(role, selected);
         return unique;
     }
 
-    /*Helper method for asserting system role keeps permissions*/
-    private async assertSystemRoleKeeps(role: RoleDocument, selected: Set<string>): Promise<void> {
-        let required: string[] = [];
-        if (role.code === SystemRole.ADMIN) required = await this.permissions.getAllCodes();
-        else if (role.code === SystemRole.USER) required = [Permission.DRIVE_ACCESS];
 
-        const missing = required.filter((c) => !selected.has(c));
-        if (missing.length) {
-            throw new RoleProtectedException(`El rol ${role.code} debe conservar: ${missing.join(', ')}`);
+    /*Helper method for protecting the system roles*/
+    private assertNotSystem(role: RoleDocument): void {
+        if (role.isSystem) {
+            throw new RoleProtectedException(`El rol ${role.code} es un rol del sistema y no se puede modificar`);
         }
     }
 

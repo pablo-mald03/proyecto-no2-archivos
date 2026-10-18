@@ -4,25 +4,26 @@ import { RoleService } from '../../../features/roles/services/role.service';
 import { PermissionService } from '../../../features/permissions/services/permission.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Permission } from '../../../features/permissions/models/permission.model';
-import { lucideArrowLeft, lucideSave, lucideShieldCheck } from '@ng-icons/lucide';
-import { finalize, forkJoin } from 'rxjs';
+import { lucideArrowLeft, lucideSave, lucideSearch, lucideShieldCheck } from '@ng-icons/lucide';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, EMPTY, finalize, forkJoin, startWith, switchMap } from 'rxjs';
 import { RolePermissions } from '../../../features/roles/models/role-permissions';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { PermissionSelectorComponent } from '../permission-selector-component/permission-selector-component';
 import { NgIcon } from '@ng-icons/core';
 import { CustomCard } from '../../common/custom-card/custom-card';
-import { FormControl } from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { UpdateRolePermissionsRequest } from '../../../features/roles/models/request/update-role-permissions-request';
 import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
 import { PermissionCatalog } from '../../../features/permissions/models/permission-catalog.model';
 import { toFilterOptions } from '../../../features/permissions/constants/permission-filters';
+import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
 
 @Component({
   selector: 'app-role-permissions-component',
   standalone: true,
 
-  imports: [NgIcon, CustomButton, PermissionSelectorComponent, CustomCard, CustomDropdown],
+  imports: [NgIcon, CustomButton, PermissionSelectorComponent, CustomCard, CustomDropdown, ReactiveFormsModule, CustomTextfield],
   templateUrl: './role-permissions-component.html',
   styleUrl: './role-permissions-component.css',
 })
@@ -37,9 +38,8 @@ export class RolePermissionsComponent implements OnInit {
   private readonly toastService = inject(ToastService);
 
   //Path param
-  readonly roleId = Number(
-    this.route.snapshot.paramMap.get('id')
-  );
+  // Path param
+  readonly roleId = this.route.snapshot.paramMap.get('id') ?? '';
 
   //Signals
   readonly loading = signal(false);
@@ -48,23 +48,29 @@ export class RolePermissionsComponent implements OnInit {
   readonly permissions = signal<Permission[]>([]);
   readonly selectedPermissions = signal<Permission[]>([]);
 
-  //Permissions filters
-  readonly catalog = signal<PermissionCatalog>({ modules: [], actions: [] });
+  // Permissions filters
+  readonly catalog = signal<PermissionCatalog>({ modules: [] });
 
-  readonly permissionModules = computed(() => toFilterOptions(this.catalog().modules));
-  readonly permissionActions = computed(() => toFilterOptions(this.catalog().actions));
+  readonly permissionModules = computed(() =>
+    toFilterOptions(this.catalog().modules)
+  );
 
   readonly selectedModule = signal('');
-  readonly selectedAction = signal('');
 
-  //Reactive states
   readonly moduleFilterControl = new FormControl('', {
     nonNullable: true
   });
 
-  readonly actionFilterControl = new FormControl('', {
+  readonly searchFilterControl = new FormControl('', {
     nonNullable: true
   });
+
+  // Permissions loading state
+  readonly permissionsLoading = signal(false);
+
+
+  readonly lucideSearchIcon = lucideSearch;
+
 
   readonly role = signal<{
     alias: string;
@@ -81,51 +87,61 @@ export class RolePermissionsComponent implements OnInit {
   readonly filteredPermissions = computed(() => {
 
     const module = this.selectedModule();
-    const action = this.selectedAction();
 
     return this.permissions().filter(permission => {
 
       const matchesModule =
         !module || permission.module === module;
 
-      const matchesAction =
-        !action || permission.action === action;
-
-      return matchesModule && matchesAction;
+      return matchesModule;
     });
-  });
-
-  //Filter for actions
-  readonly filteredActions = computed(() => {
-
-    const module = this.selectedModule();
-
-    if (!module) {
-      return this.permissionActions();
-    }
-
-    const actions = new Set(
-      this.permissions()
-        .filter(permission => permission.module === module)
-        .map(permission => permission.action)
-    );
-
-    return this.permissionActions().filter(
-      action => !action.value || actions.has(action.value)
-    );
   });
 
   //On init actions
   ngOnInit(): void {
     this.loadData();
 
-    this.moduleFilterControl.valueChanges.subscribe(value => {
-      this.selectedModule.set(value);
-      this.actionFilterControl.setValue('');
-    });
+    combineLatest([
+      this.moduleFilterControl.valueChanges.pipe(
+        startWith(this.moduleFilterControl.value)
+      ),
+      this.searchFilterControl.valueChanges.pipe(
+        startWith(this.searchFilterControl.value)
+      )
+    ]).pipe(
+      debounceTime(300),
 
-    this.actionFilterControl.valueChanges.subscribe(value => {
-      this.selectedAction.set(value);
+      distinctUntilChanged(
+        ([previousModule, previousSearch], [module, search]) =>
+          previousModule === module &&
+          previousSearch === search
+      ),
+
+      switchMap(([module, search]) => {
+        this.selectedModule.set(module);
+        this.permissionsLoading.set(true);
+
+        return this.permissionService.getPermissions({
+          page: 0,
+          size: 50,
+          sortBy: 'module',
+          direction: 'asc',
+          module: module || undefined,
+          search: search.trim() || undefined
+        }).pipe(
+          finalize(() => this.permissionsLoading.set(false)),
+          catchError((error: ErrorResponse) => {
+            this.toastService.error(
+              error.message || 'No fue posible cargar los permisos.',
+              'Error al cargar permisos'
+            );
+
+            return EMPTY;
+          })
+        );
+      })
+    ).subscribe(page => {
+      this.permissions.set(page.content);
     });
   }
 
@@ -135,17 +151,11 @@ export class RolePermissionsComponent implements OnInit {
 
     forkJoin({
       role: this.roleService.getRolePermissions(this.roleId),
-      permissions: this.permissionService.getPermissions({
-        page: 0,
-        size: 50,
-        sortBy: 'module',
-        direction: 'asc'
-      }),
       catalog: this.permissionService.getCatalog()
     }).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
-      next: ({ role, permissions, catalog }) => {
+      next: ({ role, catalog }) => {
         this.role.set({
           alias: role.alias,
           name: role.name,
@@ -153,7 +163,6 @@ export class RolePermissionsComponent implements OnInit {
         });
 
         this.selectedPermissions.set(role.permissions);
-        this.permissions.set(permissions.content);
         this.catalog.set(catalog);
       },
       error: (error: ErrorResponse) => {
@@ -187,7 +196,7 @@ export class RolePermissionsComponent implements OnInit {
     this.saving.set(true);
 
     const request: UpdateRolePermissionsRequest = {
-      permissionIds: this.selectedPermissions().map(
+      permissions: this.selectedPermissions().map(
         permission => permission.code
       )
     };

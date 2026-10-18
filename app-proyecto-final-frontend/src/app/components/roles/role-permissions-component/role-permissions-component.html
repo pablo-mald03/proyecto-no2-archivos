@@ -52,16 +52,16 @@
         <div class="mb-5 grid gap-4 sm:grid-cols-2">
 
             <app-custom-dropdown label="Módulo" [options]="permissionModules()" optionKey="value" optionLabel="label"
-                [control]="moduleFilterControl" />
+                [control]="moduleFilterControl" [clearable]="true" />
 
-            <app-custom-dropdown label="Acción" [options]="filteredActions()" optionKey="value" optionLabel="label"
-                [control]="actionFilterControl" />
+            <app-custom-textfield label="Buscar permiso" placeholder="Código, nombre o descripción"
+                [control]="searchFilterControl" [clearable]="true" [icon]="lucideSearchIcon" />
 
         </div>
 
-        <app-permission-selector-component [permissions]="filteredPermissions()"
-            [selectedPermissions]="selectedPermissions()" [loading]="loading()"
-            (permissionSelected)="selectPermission($event)" (permissionRemoved)="removePermission($event)" />
+        <app-permission-selector-component [permissions]="permissions()" [selectedPermissions]="selectedPermissions()"
+            [loading]="permissionsLoading()" (permissionSelected)="selectPermission($event)"
+            (permissionRemoved)="removePermission($event)" />
 
     </app-custom-card>
 

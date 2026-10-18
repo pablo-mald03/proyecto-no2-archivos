@@ -1,7 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Permission } from '../../../features/permissions/models/permission.model';
 import { NgIcon, NgIconComponent } from '@ng-icons/core';
-import { lucideCheck, lucidePlus, lucideX } from '@ng-icons/lucide';
+import { lucideCheck, lucidePlus, lucideShieldCheck, lucideX } from '@ng-icons/lucide';
 
 @Component({
   selector: 'app-permission-selector-component',
@@ -15,6 +15,7 @@ export class PermissionSelectorComponent {
   readonly lucideXIcon = lucideX;
   readonly lucideCheckIcon = lucideCheck;
   readonly lucidePlusIcon = lucidePlus;
+  readonly lucideShieldCheckIcon = lucideShieldCheck;
 
   //Reactive variables
   permissions = input<Permission[]>([]);

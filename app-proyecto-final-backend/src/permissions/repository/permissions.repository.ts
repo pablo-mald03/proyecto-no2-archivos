@@ -43,6 +43,14 @@ export class PermissionsRepository {
         return { content, total };
     }
 
+
+    //Method to find the distinct modules of the catalog
+    async findModules(): Promise<string[]> {
+        const modules = await this.model.distinct('module').exec();
+        return modules.sort((a, b) => a.localeCompare(b));
+    }
+
+
     //Method to build filter
     private buildFilter(f: PermissionFilter): QueryFilter<PermissionEntity> {
         const q: QueryFilter<PermissionEntity> = {};

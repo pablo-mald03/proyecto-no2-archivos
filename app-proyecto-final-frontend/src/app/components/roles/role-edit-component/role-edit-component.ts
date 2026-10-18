@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
@@ -11,7 +11,7 @@ import { RoleEdit } from '../../../features/roles/models/role-edit.model';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RoleService } from '../../../features/roles/services/role.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { lucideArrowLeft, lucideSave, lucideShield } from '@ng-icons/lucide';
+import { lucideActivity, lucideArrowLeft, lucideCalendarClock, lucideCalendarPlus, lucideCalendarX, lucideClipboardList, lucideHistory, lucideInfo, lucideKeyRound, lucideSave, lucideShield, lucideShieldCheck } from '@ng-icons/lucide';
 import { CustomTextarea } from '../../common/custom-text-area/custom-text-area';
 
 @Component({
@@ -24,7 +24,7 @@ import { CustomTextarea } from '../../common/custom-text-area/custom-text-area';
     CustomCard,
     CustomTextfield,
     CustomTextarea
-],
+  ],
   templateUrl: './role-edit-component.html',
   styleUrl: './role-edit-component.css',
 })
@@ -37,14 +37,43 @@ export class RoleEditComponent {
   private readonly roleService = inject(RoleService);
   private readonly toastService = inject(ToastService);
 
-  //role id path param
-  readonly roleId = Number(
-    this.route.snapshot.paramMap.get('id')
-  );
+  // Path param
+  readonly roleId = this.route.snapshot.paramMap.get('id') ?? '';
 
   //Signals
   readonly loading = signal(false);
   readonly saving = signal(false);
+
+  // Informational role details
+  readonly roleDetails = signal<RoleEdit | null>(null);
+
+  readonly formattedCreatedAt = computed(() => {
+    const date = this.roleDetails()?.createdAt;
+    return date ? this.formatDate(date) : 'No disponible';
+  });
+
+  readonly formattedUpdatedAt = computed(() => {
+    const date = this.roleDetails()?.updatedAt;
+    return date ? this.formatDate(date) : 'No disponible';
+  });
+
+  readonly formattedDeactivatedAt = computed(() => {
+    const date = this.roleDetails()?.deactivatedAt;
+    return date ? this.formatDate(date) : 'No aplica';
+  });
+
+  private formatDate(value: string): string {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return 'No disponible';
+    }
+
+    return new Intl.DateTimeFormat('es-GT', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(date);
+  }
 
   //Form
   readonly form = new FormGroup({
@@ -75,6 +104,15 @@ export class RoleEditComponent {
   readonly lucideArrowLeftIcon = lucideArrowLeft;
   readonly lucideSaveIcon = lucideSave;
   readonly lucideShieldIcon = lucideShield;
+  readonly lucideClipboardListIcon = lucideClipboardList;
+  readonly lucideActivityIcon = lucideActivity;
+  readonly lucideShieldCheckIcon = lucideShieldCheck;
+  readonly lucideKeyRoundIcon = lucideKeyRound;
+  readonly lucideCalendarClockIcon = lucideCalendarClock;
+  readonly lucideCalendarPlusIcon = lucideCalendarPlus;
+  readonly lucideHistoryIcon = lucideHistory;
+  readonly lucideCalendarXIcon = lucideCalendarX;
+  readonly lucideInfoIcon = lucideInfo;
 
   //Method to load the role on init
   ngOnInit(): void {
@@ -91,8 +129,10 @@ export class RoleEditComponent {
       )
       .subscribe({
         next: (role: RoleEdit) => {
+          this.roleDetails.set(role);
+
           this.form.patchValue({
-            alias: role.alias,
+            alias: role.code,
             name: role.name,
             description: role.description
           });

@@ -2,8 +2,13 @@
 
     <div class="flex items-center gap-3">
 
-        <app-custom-button variant="ghost" size="sm" [icon]="lucideArrowLeftIcon" ariaLabel="Volver"
-            [disabled]="saving()" (clicked)="goBack()" />
+        <app-custom-button
+            variant="ghost"
+            size="sm"
+            [icon]="lucideArrowLeftIcon"
+            ariaLabel="Volver"
+            [disabled]="saving()"
+            (clicked)="goBack()" />
 
         <div>
             <h1 class="text-2xl font-bold text-text">
@@ -17,9 +22,7 @@
 
     </div>
 
-
     <div class="grid gap-6 xl:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-
 
         <app-custom-card [hoverable]="false">
 
@@ -43,21 +46,28 @@
 
             <div class="space-y-5">
 
-                <app-custom-textfield label="Alias" placeholder="Ej. SALES_MANAGER" [control]="form.controls.alias"
+                <app-custom-textfield
+                    label="Codigo"
+                    placeholder="Ej. SALES_MANAGER"
+                    [control]="form.controls.alias"
                     [clearable]="true" />
 
-                <app-custom-textfield label="Nombre" placeholder="Ej. Gerente de ventas" [control]="form.controls.name"
+                <app-custom-textfield
+                    label="Nombre"
+                    placeholder="Ej. Gerente de ventas"
+                    [control]="form.controls.name"
                     [clearable]="true" />
 
-                <app-custom-text-area label="Descripción" placeholder="Describe la finalidad de este rol..."
-                    [control]="form.controls.description" [rows]="4" [clearable]="true" />
-
+                <app-custom-text-area
+                    label="Descripción"
+                    placeholder="Describe la finalidad de este rol..."
+                    [control]="form.controls.description"
+                    [rows]="4"
+                    [clearable]="true" />
 
             </div>
 
         </app-custom-card>
-
-
 
         <app-custom-card [hoverable]="false">
 
@@ -65,8 +75,7 @@
 
                 <div class="flex items-start gap-4">
 
-                    <div
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-950/60 text-green-400">
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-950/60 text-green-400">
                         <ng-icon [svg]="lucideShieldCheckIcon" size="20" />
                     </div>
 
@@ -84,35 +93,60 @@
 
             </div>
 
-
-
+            <!-- Permission filters -->
             <div class="mb-5 grid gap-4 sm:grid-cols-2">
 
-                <app-custom-dropdown label="Módulo" [options]="permissionModules()" optionKey="value"
-                    optionLabel="label" [control]="moduleFilterControl" />
+                <app-custom-dropdown
+                    label="Módulo"
+                    [options]="permissionModules()"
+                    optionKey="value"
+                    optionLabel="label"
+                    [control]="moduleFilterControl" />
 
-                <app-custom-dropdown label="Acción" [options]="filteredActions()" optionKey="value" optionLabel="label"
-                    [control]="actionFilterControl" />
+                <div class="flex flex-col gap-2">
+                    <label for="permission-search" class="text-sm font-medium text-text">
+                        Buscar permiso
+                    </label>
+
+                    <input
+                        id="permission-search"
+                        type="text"
+                        [formControl]="searchFilterControl"
+                        placeholder="Buscar por código, nombre o descripción..."
+                        class="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text outline-none transition-colors placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                </div>
 
             </div>
 
-
-            <app-permission-selector-component [permissions]="filteredPermissions()"
-                [selectedPermissions]="selectedPermissions()" [loading]="loading()"
-                (permissionSelected)="selectPermission($event)" (permissionRemoved)="removePermission($event)" />
+            <app-permission-selector-component
+                [permissions]="permissions()"
+                [selectedPermissions]="selectedPermissions()"
+                [loading]="loading()"
+                (permissionSelected)="selectPermission($event)"
+                (permissionRemoved)="removePermission($event)" />
 
         </app-custom-card>
 
     </div>
 
-
     <div class="flex justify-end gap-3 border-t border-border pt-5">
 
-        <app-custom-button label="Cancelar" variant="ghost" size="md" [disabled]="saving()" (clicked)="goBack()"
+        <app-custom-button
+            label="Cancelar"
+            variant="ghost"
+            size="md"
+            [disabled]="saving()"
+            (clicked)="goBack()"
             [bordered]="true" />
 
-        <app-custom-button label="Crear rol" variant="primary" size="md" [icon]="lucideSaveIcon" [loading]="saving()"
-            (clicked)="createRole()" [bordered]="true" />
+        <app-custom-button
+            label="Crear rol"
+            variant="primary"
+            size="md"
+            [icon]="lucideSaveIcon"
+            [loading]="saving()"
+            (clicked)="createRole()"
+            [bordered]="true" />
 
     </div>
 

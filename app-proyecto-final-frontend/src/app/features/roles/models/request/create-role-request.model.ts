@@ -1,7 +1,7 @@
 /*Create role request */
 export interface CreateRoleRequest {
-    alias: string;
+    code: string;
     name: string;
     description: string;
-    permissionIds: number[];
+    permissions: string[];
 }

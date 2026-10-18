@@ -20,15 +20,9 @@ export class PermissionsService {
     return PageResponseDto.of(content.map(PermissionMapper.toResponse), total, query);
   }
 
-  //Method to get all permissions catalog
+  //Method to get the distinct modules of the permissions catalog
   async getCatalog(): Promise<PermissionCatalogResponseDto> {
-    const groups = new Map<string, PermissionResponseDto[]>();
-    for (const p of await this.permissions.findAll()) {
-      const list = groups.get(p.module) ?? [];
-      list.push(PermissionMapper.toResponse(p));
-      groups.set(p.module, list);
-    }
-    return { modules: [...groups].map(([module, permissions]) => ({ module, permissions })) };
+    return { modules: await this.permissions.findModules() };
   }
 
   //Method to get all permissions codes

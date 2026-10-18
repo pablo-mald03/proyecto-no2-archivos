@@ -7,6 +7,7 @@ export class PermissionModuleGroupDto {
 }
 
 //Principal permission catalog response dto
-export class PermissionCatalogResponseDto { 
-    modules!: PermissionModuleGroupDto[]; 
+//Principal permission catalog response dto
+export class PermissionCatalogResponseDto {
+    modules!: string[];
 }

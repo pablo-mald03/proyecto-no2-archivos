@@ -127,10 +127,10 @@ export class UserService {
 
 
     //Principal disable/enable status for users endpoint
-    changeStatus(id: string, status: boolean): Observable<void> {
+    changeStatus(id: string, isActive: boolean): Observable<void> {
         return this.http.patch<void>(
             `${this.apiUrl}/users/${id}/status`,
-            { status }
+            { isActive }
         ).pipe(
 
             catchError(
