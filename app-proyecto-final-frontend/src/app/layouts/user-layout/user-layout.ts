@@ -2,7 +2,6 @@ import { Component, inject, signal } from '@angular/core';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { Router, RouterOutlet } from '@angular/router';
 import { Topbar } from '../../components/dashboard/topbar/topbar';
-import { lucideFolder, lucideHistory, lucideTrash2, lucideUsers } from '@ng-icons/lucide';
 import { DriveSidebar } from '../../components/drive/drive-sidebar/drive-sidebar';
 import { DriveMobileSidebar } from '../../components/drive/drive-mobile-sidebar/drive-mobile-sidebar';
 import { ToastService } from '../../core/services/toast.service';

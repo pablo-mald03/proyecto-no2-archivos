@@ -11,7 +11,6 @@ import { DatePipe, DecimalPipe } from '@angular/common';
   standalone: true,
   imports: [
     DatePipe,
-    DecimalPipe,
     NgIcon,
     CustomToggleMenu,
     CustomToggleMenuItem

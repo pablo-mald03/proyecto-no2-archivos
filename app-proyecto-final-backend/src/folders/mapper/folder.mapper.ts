@@ -2,7 +2,9 @@ import { FolderDocument, FolderEntity } from '../entities/folder.entity';
 import { FolderBreadcrumbDto, FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
 import { FolderResponseDto } from '../dto/response/folder-response.dto';
 
+/*Principal folder mapper class*/
 export class FolderMapper {
+  /*Convert FolderDocument to FolderResponseDto*/
   static toResponse(doc: FolderDocument | FolderEntity & { _id?: any }): FolderResponseDto {
     const id = doc instanceof Object && '_id' in doc ? doc._id.toString() : (doc as any).id;
     return {
@@ -16,6 +18,7 @@ export class FolderMapper {
     };
   }
 
+  /*Convert FolderDocument to FolderContentResponseDto*/
   static toContentResponse(
     currentFolder: FolderDocument | null,
     breadcrumbs: FolderBreadcrumbDto[],

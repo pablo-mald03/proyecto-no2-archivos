@@ -23,7 +23,7 @@ export class FoldersService {
     private readonly foldersRepository: FoldersRepository,
     private readonly activity: ActivityRecorderService,
     @InjectConnection() private readonly connection: Connection,
-  ) {}
+  ) { }
 
   async create(dto: CreateFolderDto, actor: AuthUser): Promise<FolderResponseDto> {
     const ownerId = new Types.ObjectId(actor.id);
@@ -106,7 +106,6 @@ export class FoldersService {
       folderId ? new Types.ObjectId(folderId) : null,
     );
 
-    // files will be joined or aggregated once files module is built
     return FolderMapper.toContentResponse(currentFolder, breadcrumbs, childrenFolders, []);
   }
 
@@ -175,14 +174,12 @@ export class FoldersService {
     const currentParentId = folder.parentId ? folder.parentId.toString() : null;
     const newParentIdStr = targetParentId ? targetParentId.toString() : null;
 
-    // No-op if moved to the same parent
     if (currentParentId === newParentIdStr) {
       return FolderMapper.toResponse(folder);
     }
 
     let targetAncestors: Types.ObjectId[] = [];
     if (targetParentId) {
-      // Cannot move to itself
       if (folder._id.equals(targetParentId)) {
         throw new FolderCycleException('No se puede mover una carpeta dentro de sí misma');
       }
@@ -193,7 +190,6 @@ export class FoldersService {
       }
       this.assertOwnership(targetParent.ownerId, actor.id);
 
-      // Cannot move inside one of its descendants
       const isDescendant = targetParent.ancestors.some((ancId) => ancId.equals(folder._id));
       if (isDescendant) {
         throw new FolderCycleException('No se puede mover una carpeta a una subcarpeta descendiente');

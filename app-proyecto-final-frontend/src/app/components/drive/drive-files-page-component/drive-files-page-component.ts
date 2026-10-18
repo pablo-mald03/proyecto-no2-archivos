@@ -68,12 +68,11 @@ export class DriveFilesPageComponent implements OnInit {
       this.items.set(mockData);
       this.loading.set(false);
       this.initialized.set(true);
-      this.hasMore.set(false); // Simulamos que no hay más páginas por ahora
+      this.hasMore.set(false); 
     }, 600);
   }
 
   loadMore(): void {
-    // Lógica para la paginación con infinite scroll cuando conectes el backend
   }
 
   // Acciones de las filas

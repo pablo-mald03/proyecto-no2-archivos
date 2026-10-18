@@ -1,3 +1,5 @@
+
+/*Principal drive item type */
 export type DriveItemType = 'folder' | 'file';
 
 /*Principal dirve item */

@@ -3,6 +3,7 @@ import { Transform } from 'class-transformer';
 import { FieldLimits } from 'src/common/constants/validation/field-limits';
 import { trim } from 'src/common/utils/transforms';
 
+/*Principal rename folder dto model */
 export class RenameFolderDto {
   @Transform(trim)
   @IsNotEmpty({ message: 'El nombre de la carpeta es obligatorio' })

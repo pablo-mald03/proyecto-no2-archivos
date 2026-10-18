@@ -4,6 +4,7 @@ import { FieldLimits } from 'src/common/constants/validation/field-limits';
 import { OBJECT_ID_REGEX } from 'src/common/constants/regex/object-id';
 import { trim } from 'src/common/utils/transforms';
 
+/*Principal create folder dto model */
 export class CreateFolderDto {
   @Transform(trim)
   @IsNotEmpty({ message: 'El nombre de la carpeta es obligatorio' })

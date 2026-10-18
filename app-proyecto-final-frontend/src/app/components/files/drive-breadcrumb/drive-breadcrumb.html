@@ -1,0 +1,30 @@
+<nav class="flex items-center gap-2 text-sm font-medium text-text-muted">
+
+    <a routerLink="/dashboard/drive/files" class="flex items-center gap-1 hover:text-primary transition-colors">
+        <ng-icon [svg]="lucideHomeIcon" size="16" />
+        <span>Mi unidad</span>
+    </a>
+
+    @if (items().length > 0) {
+    <ng-icon [svg]="lucideChevronRightIcon" size="16" class="text-text-muted/60" />
+    }
+
+    @for (item of items(); track item.label; let last = $last) {
+    <div class="flex items-center gap-2">
+        @if (!last && item.route) {
+        <a [routerLink]="item.route" class="hover:text-primary transition-colors truncate max-w-[150px]">
+            {{ item.label }}
+        </a>
+        } @else {
+        <span class="text-text font-semibold truncate max-w-[200px]">
+            {{ item.label }}
+        </span>
+        }
+
+        @if (!last) {
+        <ng-icon [svg]="lucideChevronRightIcon" size="16" class="text-text-muted/60" />
+        }
+    </div>
+    }
+
+</nav>

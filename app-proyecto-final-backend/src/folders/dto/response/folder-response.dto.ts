@@ -1,3 +1,4 @@
+/*Principal folder response dto model */
 export class FolderResponseDto {
   id!: string;
   ownerId!: string;

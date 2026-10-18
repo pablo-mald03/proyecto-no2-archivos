@@ -28,6 +28,8 @@ import { PermissionsPage } from './components/pages/permissions-page/permissions
 import { RegisterUserComponent } from './components/auth/register-user-component/register-user-component';
 import { SettingsPage } from './components/pages/settings-page/settings-page';
 import { UpdateSettingsComponent } from './components/settings/update-settings-component/update-settings-component';
+import { DriveFilesPageComponent } from './components/drive/drive-files-page-component/drive-files-page-component';
+import { DriveExplorerComponent } from './components/files/drive-explorer-component/drive-explorer-component';
 
 export const routes: Routes = [
 
@@ -71,9 +73,16 @@ export const routes: Routes = [
         canActivate: [authGuard, roleGuard],
         data: { role: ROLES.USER },
         children: [
-            { path: '', component: DriveHome },
-            { path: 'profile', component: ProfileComponent },
-
+            { path: '', component: DriveHome },              
+            { path: 'profile', component: ProfileComponent },       
+            {
+                path: 'files',                                  
+                component: DriveExplorerComponent,               
+                children: [
+                    { path: '', component: DriveFilesPageComponent },          
+                    { path: 'folder/:id', component: DriveFilesPageComponent } 
+                ]
+            }
         ],
     },
     {
