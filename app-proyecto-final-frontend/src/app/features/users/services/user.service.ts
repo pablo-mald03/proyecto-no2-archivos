@@ -14,6 +14,7 @@ import { UpdateUserRolesRequest } from "../models/request/update-user-roles-requ
 import { UserRoleAssignment } from "../models/request/user-role-assignment.model";
 import { RegisterUserSelfRequest } from "../models/request/register-user-self.request";
 import { UserProfile } from "../models/response/user-profile.model";
+import { ChangeSelfPasswordRequest } from "../models/request/change-self-password-request.model";
 
 @Injectable({
     providedIn: 'root'
@@ -21,11 +22,11 @@ import { UserProfile } from "../models/response/user-profile.model";
 /*Service for all endpoints of users */
 export class UserService {
 
+
     //variables to make the http services
     private readonly http = inject(HttpClient);
 
     private readonly apiUrl = inject(API_URL);
-
 
     //User profile query
     getUserProfile(): Observable<UserProfile> {
@@ -163,6 +164,36 @@ export class UserService {
                     )
             )
 
+        );
+    }
+
+
+    /**
+     * Update current authenticated user profile endpoint request
+     */
+    updateSelfProfile(request: UpdateUserRequest): Observable<User> {
+        return this.http.patch<User>(
+            `${this.apiUrl}/users/profile`,
+            request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
+        );
+    }
+
+    
+    /**
+     * Change password for the current authenticated user
+     */
+    changeSelfPassword(request: ChangeSelfPasswordRequest): Observable<void> {
+        return this.http.patch<void>(
+            `${this.apiUrl}/users/profile/password`,
+            request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
         );
     }
 

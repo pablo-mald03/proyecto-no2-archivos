@@ -132,6 +132,28 @@ export class UsersService {
     return UserMapper.toDetail(updated, await this.roles.getByIdOrFail(updated.roleId));
   }
 
+  /**
+   * Principal method to update current authenticated user profile
+   */
+  async updateProfileSelf(actor: AuthUser, dto: UpdateUserDto): Promise<UserDetailResponseDto> {
+    const user = await this.getOrFail(actor.id);
+
+    const changesEmail = dto.email !== undefined && dto.email !== user.email;
+    const changesUsername = dto.username !== undefined && dto.username !== user.username;
+
+    await this.assertUnique(
+      changesEmail ? dto.email : undefined,
+      changesUsername ? dto.username : undefined,
+      actor.id
+    );
+
+    const updated = await this.users.updateProfile(actor.id, dto);
+    if (!updated) throw new UserNotFoundException();
+
+    this.log(actor, ActivityAction.USER_UPDATED, updated, `Actualizó su propio perfil (${updated.username})`);
+    return UserMapper.toDetail(updated, await this.roles.getByIdOrFail(updated.roleId));
+  }
+
   /*Principal method to assign a role to an user */
   async assignRole(id: string, dto: AssignRoleDto, actor: AuthUser): Promise<UserDetailResponseDto> {
     this.assertNotSelf(id, actor, 'No puedes cambiar tu propio rol');

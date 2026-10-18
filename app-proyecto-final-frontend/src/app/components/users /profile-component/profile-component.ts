@@ -11,12 +11,14 @@ import { finalize } from 'rxjs';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { AuthState } from '../../../stores/auth.state';
 import { UserProfile } from '../../../features/users/models/response/user-profile.model';
+import { EditProfileModalComponent } from '../edit-profile-modal-component/edit-profile-modal-component';
+import { ChangePasswordModalComponent } from '../change-password-modal-component/change-password-modal-component';
 
 @Component({
   selector: 'app-profile-component',
   standalone: true,
   host: { class: 'flex flex-col h-full min-h-0' },
-  imports: [NgIcon, CustomCard, CustomAlert,DatePipe],
+  imports: [NgIcon, CustomCard, CustomAlert, DatePipe, EditProfileModalComponent, ChangePasswordModalComponent],
   viewProviders: [
     provideIcons({
       lucideArrowLeft,
@@ -37,18 +39,21 @@ import { UserProfile } from '../../../features/users/models/response/user-profil
 //Profile component
 export class ProfileComponent implements OnInit {
 
-  //Dependencies
+  // Dependencies
   private readonly router = inject(Router);
   private readonly userService = inject(UserService);
   private readonly toastService = inject(ToastService);
+  private readonly authState = inject(AuthState);
 
-  //Data
+  // Data Signals
   readonly profile = signal<UserProfile | null>(null);
   readonly loading = signal(false);
 
-  private readonly authState = inject(AuthState);
+  // Modal Visibility Signals
+  readonly showEditProfileModal = signal(false);
+  readonly showChangePasswordModal = signal(false);
 
-  //Icons
+  // Lucide Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
   readonly lucideMailIcon = lucideMail;
   readonly lucidePhoneIcon = lucidePhone;
@@ -66,21 +71,21 @@ export class ProfileComponent implements OnInit {
   readonly lucideCalendarIcon = lucideCalendar;
   readonly lucideHardDriveIcon = lucideHardDrive;
 
-  // Iniciales del Avatar basadas en firstName y lastName
+  // Computed initials for user avatar
   readonly initials = computed(() => {
     const p = this.profile();
     if (!p) return '';
     return `${p.firstName?.[0] ?? ''}${p.lastName?.[0] ?? ''}`.toUpperCase();
   });
 
-  // Nombre completo
+  // Computed full name
   readonly fullName = computed(() => {
     const p = this.profile();
     if (!p) return '';
     return `${p.firstName} ${p.lastName}`;
   });
 
-  // Porcentaje de almacenamiento usado
+  // Computed storage usage percentage
   readonly storagePercentage = computed(() => {
     const s = this.profile()?.storage;
     if (!s || s.quotaBytes === 0) return 0;
@@ -88,12 +93,11 @@ export class ProfileComponent implements OnInit {
     return Math.min(Math.round(percentage), 100);
   });
 
-
   ngOnInit(): void {
     this.loadProfile();
   }
 
-  //Load profile method
+  // Load user profile details
   loadProfile(): void {
     this.loading.set(true);
 
@@ -103,14 +107,14 @@ export class ProfileComponent implements OnInit {
         next: (response) => this.profile.set(response),
         error: (error: ErrorResponse) => {
           this.toastService.error(
-            error.message || 'No fue posible cargar el perfil.',
-            'Error al cargar perfil'
+            error.message || 'Could not load profile information.',
+            'Profile Loading Error'
           );
         }
       });
   }
 
-  // Formateador limpio de bytes a MB o GB
+  // Format bytes into readable human units (MB, GB, etc.)
   formatBytes(bytes: number): string {
     if (bytes === 0) return '0 MB';
     const k = 1024;
@@ -119,16 +123,24 @@ export class ProfileComponent implements OnInit {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
+  // Modal controls
   openEditProfileModal(): void {
+    this.showEditProfileModal.set(true);
+  }
 
+  closeEditProfileModal(): void {
+    this.showEditProfileModal.set(false);
   }
 
   openChangePasswordModal(): void {
-
+    this.showChangePasswordModal.set(true);
   }
 
+  closeChangePasswordModal(): void {
+    this.showChangePasswordModal.set(false);
+  }
 
-  //Go back method
+  // Handle navigation based on user role
   goBack(): void {
     const user = this.authState.user();
     if (user?.roleCode === 'USER') {

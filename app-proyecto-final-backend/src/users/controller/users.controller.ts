@@ -61,6 +61,12 @@ export class UsersController {
     return this.users.findById(actor.id);
   }
 
+  @Patch('profile')
+  @ApiOperation({ summary: 'Update profile data of the current authenticated user' })
+  updateProfile(@CurrentUser() actor: AuthUser, @Body() dto: UpdateUserDto) {
+    return this.users.updateProfileSelf(actor, dto);
+  }
+
   @Patch('profile/password')
   @HttpCode(204)
   @ApiOperation({ summary: 'Change the password of the current user' })

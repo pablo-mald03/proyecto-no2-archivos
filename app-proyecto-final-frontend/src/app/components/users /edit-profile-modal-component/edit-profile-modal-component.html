@@ -1,0 +1,51 @@
+<app-custom-modal-component
+  [isOpen]="isOpen()"
+  title="Editar Perfil"
+  subtitle="Actualiza los detalles de tu cuenta e información personal."
+  (closed)="closeModal()"
+>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+    <app-custom-textfield
+      label="Nombre de usuario"
+      placeholder="usuario123"
+      [control]="controls.username"
+    />
+
+    <app-custom-textfield
+      label="Correo electrónico"
+      placeholder="usuario@ejemplo.com"
+      type="email"
+      [control]="controls.email"
+    />
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <app-custom-textfield
+        label="Nombre"
+        placeholder="Juan"
+        [control]="controls.firstName"
+      />
+
+      <app-custom-textfield
+        label="Apellido"
+        placeholder="Pérez"
+        [control]="controls.lastName"
+      />
+    </div>
+
+    <div modal-actions class="flex justify-end gap-3">
+      <app-custom-button
+        label="Cancelar"
+        variant="secondary"
+        type="button"
+        (click)="closeModal()"
+      />
+      <app-custom-button
+        label="Guardar cambios"
+        type="submit"
+        [loading]="saving()"
+      />
+    </div>
+
+  </form>
+</app-custom-modal-component>

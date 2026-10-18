@@ -269,3 +269,16 @@
     }
 
 </div>
+
+<app-edit-profile-modal-component
+  [isOpen]="showEditProfileModal()"
+  [profile]="profile()"
+  (closed)="closeEditProfileModal()"
+  (updated)="loadProfile()"
+/>
+
+<app-change-password-modal-component
+  [isOpen]="showChangePasswordModal()"
+  (closed)="closeChangePasswordModal()"
+  (updated)="loadProfile()"
+/>
