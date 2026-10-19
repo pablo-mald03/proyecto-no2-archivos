@@ -76,12 +76,7 @@ export class FilesRepository {
   }
 
   //Method to update a file
-  updateContent(
-    id: string | Types.ObjectId,
-    gridFsId: Types.ObjectId,
-    sizeBytes: number,
-    session?: ClientSession,
-  ): Promise<FileDocument | null> {
+  updateContent(id: string | Types.ObjectId, gridFsId: Types.ObjectId, sizeBytes: number, session?: ClientSession): Promise<FileDocument | null> {
     return this.model
       .findByIdAndUpdate(
         id,
@@ -92,13 +87,7 @@ export class FilesRepository {
   }
 
   //Method to rename a file
-  rename(
-    id: string | Types.ObjectId,
-    name: string,
-    extension: 'txt' | 'md',
-    mimeType: string,
-    session?: ClientSession,
-  ): Promise<FileDocument | null> {
+  rename(id: string | Types.ObjectId, name: string, extension: 'txt' | 'md', mimeType: string, session?: ClientSession): Promise<FileDocument | null> {
     return this.model
       .findByIdAndUpdate(
         id,
@@ -158,5 +147,79 @@ export class FilesRepository {
       if (filter.to) q.createdAt.$lte = filter.to;
     }
     return q;
+  }
+
+  //Method to move a file to trash
+  async moveToTrash(fileId: Types.ObjectId, trashBatchId: Types.ObjectId, deletedBy: Types.ObjectId, session?: ClientSession): Promise<void> {
+    await this.model.updateOne(
+      { _id: fileId },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy,
+          trashBatchId,
+          isTrashRoot: true,
+        },
+      },
+      { session },
+    );
+  }
+
+  //Method to move all files inside a set of folders to trash (cascade inside folder trash batch)
+  async moveByFolderIdsToTrash(folderIds: Types.ObjectId[], trashBatchId: Types.ObjectId, deletedBy: Types.ObjectId, session?: ClientSession): Promise<void> {
+    await this.model.updateMany(
+      { folderId: { $in: folderIds } },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy,
+          trashBatchId,
+          isTrashRoot: false,
+        },
+      },
+      { session },
+    );
+  }
+
+  //Method to find trash root files for owner
+  findTrashRoots(ownerId: string | Types.ObjectId): Promise<FileDocument[]> {
+    return this.model
+      .find({
+        ownerId: new Types.ObjectId(ownerId),
+        isDeleted: true,
+        isTrashRoot: true,
+      })
+      .sort({ deletedAt: -1 })
+      .exec();
+  }
+
+  //Method to find files belonging to a trash batch
+  findByTrashBatch(trashBatchId: Types.ObjectId, session?: ClientSession): Promise<FileDocument[]> {
+    return this.model.find({ trashBatchId }).session(session || null).exec();
+  }
+
+  //Method to restore files by trash batch
+  async restoreByTrashBatch(trashBatchId: Types.ObjectId, session?: ClientSession): Promise<void> {
+    await this.model.updateMany(
+      { trashBatchId },
+      {
+        $set: {
+          isDeleted: false,
+          deletedAt: null,
+          deletedBy: null,
+          trashBatchId: null,
+          isTrashRoot: false,
+        },
+      },
+      { session },
+    );
+  }
+
+  //Method to permanently delete files by trash batch
+  async deletePermanentlyByBatch(trashBatchId: Types.ObjectId, session?: ClientSession): Promise<number> {
+    const res = await this.model.deleteMany({ trashBatchId }, { session });
+    return res.deletedCount;
   }
 }
