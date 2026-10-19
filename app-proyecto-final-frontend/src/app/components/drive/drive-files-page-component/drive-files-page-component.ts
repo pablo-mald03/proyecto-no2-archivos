@@ -15,6 +15,8 @@ import { DriveActionService } from '../../../core/services/drive-action.service'
 import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
 import { DriveItemListComponent } from '../drive-item-list-component/drive-item-list-component';
 import { DriveMoveModalComponent } from '../../directories/drive-move-modal-component/drive-move-modal-component';
+import { FileComment } from '../../../features/files/models/file-comment.model';
+import { FilePreviewLayoutComponent } from '../../viewer/file-preview-layout-component/file-preview-layout-component';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -30,7 +32,8 @@ import { DriveMoveModalComponent } from '../../directories/drive-move-modal-comp
     UploadFileModalComponent,
     FolderModalComponent,
     DriveItemListComponent,
-    DriveMoveModalComponent
+    DriveMoveModalComponent,
+    FilePreviewLayoutComponent
 ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
@@ -40,7 +43,7 @@ import { DriveMoveModalComponent } from '../../directories/drive-move-modal-comp
 export class DriveFilesPageComponent implements OnInit {
 
   // Services
-  private readonly toastService = inject(ToastService);
+  readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly driveAction = inject(DriveActionService);
@@ -78,8 +81,12 @@ export class DriveFilesPageComponent implements OnInit {
   readonly currentFolderId = signal<string | null>(null);
   readonly isInsideFolder = computed(() => !!this.currentFolderId());
 
+
+  readonly isPreviewOpen = signal(false);
+  readonly selectedPreviewItem = signal<DriveItem | null>(null);
+  readonly previewContent = signal<string>('# Contenido del Archivo\n\nEste es un texto simulado para previsualizar el archivo `.md` o `.txt` con soporte de comentarios en burbujas.');
+
   constructor() {
-    // Listen to action triggers from the shared action service
     effect(() => {
       if (this.driveAction.uploadTriggered()) {
         this.openUploadModal();
@@ -138,6 +145,11 @@ export class DriveFilesPageComponent implements OnInit {
       this.hasMore.set(false);
     }, 400);
   }
+
+  readonly previewComments = signal<FileComment[]>([
+    { id: 'c1', authorName: 'Carlos Pérez', createdAt: new Date(), content: 'Excelente documentación, muy clara.', isOwner: false },
+    { id: 'c2', authorName: 'Tú', createdAt: new Date(), content: 'Gracias Carlos, cualquier ajuste me avisas.', isOwner: true }
+  ]);
 
   // Upload Modal handlers
   openUploadModal(): void {
@@ -211,8 +223,36 @@ export class DriveFilesPageComponent implements OnInit {
 
   //Preview event
   onPreview(item: DriveItem): void {
-    this.toastService.success(`Abriendo vista previa de ${item.name}`, 'Vista Previa');
+    if (item.type === 'folder') return; // Folders navigate instead of previewing
+
+    this.selectedPreviewItem.set(item);
+    this.previewContent.set(`# ${item.name}\n\nContenido simulado para el archivo seleccionado con ID: ${item.id}\n\nPuedes hacer zoom, cambiar a modo edición, imprimir o dejar comentarios laterales.`);
+    this.isPreviewOpen.set(true);
   }
+
+  closePreview(): void {
+    this.isPreviewOpen.set(false);
+    this.selectedPreviewItem.set(null);
+  }
+
+  // Handle comment actions inside preview layout
+  handleAddComment(content: string): void {
+    const newComment: FileComment = {
+      id: Date.now().toString(),
+      authorName: 'Tú',
+      createdAt: new Date(),
+      content: content,
+      isOwner: true
+    };
+    this.previewComments.update(list => [...list, newComment]);
+    this.toastService.success('Comentario añadido.', 'Comentarios');
+  }
+
+  handleDeleteComment(commentId: string): void {
+    this.previewComments.update(list => list.filter(c => c.id !== commentId));
+    this.toastService.success('Comentario eliminado.', 'Comentarios');
+  }
+
 
   //Download event
   onDownload(item: DriveItem): void {

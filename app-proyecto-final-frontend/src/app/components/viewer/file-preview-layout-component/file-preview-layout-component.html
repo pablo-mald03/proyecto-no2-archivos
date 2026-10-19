@@ -1,0 +1,127 @@
+@if (isOpen()) {
+<div class="fixed inset-0 z-50 flex h-screen w-screen flex-col bg-neutral-950/90 text-text backdrop-blur-md select-none"
+    (click)="onBackdropClick($event)">
+
+    <header
+        class="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4 bg-neutral-900/60 backdrop-blur-lg"
+        (click)="$event.stopPropagation()">
+
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+            <button type="button" (click)="closeLayout()"
+                class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                title="Cerrar previsualización">
+                <ng-icon [svg]="lucideXIcon" size="22" />
+            </button>
+
+            <div class="min-w-0">
+                <h2 class="truncate font-semibold text-white text-base">
+                    {{ fileName() }}
+                </h2>
+            </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2 rounded-2xl bg-white/5 p-1 border border-white/10">
+            <button type="button" (click)="zoomOut()"
+                class="rounded-xl p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                title="Alejar">
+                <ng-icon [svg]="lucideZoomOutIcon" size="18" />
+            </button>
+
+            <button type="button" (click)="resetZoom()"
+                class="px-2 text-xs font-mono font-medium text-white/80 hover:text-white" title="Restablecer zoom">
+                {{ zoomLevel() }}%
+            </button>
+
+            <button type="button" (click)="zoomIn()"
+                class="rounded-xl p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                title="Acercar">
+                <ng-icon [svg]="lucideZoomInIcon" size="18" />
+            </button>
+
+            @if (canEdit()) {
+            <div class="h-4 w-px bg-white/20 mx-1"></div>
+
+            <button type="button" (click)="toggleEditMode()"
+                class="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
+                [class.bg-primary]="isEditMode()" [class.text-white]="isEditMode()"
+                [class.text-white/70]="!isEditMode()" [class.hover:bg-white/10]="!isEditMode()">
+                <ng-icon [svg]="isEditMode() ? lucideEyeIcon : lucideEditIcon" size="16" />
+                <span>{{ isEditMode() ? 'Modo Lectura' : 'Modo Edición' }}</span>
+            </button>
+            }
+        </div>
+
+        <div class="flex items-center gap-1.5 flex-1 justify-end">
+            <button type="button" (click)="toggleComments()" class="relative rounded-xl p-2 transition-colors"
+                [class.bg-primary/20]="isCommentsOpen()" [class.text-primary]="isCommentsOpen()"
+                [class.text-white/70]="!isCommentsOpen()" [class.hover:bg-white/10]="!isCommentsOpen()"
+                title="Ver comentarios">
+                <ng-icon [svg]="lucideMessageSquareIcon" size="20" />
+                @if (comments().length > 0) {
+                <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
+                }
+            </button>
+
+            <button type="button" (click)="printClicked.emit()"
+                class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                title="Imprimir">
+                <ng-icon [svg]="lucidePrinterIcon" size="20" />
+            </button>
+
+            <button type="button" (click)="openNewTabClicked.emit()"
+                class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
+                title="Abrir en una pestaña nueva">
+                <ng-icon [svg]="lucideExternalLinkIcon" size="20" />
+            </button>
+
+            <app-custom-button label="Descargar" size="sm" [icon]="lucideDownloadIcon"
+                (clicked)="downloadClicked.emit()" />
+        </div>
+
+    </header>
+
+    <div class="relative flex flex-1 min-h-0 w-full overflow-hidden">
+
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
+            <div #documentContainer
+                class="transition-transform duration-150 ease-out origin-center max-w-4xl w-full rounded-2xl bg-surface p-8 shadow-2xl border border-white/10 my-auto max-h-[85vh] overflow-y-auto"
+                [style.transform]="'scale(' + (zoomLevel() / 100) + ')'">
+                @if (isMarkdown()) {
+                <div class="prose prose-invert max-w-none font-sans leading-relaxed">
+                    <div
+                        class="mb-4 pb-2 border-b border-border/40 flex items-center justify-between text-xs text-text-muted">
+                        <span class="font-semibold uppercase tracking-wider text-primary">Vista Markdown
+                            Formateada</span>
+                        <span>{{ fileName() }}</span>
+                    </div>
+                    <div class="whitespace-pre-wrap text-text/90">
+                        {{ fileContent() }}
+                    </div>
+                </div>
+                } @else {
+                <div class="font-mono text-sm leading-relaxed text-text/90">
+                    <div
+                        class="mb-4 pb-2 border-b border-border/40 flex items-center justify-between text-xs text-text-muted font-sans">
+                        <span class="font-semibold uppercase tracking-wider text-blue-400">Vista de Texto Plano
+                            (.TXT)</span>
+                        <span>{{ fileName() }}</span>
+                    </div>
+                    <pre
+                        class="whitespace-pre-wrap bg-surface-raised/50 p-4 rounded-xl border border-border/30 overflow-x-auto">{{ fileContent() }}</pre>
+                </div>
+                }
+
+                <ng-content></ng-content>
+            </div>
+        </main>
+
+        <div (click)="$event.stopPropagation()" class="h-full">
+            <app-file-comments-panel-component [isOpen]="isCommentsOpen()" [comments]="comments()"
+                (closePanel)="isCommentsOpen.set(false)" (commentAdded)="commentAdded.emit($event)"
+                (commentDeleted)="commentDeleted.emit($event)" />
+        </div>
+
+    </div>
+
+</div>
+}
