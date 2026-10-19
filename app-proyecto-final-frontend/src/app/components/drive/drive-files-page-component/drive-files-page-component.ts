@@ -206,7 +206,6 @@ export class DriveFilesPageComponent implements OnInit {
     this.toastService.success(`Descargando ${item.name}...`, 'Descarga');
   }
 
-  //On delete event
   onDelete(item: DriveItem): void {
     this.items.update(list => list.filter(i => i.id !== item.id));
     this.toastService.success(`Se eliminó '${item.name}' correctamente.`, 'Eliminado');
