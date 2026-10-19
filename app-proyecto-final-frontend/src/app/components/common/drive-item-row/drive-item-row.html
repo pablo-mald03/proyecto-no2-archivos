@@ -3,7 +3,17 @@
   [class.bg-primary/10]="isSelected()" [class.border-primary/30]="isSelected()" (click)="itemClicked.emit(item())"
   (dblclick)="itemDoubleClicked.emit(item())" (contextmenu)="onRightClick($event)">
 
+  
   <div class="flex items-center gap-3 min-w-0 flex-1">
+    
+    <div 
+      class="cursor-grab active:cursor-grabbing text-text-muted opacity-0 group-hover:opacity-100 transition-opacity p-1 -ml-2 hover:text-text"
+      draggable="true"
+      (dragstart)="dragStartHandle.emit($event)"
+      title="Arrastrar para mover">
+      <ng-icon [svg]="lucideGripVerticalIcon" size="16" />
+    </div>
+
     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
       [class.bg-amber-500/10]="item().type === 'folder'" [class.text-amber-500]="item().type === 'folder'"
       [class.bg-blue-500/10]="item().type === 'file' && item().extension === 'txt'"

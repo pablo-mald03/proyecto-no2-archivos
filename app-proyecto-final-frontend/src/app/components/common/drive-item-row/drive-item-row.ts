@@ -1,10 +1,11 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, HostListener, inject, input, output, signal } from '@angular/core';
 import { DriveItem } from '../../../features/drive/drive-item.model';
-import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideMapPlus, lucideMenu, lucideOption, lucidePencil, lucideProportions, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideGripVertical, lucideMapPlus, lucideMenu, lucideOption, lucidePencil, lucideProportions, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
 import { CustomToggleMenu } from '../custom-toggle-menu/custom-toggle-menu';
 import { CustomToggleMenuItem } from '../custom-toggle-menu-item/custom-toggle-menu-item';
 import { NgIcon } from '@ng-icons/core';
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
+import { DriveActionService } from '../../../core/services/drive-action.service';
 
 @Component({
   selector: 'app-drive-item-row',
@@ -20,6 +21,8 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 })
 //Principal drive item row
 export class DriveItemRow {
+  private readonly driveAction = inject(DriveActionService);
+
   // Inputs & Outputs
   readonly item = input.required<DriveItem>();
   readonly isSelected = input(false);
@@ -31,6 +34,7 @@ export class DriveItemRow {
   readonly downloadClicked = output<DriveItem>();
   readonly deleteClicked = output<DriveItem>();
   readonly renameClicked = output<DriveItem>(); 
+  readonly dragStartHandle = output<DragEvent>();
 
   // State for Context Menu 
   readonly contextMenuOpen = signal(false);
@@ -46,8 +50,25 @@ export class DriveItemRow {
   readonly lucideDownloadIcon = lucideDownload;
   readonly lucideTrashIcon = lucideTrash2;
   readonly lucidePencilIcon = lucidePencil;
+  readonly lucideGripVerticalIcon = lucideGripVertical; 
 
-  // Icon type computed logic
+  constructor() {
+    effect(() => {
+      const activeId = this.driveAction.activeContextMenuId();
+      if (activeId !== this.item().id && this.contextMenuOpen()) {
+        this.contextMenuOpen.set(false);
+      }
+    });
+  }
+
+  // Global listener for documen click
+  @HostListener('document:click')
+  onDocumentClick(): void {
+    if (this.contextMenuOpen()) {
+      this.closeContextMenu();
+    }
+  }
+
   readonly itemIcon = computed(() => {
     const current = this.item();
     if (current.type === 'folder') return this.lucideFolderIcon;
@@ -72,6 +93,8 @@ export class DriveItemRow {
     event.preventDefault();
     event.stopPropagation();
 
+    this.driveAction.setActiveContextMenu(this.item().id);
+
     const ESTIMATED_MENU_WIDTH = 200;
     const ESTIMATED_MENU_HEIGHT = 220;
     const PADDING = 12;
@@ -94,7 +117,11 @@ export class DriveItemRow {
     this.contextMenuOpen.set(true);
   }
 
+  //Signal to close the context menu
   closeContextMenu(): void {
     this.contextMenuOpen.set(false);
+    if (this.driveAction.activeContextMenuId() === this.item().id) {
+      this.driveAction.setActiveContextMenu(null);
+    }
   }
 }

@@ -7,7 +7,7 @@
 >
   <form (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
     
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col gap-4">
       <app-custom-textfield 
         [label]="inputLabel()" 
         [placeholder]="inputPlaceholder()" 
@@ -15,18 +15,6 @@
         [icon]="fieldIcon()"
         [clearable]="true"
       />
-
-      @if (nameControl.touched && nameControl.errors) {
-        <div class="mt-1 text-xs text-error">
-          @if (nameControl.errors['required']) {
-            <span>El nombre es obligatorio.</span>
-          } @else if (nameControl.errors['invalidCharacters']) {
-            <span>Contiene caracteres no permitidos (\ / : * ? " &lt; &gt; |).</span>
-          } @else if (nameControl.errors['invalidExtension']) {
-            <span>{{ nameControl.errors['invalidExtension'] }}</span>
-          }
-        </div>
-      }
     </div>
 
     <div class="flex items-center justify-end gap-3 pt-2">

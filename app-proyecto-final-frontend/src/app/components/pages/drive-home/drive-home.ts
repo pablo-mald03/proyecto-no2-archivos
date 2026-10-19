@@ -9,16 +9,18 @@ import { DriveItem } from '../../../features/drive/drive-item.model';
 import { DriveItemRow } from '../../common/drive-item-row/drive-item-row';
 import { DriveActionService } from '../../../core/services/drive-action.service';
 import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
+import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
 
 @Component({
   selector: 'app-drive-home',
   standalone: true,
   imports: [
-    RouterLink, 
-    NgIcon, 
-    CustomCard, 
-    DriveItemRow, 
-    FolderModalComponent
+    RouterLink,
+    NgIcon,
+    CustomCard,
+    DriveItemRow,
+    FolderModalComponent,
+    DriveItemListComponent
   ],
   templateUrl: './drive-home.html',
   styleUrl: './drive-home.css',
@@ -29,7 +31,7 @@ export class DriveHome {
   private readonly authState = inject(AuthState);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
-  readonly driveAction = inject(DriveActionService); 
+  readonly driveAction = inject(DriveActionService);
 
   readonly firstName = computed(() => this.authState.user()?.firstName ?? '');
   readonly shortcuts = HOME_NAV_OPTIONS;
@@ -67,6 +69,15 @@ export class DriveHome {
     }
   }
 
+  //Method to move with drag and drop method
+  handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
+    const { draggedItem, targetFolder } = event;
+
+    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
+
+    this.recentItems.update(list => list.filter(i => i.id !== draggedItem.id));
+  }
+
   //Method to share the item
   onShare(item: DriveItem): void {
     this.toastService.success(`Enlace de '${item.name}' copiado.`, 'Compartir');
@@ -97,7 +108,7 @@ export class DriveHome {
   handleFolderSubmit(newName: string): void {
     const targetId = this.driveAction.folderTargetId();
 
-    this.recentItems.update(list => 
+    this.recentItems.update(list =>
       list.map(i => i.id === targetId ? { ...i, name: newName, updatedAt: new Date() } : i)
     );
 

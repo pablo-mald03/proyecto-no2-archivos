@@ -3,7 +3,6 @@ import { Injectable, signal } from '@angular/core';
 @Injectable({
   providedIn: 'root'
 })
-//Principal service to trow the signal to upload a new file
 export class DriveActionService {
   readonly uploadTriggered = signal<boolean>(false);
 
@@ -13,13 +12,16 @@ export class DriveActionService {
   readonly folderInitialName = signal<string>('');
   readonly folderTargetId = signal<string | null>(null);
 
-  //Trigger the upload action method
+  // Signal for the context menu open
+  readonly activeContextMenuId = signal<string | null>(null);
+
+  // Trigger for open the modal
   triggerUpload(): void {
     this.uploadTriggered.set(true);
     setTimeout(() => this.uploadTriggered.set(false), 50);
   }
 
-  //Create folder modal method
+  // Method to open the create form modal
   openCreateFolderModal(): void {
     this.folderModalMode.set('create');
     this.folderItemType.set('folder');
@@ -28,7 +30,7 @@ export class DriveActionService {
     this.folderModalOpen.set(true);
   }
 
-  // Rename modal signal method
+  // Method to open the rename form modal
   openRenameModal(id: string, currentName: string, type: 'folder' | 'file'): void {
     this.folderModalMode.set('rename');
     this.folderItemType.set(type);
@@ -37,7 +39,18 @@ export class DriveActionService {
     this.folderModalOpen.set(true);
   }
 
+  // Close modal
   closeFolderModal(): void {
     this.folderModalOpen.set(false);
+  }
+
+  //Method for the control for the menu
+  setActiveContextMenu(id: string | null): void {
+    this.activeContextMenuId.set(id);
+  }
+
+  //Hook to close all the context menus
+  closeAllContextMenus(): void {
+    this.activeContextMenuId.set(null);
   }
 }

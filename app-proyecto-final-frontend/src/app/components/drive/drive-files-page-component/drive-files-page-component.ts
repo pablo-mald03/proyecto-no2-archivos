@@ -14,6 +14,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
 import { DriveActionService } from '../../../core/services/drive-action.service';
 import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
+import { DriveItemListComponent } from '../drive-item-list-component/drive-item-list-component';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -28,8 +29,9 @@ import { FolderModalComponent } from '../../directories/folder-modal-component/f
     CustomInfiniteScroll,
     DriveItemRow,
     UploadFileModalComponent,
-    FolderModalComponent
-  ],
+    FolderModalComponent,
+    DriveItemListComponent
+],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
   host: { class: 'flex flex-col h-full min-h-0' }
@@ -139,6 +141,14 @@ export class DriveFilesPageComponent implements OnInit {
   //Upload modal
   closeUploadModal(): void {
     this.isUploadModalOpen.set(false);
+  }
+
+  handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
+    const { draggedItem, targetFolder } = event;
+    
+    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
+    
+    this.items.update(list => list.filter(i => i.id !== draggedItem.id));
   }
 
   //Hanlde filde upload method
