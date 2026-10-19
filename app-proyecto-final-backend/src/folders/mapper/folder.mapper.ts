@@ -1,10 +1,12 @@
 import { FolderDocument, FolderEntity } from '../entities/folder.entity';
-import { FolderBreadcrumbDto, FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
 import { FolderResponseDto } from '../dto/response/folder-response.dto';
+import { FolderBreadcrumbDto } from '../dto/response/folder-breadcrum-response.dto';
+import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
+import { FileResponseDto } from 'src/files/dto/response/file-response.dto';
 
 /*Principal folder mapper class*/
 export class FolderMapper {
-  /*Convert FolderDocument to FolderResponseDto*/
+  /*Principal mapper for Entity to domain*/
   static toResponse(doc: FolderDocument | FolderEntity & { _id?: any }): FolderResponseDto {
     const id = doc instanceof Object && '_id' in doc ? doc._id.toString() : (doc as any).id;
     return {
@@ -18,13 +20,12 @@ export class FolderMapper {
     };
   }
 
-  /*Convert FolderDocument to FolderContentResponseDto*/
-  static toContentResponse(
-    currentFolder: FolderDocument | null,
+  /*Principal mapper for Entitys to domain DTOs*/
+  static toContentResponse(currentFolder: FolderDocument | null,
     breadcrumbs: FolderBreadcrumbDto[],
     folders: FolderDocument[],
-    files: any[] = [],
-  ): FolderContentResponseDto {
+    files: FileResponseDto[] = []): FolderContentResponseDto {
+
     return {
       currentFolder: currentFolder ? FolderMapper.toResponse(currentFolder) : null,
       breadcrumbs,

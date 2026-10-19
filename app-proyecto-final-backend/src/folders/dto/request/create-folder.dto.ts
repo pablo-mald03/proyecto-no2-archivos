@@ -9,7 +9,7 @@ export class CreateFolderDto {
   @Transform(trim)
   @IsNotEmpty({ message: 'El nombre de la carpeta es obligatorio' })
   @MinLength(FieldLimits.RESOURCE_NAME.min, {
-    message: `El nombre debe tener al menos ${FieldLimits.RESOURCE_NAME.min} caracter(es)`,
+    message: `El nombre debe tener al menos ${FieldLimits.RESOURCE_NAME.min} caracteres`,
   })
   @MaxLength(FieldLimits.RESOURCE_NAME.max, {
     message: `El nombre no puede exceder ${FieldLimits.RESOURCE_NAME.max} caracteres`,
@@ -17,6 +17,6 @@ export class CreateFolderDto {
   name!: string;
 
   @IsOptional()
-  @Matches(OBJECT_ID_REGEX, { message: 'El parentId debe ser un ObjectId válido' })
+  @Matches(OBJECT_ID_REGEX, { message: 'El parentId debe ser un ObjectId valido' })
   parentId?: string | null;
 }

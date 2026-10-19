@@ -1,13 +1,11 @@
+import { FolderBreadcrumbDto } from './folder-breadcrum-response.dto';
 import { FolderResponseDto } from './folder-response.dto';
+import { FileResponseDto } from 'src/files/dto/response/file-response.dto';
 
-export class FolderBreadcrumbDto {
-  id!: string;
-  name!: string;
-}
-
+/*Principal folder content response dto model*/
 export class FolderContentResponseDto {
   currentFolder!: FolderResponseDto | null;
   breadcrumbs!: FolderBreadcrumbDto[];
   folders!: FolderResponseDto[];
-  files!: any[]; // To be typed with FileResponseDto once files module is built
+  files!: FileResponseDto[];
 }

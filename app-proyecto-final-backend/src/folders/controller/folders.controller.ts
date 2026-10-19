@@ -19,12 +19,14 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/users/models/auth-user.model';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
 
+/*Principal folders controller class*/
 @ApiTags('Folders')
 @Controller('folders')
 @RequirePermissions(Permission.DRIVE_ACCESS)
 export class FoldersController {
-  constructor(private readonly foldersService: FoldersService) {}
+  constructor(private readonly foldersService: FoldersService) { }
 
+  /*Endpoint to create a new folder*/
   @Post()
   @ApiOperation({ summary: 'Create a new folder' })
   @ApiOkResponse({ type: FolderResponseDto })
@@ -35,15 +37,17 @@ export class FoldersController {
     return this.foldersService.create(dto, actor);
   }
 
+  /*Endpoint to list contents of the virtual root folder */
   @Get('root')
-  @ApiOperation({ summary: 'List contents of the virtual root folder (Mi unidad)' })
+  @ApiOperation({ summary: 'List contents of the virtual root folder' })
   @ApiOkResponse({ type: FolderContentResponseDto })
   findRootContent(@CurrentUser() actor: AuthUser): Promise<FolderContentResponseDto> {
     return this.foldersService.findContent(null, actor);
   }
 
+  /*Endpoint to list content of a folder*/
   @Get(':id/content')
-  @ApiOperation({ summary: 'List contents and breadcrumbs of a specific folder' })
+  @ApiOperation({ summary: 'List content of a folder' })
   @ApiOkResponse({ type: FolderContentResponseDto })
   findFolderContent(
     @Param('id', ParseObjectIdPipe) id: string,
@@ -52,8 +56,9 @@ export class FoldersController {
     return this.foldersService.findContent(id, actor);
   }
 
+  /*Endpoint to get folder details*/
   @Get(':id')
-  @ApiOperation({ summary: 'Get folder details by ID' })
+  @ApiOperation({ summary: 'Get folder details' })
   @ApiOkResponse({ type: FolderResponseDto })
   findById(
     @Param('id', ParseObjectIdPipe) id: string,
@@ -62,6 +67,7 @@ export class FoldersController {
     return this.foldersService.findById(id, actor);
   }
 
+  /*Endpoint to rename a folder*/
   @Patch(':id/rename')
   @ApiOperation({ summary: 'Rename a folder' })
   @ApiOkResponse({ type: FolderResponseDto })
@@ -73,8 +79,9 @@ export class FoldersController {
     return this.foldersService.rename(id, dto, actor);
   }
 
+  /*Endpoint to move a folder*/
   @Patch(':id/move')
-  @ApiOperation({ summary: 'Move a folder to another parent or to root' })
+  @ApiOperation({ summary: 'Move a folder to another parent' })
   @ApiOkResponse({ type: FolderResponseDto })
   move(
     @Param('id', ParseObjectIdPipe) id: string,
