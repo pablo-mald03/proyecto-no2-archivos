@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { lucideArrowLeft, lucideSave, lucideUserRound } from '@ng-icons/lucide';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';

@@ -1,5 +1,5 @@
 import { Component, inject, input, output, signal } from '@angular/core';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { UserProfile } from '../../../features/users/models/response/user-profile.model';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';

@@ -5,7 +5,7 @@ import { lucideArrowLeft, lucideAtSign, lucideCake, lucideCalendar, lucideCheck,
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { Router } from '@angular/router';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { finalize } from 'rxjs';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';

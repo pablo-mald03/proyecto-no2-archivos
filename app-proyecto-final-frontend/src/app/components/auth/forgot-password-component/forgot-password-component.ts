@@ -8,7 +8,7 @@ import { Router } from '@angular/router';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { finalize } from 'rxjs';
 import { ToastService } from '../../../core/services/toast.service';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 
 @Component({
   selector: 'app-forgot-password-component',
@@ -131,7 +131,7 @@ export class ForgotPasswordComponent {
         error: (error: ErrorResponse) => {
 
           this.toastService.error(
-            error.message || 'Credenciales inválidas', 
+            error.message || 'Credenciales inválidas',
             'Error de recuperacion'
           );
 

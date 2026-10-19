@@ -1,5 +1,5 @@
 import { Component, inject, input, output, signal } from '@angular/core';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -11,12 +11,12 @@ import { ChangeSelfPasswordRequest } from '../../../features/users/models/reques
 
 @Component({
   selector: 'app-change-password-modal-component',
-  imports: [CustomModalComponent, CustomTextfield, CustomButton,ReactiveFormsModule],
+  imports: [CustomModalComponent, CustomTextfield, CustomButton, ReactiveFormsModule],
   templateUrl: './change-password-modal-component.html',
   styleUrl: './change-password-modal-component.css',
 })
 export class ChangePasswordModalComponent {
-// Dependencies injection
+  // Dependencies injection
   private readonly userService = inject(UserService);
   private readonly toastService = inject(ToastService);
 
