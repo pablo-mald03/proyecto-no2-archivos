@@ -1,9 +1,13 @@
-import { Component, computed, effect, ElementRef, HostListener, input, output, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, inject, input, output, signal, ViewChild } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { FileComment } from '../../../features/files/models/file-comment.model';
 import { lucideCode, lucideDownload, lucideExternalLink, lucideEye, lucideFileText, lucideMessageSquare, lucidePencil, lucidePrinter, lucideRotateCcw, lucideSave, lucideX, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
 import { FileCommentsPanelComponent } from '../file-comments-panel-component/file-comments-panel-component';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { marked } from 'marked';
+import { FormControl } from '@angular/forms';
+import { CustomTextarea } from '../../common/custom-text-area/custom-text-area';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -11,13 +15,18 @@ import { FileCommentsPanelComponent } from '../file-comments-panel-component/fil
   imports: [
     NgIcon,
     CustomButton,
-    FileCommentsPanelComponent
+    FileCommentsPanelComponent,
+    CustomTextarea
   ],
   templateUrl: './file-preview-layout-component.html',
   styleUrl: './file-preview-layout-component.css',
 })
 //Principal file preview layout component
 export class FilePreviewLayoutComponent {
+
+  // Dependencies
+  private readonly sanitizer = inject(DomSanitizer);
+
   // Inputs & Outputs
   readonly isOpen = input.required<boolean>();
   readonly fileName = input<string>('Documento_Sin_Titulo.txt');
@@ -27,7 +36,6 @@ export class FilePreviewLayoutComponent {
 
   readonly closed = output<void>();
   readonly downloadClicked = output<void>();
-  readonly printClicked = output<void>();
   readonly openNewTabClicked = output<void>();
   readonly commentAdded = output<string>();
   readonly commentDeleted = output<string>();
@@ -39,8 +47,9 @@ export class FilePreviewLayoutComponent {
   readonly isCommentsOpen = signal<boolean>(false);
   readonly markdownViewMode = signal<'preview' | 'raw'>('preview');
 
-  // Editable local content signal
+  // Editable local content signal synced with control
   readonly editableContent = signal<string>('');
+  readonly contentControl = new FormControl('', { nonNullable: true });
 
   @ViewChild('documentContainer') documentContainer?: ElementRef<HTMLDivElement>;
 
@@ -49,20 +58,32 @@ export class FilePreviewLayoutComponent {
   readonly lucideZoomInIcon = lucideZoomIn;
   readonly lucideZoomOutIcon = lucideZoomOut;
   readonly lucideDownloadIcon = lucideDownload;
-  readonly lucidePrinterIcon = lucidePrinter;
   readonly lucideExternalLinkIcon = lucideExternalLink;
   readonly lucideMessageSquareIcon = lucideMessageSquare;
   readonly lucideEditIcon = lucidePencil;
   readonly lucideEyeIcon = lucideEye;
   readonly lucideCodeIcon = lucideCode;
-  readonly lucideFileTextIcon = lucideFileText;
   readonly lucideSaveIcon = lucideSave;
 
   constructor() {
     effect(() => {
-      this.editableContent.set(this.fileContent());
+      const content = this.fileContent();
+      this.contentControl.setValue(content);
+      this.editableContent.set(content);
+    });
+
+    // Keep editableContent in sync when typing inside custom textarea
+    this.contentControl.valueChanges.subscribe(val => {
+      this.editableContent.set(val);
     });
   }
+
+  // Computed to parse Markdown into safe HTML using marked (The reliable way)
+  readonly renderedMarkdown = computed<SafeHtml>(() => {
+    const rawContent = this.editableContent();
+    const parsedHtml = marked.parse(rawContent) as string;
+    return this.sanitizer.bypassSecurityTrustHtml(parsedHtml);
+  });
 
   readonly isMarkdown = computed(() => {
     return this.fileName().toLowerCase().endsWith('.md');
@@ -108,11 +129,6 @@ export class FilePreviewLayoutComponent {
 
   setMarkdownView(mode: 'preview' | 'raw'): void {
     this.markdownViewMode.set(mode);
-  }
-
-  onTextareaInput(event: Event): void {
-    const value = (event.target as HTMLTextAreaElement).value;
-    this.editableContent.set(value);
   }
 
   saveChanges(): void {

@@ -43,4 +43,10 @@
     <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
         (targetSelected)="handleMoveTargetSelected($event)" />
 
+    <app-file-preview-layout-component [isOpen]="isPreviewOpen()" [fileName]="activePreviewItem()?.name ?? ''"
+        [fileContent]="currentFileContent()" [comments]="currentFileComments()" [canEdit]="true"
+        (closed)="isPreviewOpen.set(false)" (downloadClicked)="onDownload(activePreviewItem()!)"
+        (openNewTabClicked)="onDownload(activePreviewItem()!)" (commentAdded)="handleAddComment($event)"
+        (commentDeleted)="handleDeleteComment($event)" (contentSaved)="handleContentSaved($event)" />
+
 </section>
