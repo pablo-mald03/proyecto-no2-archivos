@@ -65,24 +65,19 @@
     (targetSelected)="handleMoveTargetSelected($event)" />
 
 
-  <app-file-preview-layout-component [isOpen]="isPreviewOpen()"
-    [fileName]="selectedPreviewItem()?.name || 'Archivo sin título'" [comments]="previewComments()" [canEdit]="true"
-    (closed)="closePreview()" (downloadClicked)="selectedPreviewItem() && onDownload(selectedPreviewItem()!)"
+  <app-file-preview-layout-component 
+    [isOpen]="isPreviewOpen()"
+    [fileName]="selectedPreviewItem()?.name || 'Archivo sin título'" 
+    [fileContent]="previewContent()"
+    [comments]="previewComments()" 
+    [canEdit]="true"
+    (closed)="closePreview()" 
+    (downloadClicked)="selectedPreviewItem() && onDownload(selectedPreviewItem()!)"
     (printClicked)="toastService.success('Enviando documento a impresora...', 'Imprimir')"
     (openNewTabClicked)="toastService.success('Abriendo en pestaña nueva...', 'Pestaña nueva')"
-    (commentAdded)="handleAddComment($event)" (commentDeleted)="handleDeleteComment($event)">
-    <div class="space-y-4 text-text">
-      <div class="flex items-center justify-between border-b border-border/40 pb-4">
-        <span class="text-xs font-mono uppercase tracking-wider text-text-muted">Vista previa de documento</span>
-        <span class="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-          {{ selectedPreviewItem()?.extension?.toUpperCase() || 'TXT' }}
-        </span>
-      </div>
-
-      <div class="whitespace-pre-wrap font-sans text-sm leading-relaxed text-text/90">
-        {{ previewContent() }}
-      </div>
-    </div>
+    (commentAdded)="handleAddComment($event)" 
+    (commentDeleted)="handleDeleteComment($event)"
+  >
   </app-file-preview-layout-component>
 
 </div>

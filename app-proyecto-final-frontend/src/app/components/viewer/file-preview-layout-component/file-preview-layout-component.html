@@ -5,7 +5,6 @@
     <header
         class="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4 bg-neutral-900/60 backdrop-blur-lg"
         (click)="$event.stopPropagation()">
-
         <div class="flex items-center gap-3 min-w-0 flex-1">
             <button type="button" (click)="closeLayout()"
                 class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
@@ -44,10 +43,15 @@
             <button type="button" (click)="toggleEditMode()"
                 class="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
                 [class.bg-primary]="isEditMode()" [class.text-white]="isEditMode()"
-                [class.text-white/70]="!isEditMode()" [class.hover:bg-white/10]="!isEditMode()">
+                [class.text-white/70]="!isEditMode()" [class.hover:bg-white/10]="!isEditMode()"
+                title="Alternar modo edición">
                 <ng-icon [svg]="isEditMode() ? lucideEyeIcon : lucideEditIcon" size="16" />
-                <span>{{ isEditMode() ? 'Modo Lectura' : 'Modo Edición' }}</span>
+                <span>{{ isEditMode() ? 'Modo Lectura' : 'Editar' }}</span>
             </button>
+
+            @if (isEditMode()) {
+            <app-custom-button label="Guardar" size="sm" [icon]="lucideSaveIcon" (clicked)="saveChanges()" />
+            }
             }
         </div>
 
@@ -77,41 +81,78 @@
             <app-custom-button label="Descargar" size="sm" [icon]="lucideDownloadIcon"
                 (clicked)="downloadClicked.emit()" />
         </div>
-
     </header>
 
     <div class="relative flex flex-1 min-h-0 w-full overflow-hidden">
 
         <main class="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
             <div #documentContainer
-                class="transition-transform duration-150 ease-out origin-center max-w-4xl w-full rounded-2xl bg-surface p-8 shadow-2xl border border-white/10 my-auto max-h-[85vh] overflow-y-auto"
+                class="transition-transform duration-150 ease-out origin-center max-w-4xl w-full rounded-2xl bg-surface p-6 shadow-2xl border border-white/10 my-auto max-h-[85vh] flex flex-col"
                 [style.transform]="'scale(' + (zoomLevel() / 100) + ')'">
-                @if (isMarkdown()) {
-                <div class="prose prose-invert max-w-none font-sans leading-relaxed">
-                    <div
-                        class="mb-4 pb-2 border-b border-border/40 flex items-center justify-between text-xs text-text-muted">
-                        <span class="font-semibold uppercase tracking-wider text-primary">Vista Markdown
-                            Formateada</span>
-                        <span>{{ fileName() }}</span>
+
+                @if (isMarkdown() && !isEditMode()) {
+                <div class="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
+                    <div class="flex items-center gap-1 rounded-xl bg-surface-raised p-1 border border-border/40">
+                        <button type="button" (click)="setMarkdownView('preview')"
+                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+                            [class.bg-primary]="markdownViewMode() === 'preview'"
+                            [class.text-white]="markdownViewMode() === 'preview'"
+                            [class.text-text-muted]="markdownViewMode() !== 'preview'"
+                            [class.hover:text-text]="markdownViewMode() !== 'preview'">
+                            <ng-icon [svg]="lucideEyeIcon" size="14" />
+                            <span>Preview</span>
+                        </button>
+
+                        <button type="button" (click)="setMarkdownView('raw')"
+                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+                            [class.bg-primary]="markdownViewMode() === 'raw'"
+                            [class.text-white]="markdownViewMode() === 'raw'"
+                            [class.text-text-muted]="markdownViewMode() !== 'raw'"
+                            [class.hover:text-text]="markdownViewMode() !== 'raw'">
+                            <ng-icon [svg]="lucideCodeIcon" size="14" />
+                            <span>Raw</span>
+                        </button>
                     </div>
-                    <div class="whitespace-pre-wrap text-text/90">
-                        {{ fileContent() }}
-                    </div>
+                    <span class="text-xs text-text-muted font-mono">Markdown Viewer</span>
+                </div>
+                } @else if (!isEditMode()) {
+                <div
+                    class="flex items-center justify-between border-b border-border/40 pb-3 mb-4 text-xs text-text-muted font-sans">
+                    <span class="font-semibold uppercase tracking-wider text-blue-400">Texto Plano (.TXT)</span>
+                    <span class="font-mono">{{ fileName() }}</span>
                 </div>
                 } @else {
-                <div class="font-mono text-sm leading-relaxed text-text/90">
-                    <div
-                        class="mb-4 pb-2 border-b border-border/40 flex items-center justify-between text-xs text-text-muted font-sans">
-                        <span class="font-semibold uppercase tracking-wider text-blue-400">Vista de Texto Plano
-                            (.TXT)</span>
-                        <span>{{ fileName() }}</span>
-                    </div>
-                    <pre
-                        class="whitespace-pre-wrap bg-surface-raised/50 p-4 rounded-xl border border-border/30 overflow-x-auto">{{ fileContent() }}</pre>
+                <div
+                    class="flex items-center justify-between border-b border-primary/40 pb-3 mb-4 text-xs text-primary font-sans">
+                    <span class="font-semibold uppercase tracking-wider">Modo Edición Activo</span>
+                    <span class="font-mono">{{ fileName() }}</span>
                 </div>
                 }
 
-                <ng-content></ng-content>
+                <div class="flex-1 overflow-y-auto pr-1">
+                    @if (isEditMode()) {
+                    <textarea
+                        class="w-full h-96 bg-surface-raised/40 text-text font-mono text-sm p-4 rounded-xl border border-border/50 focus:outline-none focus:border-primary resize-none leading-relaxed"
+                        [value]="editableContent()" (input)="onTextareaInput($event)"
+                        placeholder="Escribe el contenido de tu documento aquí..."></textarea>
+                    } @else {
+                    @if (isMarkdown()) {
+                    @if (markdownViewMode() === 'preview') {
+                    <div
+                        class="prose prose-invert max-w-none font-sans leading-relaxed text-text/90 whitespace-pre-wrap">
+                        {{ editableContent() }}
+                    </div>
+                    } @else {
+                    <pre
+                        class="font-mono text-xs leading-relaxed bg-surface-raised/60 p-4 rounded-xl border border-border/40 overflow-x-auto text-text/90 whitespace-pre-wrap">{{ editableContent() }}</pre>
+                    }
+                    } @else {
+                    <pre
+                        class="font-mono text-sm leading-relaxed bg-surface-raised/60 p-4 rounded-xl border border-border/40 overflow-x-auto text-text/90 whitespace-pre-wrap">{{ editableContent() }}</pre>
+                    }
+                    }
+                </div>
+
             </div>
         </main>
 

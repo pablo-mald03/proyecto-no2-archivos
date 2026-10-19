@@ -223,7 +223,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   //Preview event
   onPreview(item: DriveItem): void {
-    if (item.type === 'folder') return; // Folders navigate instead of previewing
+    if (item.type === 'folder') return; 
 
     this.selectedPreviewItem.set(item);
     this.previewContent.set(`# ${item.name}\n\nContenido simulado para el archivo seleccionado con ID: ${item.id}\n\nPuedes hacer zoom, cambiar a modo edición, imprimir o dejar comentarios laterales.`);

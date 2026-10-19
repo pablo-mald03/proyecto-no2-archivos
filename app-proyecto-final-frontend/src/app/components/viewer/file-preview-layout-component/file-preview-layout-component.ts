@@ -1,9 +1,9 @@
-import { Component, computed, ElementRef, HostListener, input, output, signal, ViewChild } from '@angular/core';
+import { Component, computed, effect, ElementRef, HostListener, input, output, signal, ViewChild } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
-import { FileCommentsPanelComponent } from '../file-comments-panel-component/file-comments-panel-component';
 import { FileComment } from '../../../features/files/models/file-comment.model';
-import { lucideDownload, lucideExternalLink, lucideEye, lucideMessageSquare, lucidePencil, lucidePrinter, lucideRotateCcw, lucideX, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import { lucideCode, lucideDownload, lucideExternalLink, lucideEye, lucideFileText, lucideMessageSquare, lucidePencil, lucidePrinter, lucideRotateCcw, lucideSave, lucideX, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
+import { FileCommentsPanelComponent } from '../file-comments-panel-component/file-comments-panel-component';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -21,7 +21,7 @@ export class FilePreviewLayoutComponent {
   // Inputs & Outputs
   readonly isOpen = input.required<boolean>();
   readonly fileName = input<string>('Documento_Sin_Titulo.txt');
-  readonly fileContent = input<string>(''); 
+  readonly fileContent = input<string>('');
   readonly comments = input<FileComment[]>([]);
   readonly canEdit = input<boolean>(true);
 
@@ -31,33 +31,43 @@ export class FilePreviewLayoutComponent {
   readonly openNewTabClicked = output<void>();
   readonly commentAdded = output<string>();
   readonly commentDeleted = output<string>();
+  readonly contentSaved = output<string>();
 
   // Layout Controls State
   readonly zoomLevel = signal<number>(100);
   readonly isEditMode = signal<boolean>(false);
   readonly isCommentsOpen = signal<boolean>(false);
+  readonly markdownViewMode = signal<'preview' | 'raw'>('preview');
 
-  // Reference for backdrop click check
+  // Editable local content signal
+  readonly editableContent = signal<string>('');
+
   @ViewChild('documentContainer') documentContainer?: ElementRef<HTMLDivElement>;
 
   // Icons
   readonly lucideXIcon = lucideX;
   readonly lucideZoomInIcon = lucideZoomIn;
   readonly lucideZoomOutIcon = lucideZoomOut;
-  readonly lucideResetIcon = lucideRotateCcw;
   readonly lucideDownloadIcon = lucideDownload;
   readonly lucidePrinterIcon = lucidePrinter;
   readonly lucideExternalLinkIcon = lucideExternalLink;
   readonly lucideMessageSquareIcon = lucideMessageSquare;
   readonly lucideEditIcon = lucidePencil;
   readonly lucideEyeIcon = lucideEye;
+  readonly lucideCodeIcon = lucideCode;
+  readonly lucideFileTextIcon = lucideFileText;
+  readonly lucideSaveIcon = lucideSave;
 
-  // Computed to detect if current file is Markdown
+  constructor() {
+    effect(() => {
+      this.editableContent.set(this.fileContent());
+    });
+  }
+
   readonly isMarkdown = computed(() => {
     return this.fileName().toLowerCase().endsWith('.md');
   });
 
-  // HostListener to close modal on ESC key press
   @HostListener('document:keydown.escape')
   onKeydownHandler(): void {
     if (this.isOpen()) {
@@ -65,14 +75,12 @@ export class FilePreviewLayoutComponent {
     }
   }
 
-  // Backdrop click handler to close when clicking outside the document container
   onBackdropClick(event: MouseEvent): void {
     if (this.documentContainer && !this.documentContainer.nativeElement.contains(event.target as Node)) {
       this.closeLayout();
     }
   }
 
-  // Zoom Controls
   zoomIn(): void {
     if (this.zoomLevel() < 200) {
       this.zoomLevel.update(z => z + 15);
@@ -90,6 +98,7 @@ export class FilePreviewLayoutComponent {
   }
 
   toggleEditMode(): void {
+    if (!this.canEdit()) return;
     this.isEditMode.update(mode => !mode);
   }
 
@@ -97,7 +106,22 @@ export class FilePreviewLayoutComponent {
     this.isCommentsOpen.update(open => !open);
   }
 
+  setMarkdownView(mode: 'preview' | 'raw'): void {
+    this.markdownViewMode.set(mode);
+  }
+
+  onTextareaInput(event: Event): void {
+    const value = (event.target as HTMLTextAreaElement).value;
+    this.editableContent.set(value);
+  }
+
+  saveChanges(): void {
+    this.contentSaved.emit(this.editableContent());
+    this.isEditMode.set(false);
+  }
+
   closeLayout(): void {
+    this.isEditMode.set(false);
     this.closed.emit();
   }
 }
