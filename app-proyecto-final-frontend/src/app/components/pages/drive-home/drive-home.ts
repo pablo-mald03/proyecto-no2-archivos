@@ -18,7 +18,6 @@ import { DriveItemListComponent } from '../../drive/drive-item-list-component/dr
     RouterLink,
     NgIcon,
     CustomCard,
-    DriveItemRow,
     FolderModalComponent,
     DriveItemListComponent
   ],

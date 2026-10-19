@@ -47,7 +47,6 @@
   <app-custom-infinite-scroll class="min-h-0 flex-1 overflow-y-auto pr-2" [loading]="loading()" [hasMore]="hasMore()"
     (loadMore)="loadMore()">
 
-    <!-- Usamos nuestro componente contenedor app-drive-item-list -->
     <app-drive-item-list-component 
       [items]="items()"
       (shareClicked)="onShare($event)" 

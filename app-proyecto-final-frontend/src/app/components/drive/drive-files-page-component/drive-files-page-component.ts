@@ -27,7 +27,6 @@ import { DriveItemListComponent } from '../drive-item-list-component/drive-item-
     CustomTextfield,
     CustomAlert,
     CustomInfiniteScroll,
-    DriveItemRow,
     UploadFileModalComponent,
     FolderModalComponent,
     DriveItemListComponent

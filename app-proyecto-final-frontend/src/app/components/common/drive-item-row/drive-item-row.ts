@@ -35,6 +35,7 @@ export class DriveItemRow {
   readonly deleteClicked = output<DriveItem>();
   readonly renameClicked = output<DriveItem>(); 
   readonly dragStartHandle = output<DragEvent>();
+  readonly moveClicked = output<DriveItem>();
 
   // State for Context Menu 
   readonly contextMenuOpen = signal(false);
@@ -51,6 +52,7 @@ export class DriveItemRow {
   readonly lucideTrashIcon = lucideTrash2;
   readonly lucidePencilIcon = lucidePencil;
   readonly lucideGripVerticalIcon = lucideGripVertical; 
+  readonly lucideFolderInputIcon = lucideFolder; 
 
   constructor() {
     effect(() => {

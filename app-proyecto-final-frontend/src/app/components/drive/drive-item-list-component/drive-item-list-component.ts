@@ -21,6 +21,7 @@ export class DriveItemListComponent {
   readonly downloadClicked = output<DriveItem>();
   readonly deleteClicked = output<DriveItem>();
   readonly renameClicked = output<DriveItem>();
+  readonly moveClicked = output<DriveItem>();
   readonly itemDropped = output<{ draggedItem: DriveItem; targetFolder: DriveItem }>();
   readonly folderAutoOpened = output<DriveItem>(); 
 

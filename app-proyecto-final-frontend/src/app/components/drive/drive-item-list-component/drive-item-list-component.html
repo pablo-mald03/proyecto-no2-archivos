@@ -1,12 +1,24 @@
 <div class="flex flex-col gap-1 divide-y divide-border/20 rounded-2xl border border-border bg-surface p-2">
-    @for (item of items(); track item.id) {
-    <app-drive-item-row [item]="item" [isSelected]="selectedId() === item.id" (shareClicked)="shareClicked.emit($event)"
-        (previewClicked)="previewClicked.emit($event)" (downloadClicked)="downloadClicked.emit($event)"
-        (deleteClicked)="deleteClicked.emit($event)" (renameClicked)="renameClicked.emit($event)"
-        (itemDoubleClicked)="itemDoubleClicked.emit($event)" (itemClicked)="onSelectItem(item)"
-        (dragStartHandle)="onDragStart($event, item)" class="transition-all duration-200 rounded-xl block"
-        [class.scale-[1.02]]="isTargetFolder(item)" [class.bg-primary/15]="isTargetFolder(item)"
-        [class.border-primary]="isTargetFolder(item)" (dragover)="onDragOver($event, item)"
-        (dragleave)="onDragLeave(item)" (drop)="onDrop($event, item)" />
-    }
+  @for (item of items(); track item.id) {
+    <app-drive-item-row 
+      [item]="item" 
+      [isSelected]="selectedId() === item.id" 
+      (shareClicked)="shareClicked.emit($event)"
+      (previewClicked)="previewClicked.emit($event)" 
+      (downloadClicked)="downloadClicked.emit($event)"
+      (deleteClicked)="deleteClicked.emit($event)" 
+      (renameClicked)="renameClicked.emit($event)"
+      (moveClicked)="moveClicked.emit($event)"
+      (itemDoubleClicked)="itemDoubleClicked.emit($event)" 
+      (itemClicked)="onSelectItem(item)"
+      (dragStartHandle)="onDragStart($event, item)" 
+      class="transition-all duration-200 rounded-xl block"
+      [class.scale-[1.02]]="isTargetFolder(item)" 
+      [class.bg-primary/15]="isTargetFolder(item)"
+      [class.border-primary]="isTargetFolder(item)" 
+      (dragover)="onDragOver($event, item)"
+      (dragleave)="onDragLeave(item)" 
+      (drop)="onDrop($event, item)" 
+    />
+  }
 </div>

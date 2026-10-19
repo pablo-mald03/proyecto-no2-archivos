@@ -3,14 +3,12 @@
   [class.bg-primary/10]="isSelected()" [class.border-primary/30]="isSelected()" (click)="itemClicked.emit(item())"
   (dblclick)="itemDoubleClicked.emit(item())" (contextmenu)="onRightClick($event)">
 
-  
+
   <div class="flex items-center gap-3 min-w-0 flex-1">
-    
-    <div 
+
+    <div
       class="cursor-grab active:cursor-grabbing text-text-muted opacity-0 group-hover:opacity-100 transition-opacity p-1 -ml-2 hover:text-text"
-      draggable="true"
-      (dragstart)="dragStartHandle.emit($event)"
-      title="Arrastrar para mover">
+      draggable="true" (dragstart)="dragStartHandle.emit($event)" title="Arrastrar para mover">
       <ng-icon [svg]="lucideGripVerticalIcon" size="16" />
     </div>
 
@@ -68,6 +66,11 @@
   <div class="fixed z-50 pointer-events-auto" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y"
     (click)="$event.stopPropagation()">
     <app-custom-toggle-menu [isOpen]="contextMenuOpen()" (closed)="closeContextMenu()">
+
+      <app-custom-toggle-menu-item [icon]="lucideFolderInputIcon"
+        (clicked)="moveClicked.emit(item()); closeContextMenu()">
+        Mover a...
+      </app-custom-toggle-menu-item>
 
       @if (item().type === 'file') {
       <app-custom-toggle-menu-item [icon]="lucideEyeIcon" (clicked)="previewClicked.emit(item()); closeContextMenu()">
