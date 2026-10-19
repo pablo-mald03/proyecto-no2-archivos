@@ -120,6 +120,34 @@ export class FilePreviewLayoutComponent {
     this.isEditMode.set(false);
   }
 
+  // Method to handle file download using a temporary Blob URL
+  downloadFile(): void {
+    const content = this.editableContent();
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = this.fileName();
+    document.body.appendChild(link);
+    link.click();
+
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+
+    this.downloadClicked.emit();
+  }
+
+  // Method to open file content in a new browser tab
+  openInNewTab(): void {
+    const content = this.editableContent();
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+
+    window.open(url, '_blank');
+    this.openNewTabClicked.emit();
+  }
+
   closeLayout(): void {
     this.isEditMode.set(false);
     this.closed.emit();

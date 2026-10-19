@@ -66,20 +66,13 @@
                 }
             </button>
 
-            <button type="button" (click)="printClicked.emit()"
-                class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-                title="Imprimir">
-                <ng-icon [svg]="lucidePrinterIcon" size="20" />
-            </button>
-
-            <button type="button" (click)="openNewTabClicked.emit()"
+            <button type="button" (click)="openInNewTab()"
                 class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
                 title="Abrir en una pestaña nueva">
                 <ng-icon [svg]="lucideExternalLinkIcon" size="20" />
             </button>
 
-            <app-custom-button label="Descargar" size="sm" [icon]="lucideDownloadIcon"
-                (clicked)="downloadClicked.emit()" />
+            <app-custom-button label="Descargar" size="sm" [icon]="lucideDownloadIcon" (clicked)="downloadFile()" />
         </div>
     </header>
 
