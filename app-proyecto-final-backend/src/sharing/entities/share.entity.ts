@@ -5,6 +5,7 @@ import { UserEntity } from 'src/users/entities/user.entity';
 import { ResourceType } from 'src/common/constants/actions/resource-type';
 import { AccessLevel, GranteeType } from 'src/common/constants/permissions/access-level';
 
+//Principal share entity model
 @Schema({ collection: 'shares', timestamps: true })
 export class ShareEntity extends AuditableEntity {
   @Prop({ required: true, enum: [ResourceType.FILE, ResourceType.FOLDER], index: true })
@@ -26,5 +27,8 @@ export class ShareEntity extends AuditableEntity {
   access!: AccessLevel;
 }
 
+// POJO representation for persistence layer
 export type ShareDocument = HydratedDocument<ShareEntity>;
+
+//Mapping for persistence layer
 export const ShareSchema = SchemaFactory.createForClass(ShareEntity);

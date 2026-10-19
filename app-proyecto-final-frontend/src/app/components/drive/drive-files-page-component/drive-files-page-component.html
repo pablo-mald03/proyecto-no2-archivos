@@ -47,17 +47,10 @@
   <app-custom-infinite-scroll class="min-h-0 flex-1 overflow-y-auto pr-2" [loading]="loading()" [hasMore]="hasMore()"
     (loadMore)="loadMore()">
 
-    <app-drive-item-list-component 
-      [items]="items()"
-      (shareClicked)="onShare($event)" 
-      (previewClicked)="onPreview($event)"
-      (downloadClicked)="onDownload($event)" 
-      (deleteClicked)="onDelete($event)" 
-      (renameClicked)="onRename($event)"
-      (itemDoubleClicked)="onOpenItem($event)" 
-      (itemClicked)="onOpenItem($event)"
-      (itemDropped)="handleItemDrop($event)"
-    />
+    <app-drive-item-list-component [items]="items()" (shareClicked)="onShare($event)"
+      (previewClicked)="onPreview($event)" (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)"
+      (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)" (itemDoubleClicked)="onOpenItem($event)"
+      (itemClicked)="onOpenItem($event)" (itemDropped)="handleItemDrop($event)" />
 
   </app-custom-infinite-scroll>
   }
@@ -67,5 +60,8 @@
 
   <app-folder-modal-component [isOpen]="isFolderModalOpen()" [mode]="folderModalMode()" [itemType]="folderItemType()"
     [initialName]="folderInitialName()" (closed)="closeFolderModal()" (submitted)="handleFolderSubmit($event)" />
+
+  <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
+    (targetSelected)="handleMoveTargetSelected($event)" />
 
 </div>

@@ -6,7 +6,6 @@ import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
-import { DriveItemRow } from '../../common/drive-item-row/drive-item-row';
 import { ToastService } from '../../../core/services/toast.service';
 import { DriveItem } from '../../../features/drive/drive-item.model';
 import { lucideChevronDown, lucidePlus, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
@@ -15,6 +14,7 @@ import { UploadFileModalComponent } from '../../files/upload-file-modal-componen
 import { DriveActionService } from '../../../core/services/drive-action.service';
 import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
 import { DriveItemListComponent } from '../drive-item-list-component/drive-item-list-component';
+import { DriveMoveModalComponent } from '../../directories/drive-move-modal-component/drive-move-modal-component';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -29,7 +29,8 @@ import { DriveItemListComponent } from '../drive-item-list-component/drive-item-
     CustomInfiniteScroll,
     UploadFileModalComponent,
     FolderModalComponent,
-    DriveItemListComponent
+    DriveItemListComponent,
+    DriveMoveModalComponent
 ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
@@ -60,20 +61,25 @@ export class DriveFilesPageComponent implements OnInit {
   readonly lucideSearchIcon = lucideSearch;
   readonly lucidePlusIcon = lucidePlus;
 
-  // Modal status
+  // Upload modal status
   readonly isUploadModalOpen = signal(false);
 
-  // Folder id directory
-  readonly currentFolderId = signal<string | null>(null);
-  readonly isInsideFolder = computed(() => !!this.currentFolderId());
-
+  // Folder modal state
   readonly isFolderModalOpen = signal(false);
   readonly folderModalMode = signal<'create' | 'rename'>('create');
   readonly folderInitialName = signal('');
-
   readonly folderItemType = signal<'folder' | 'file'>('folder');
 
+  // Move modal state
+  readonly isMoveModalOpen = signal(false);
+  readonly itemToMove = signal<DriveItem | null>(null);
+
+  // Current Directory State
+  readonly currentFolderId = signal<string | null>(null);
+  readonly isInsideFolder = computed(() => !!this.currentFolderId());
+
   constructor() {
+    // Listen to action triggers from the shared action service
     effect(() => {
       if (this.driveAction.uploadTriggered()) {
         this.openUploadModal();
@@ -96,7 +102,7 @@ export class DriveFilesPageComponent implements OnInit {
     });
   }
 
-  //Mocks
+  // Load mock items for current folder
   loadMockFiles(folderId: string | null): void {
     this.loading.set(true);
     this.initialized.set(false);
@@ -133,65 +139,72 @@ export class DriveFilesPageComponent implements OnInit {
     }, 400);
   }
 
-  //open modal for upload
+  // Upload Modal handlers
   openUploadModal(): void {
     this.isUploadModalOpen.set(true);
   }
-  //Upload modal
+
   closeUploadModal(): void {
     this.isUploadModalOpen.set(false);
   }
 
-  handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
-    const { draggedItem, targetFolder } = event;
-    
-    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
-    
-    this.items.update(list => list.filter(i => i.id !== draggedItem.id));
-  }
-
-  //Hanlde filde upload method
   handleFileUpload(file: File): void {
     const parentId = this.currentFolderId();
-
-    // TODO: Backend connection
-    // this.driveService.uploadFile(file, parentId).subscribe(...)
-
     console.log(`Subiendo archivo '${file.name}' al directorio parentId:`, parentId);
     this.toastService.success(`Archivo '${file.name}' subido con éxito.`, 'Subida completada');
-
-    //todo reload or update localy
     this.loadMockFiles(parentId);
   }
 
+  // Drag and Drop move handler
+  handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
+    const { draggedItem, targetFolder } = event;
+    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
+    this.items.update(list => list.filter(i => i.id !== draggedItem.id));
+  }
 
+  // Folder Modal submit handler
   handleFolderSubmit(folderName: string): void {
     const parentId = this.currentFolderId();
     const mode = this.folderModalMode();
     const targetId = this.driveAction.folderTargetId();
 
     if (mode === 'create') {
-      // TODO POST /api/v1/folders
       console.log(`Creando carpeta '${folderName}' con parentId:`, parentId);
       this.toastService.success(`Carpeta '${folderName}' creada con éxito.`, 'Carpeta creada');
     } else {
-      // TODO PATCH /api/v1/folders/{id}/rename[cite: 1]
-      console.log(`Renombrando carpeta ID ${targetId} a '${folderName}'`);
-      this.toastService.success(`Carpeta renombrada a '${folderName}'.`, 'Carpeta actualizada');
+      console.log(`Renombrando ítem ID ${targetId} a '${folderName}'`);
+      this.toastService.success(`Actualizado a '${folderName}'.`, 'Actualizado');
     }
 
     this.isFolderModalOpen.set(false);
     this.loadMockFiles(parentId);
   }
 
-
-  //Pagination method
-  loadMore(): void {
+  // Open "Move to..." modal
+  onMoveItem(item: DriveItem): void {
+    this.itemToMove.set(item);
+    this.isMoveModalOpen.set(true);
   }
 
+  closeMoveModal(): void {
+    this.isMoveModalOpen.set(false);
+    this.itemToMove.set(null);
+  }
 
+  // Handle move modal selection confirm
+  handleMoveTargetSelected(targetFolderId: string | null): void {
+    const item = this.itemToMove();
+    if (!item) return;
 
-  //Row actions
+    const targetLabel = targetFolderId ? `carpeta ID: ${targetFolderId}` : 'Raíz (Mis Documentos)';
+    this.toastService.success(`'${item.name}' movido a ${targetLabel}.`, 'Elemento movido');
+
+    // TODO: Remove item locally from active list view
+    this.items.update(list => list.filter(i => i.id !== item.id));
+    this.closeMoveModal();
+  }
+
+  // Row Action Listeners
   onShare(item: DriveItem): void {
     this.toastService.success(`Enlace de '${item.name}' copiado al portapapeles.`, 'Compartir');
   }
@@ -220,11 +233,6 @@ export class DriveFilesPageComponent implements OnInit {
     }
   }
 
-  //Upload file method
-  uploadFile(): void {
-    this.openUploadModal();
-  }
-
   onRename(item: DriveItem): void {
     this.driveAction.openRenameModal(item.id, item.name, item.type);
   }
@@ -233,4 +241,6 @@ export class DriveFilesPageComponent implements OnInit {
     this.isFolderModalOpen.set(false);
     this.driveAction.closeFolderModal();
   }
+
+  loadMore(): void {}
 }

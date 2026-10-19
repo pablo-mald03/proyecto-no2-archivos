@@ -29,7 +29,7 @@
         @if (recentItems().length > 0) {
         <app-drive-item-list-component [items]="recentItems()" (shareClicked)="onShare($event)"
             (previewClicked)="onPreview($event)" (downloadClicked)="onDownload($event)"
-            (deleteClicked)="onDelete($event)" (renameClicked)="onRename($event)"
+            (deleteClicked)="onDelete($event)" (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)"
             (itemDoubleClicked)="onOpenItem($event)" (itemClicked)="onOpenItem($event)"
             (itemDropped)="handleItemDrop($event)" />
         } @else {
@@ -39,5 +39,8 @@
 
     <app-folder-modal-component [isOpen]="isFolderModalOpen()" [mode]="folderModalMode()" [itemType]="folderItemType()"
         [initialName]="folderInitialName()" (closed)="closeFolderModal()" (submitted)="handleFolderSubmit($event)" />
+
+    <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
+        (targetSelected)="handleMoveTargetSelected($event)" />
 
 </section>

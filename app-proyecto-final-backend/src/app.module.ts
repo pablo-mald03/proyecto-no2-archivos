@@ -19,6 +19,7 @@ import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
     RolesModule,
     PermissionsModule,
     RefreshTokensModule,
+    CommentsModule,
   ],
   providers: [
     AppService,

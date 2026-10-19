@@ -4,21 +4,20 @@ import { ClientSession, Model, Types } from 'mongoose';
 import { ShareDocument, ShareEntity } from '../entities/share.entity';
 import { AccessLevel, GranteeType } from 'src/common/constants/permissions/access-level';
 
+//Principal shares repository class
 @Injectable()
 export class SharesRepository {
   constructor(
     @InjectModel(ShareEntity.name) private readonly model: Model<ShareEntity>,
-  ) {}
+  ) { }
 
+  //Method to find share by id
   findById(id: string | Types.ObjectId, session?: ClientSession): Promise<ShareDocument | null> {
     return this.model.findById(id).session(session || null).exec();
   }
 
-  findByResource(
-    resourceType: 'FILE' | 'FOLDER',
-    resourceId: string | Types.ObjectId,
-    session?: ClientSession,
-  ): Promise<ShareDocument[]> {
+  //Method to find shares by resource
+  findByResource(resourceType: 'FILE' | 'FOLDER', resourceId: string | Types.ObjectId, session?: ClientSession): Promise<ShareDocument[]> {
     return this.model
       .find({
         resourceType,
@@ -28,11 +27,8 @@ export class SharesRepository {
       .exec();
   }
 
-  findEffectiveSharesForResourceOrAncestors(
-    items: { resourceType: 'FILE' | 'FOLDER'; resourceId: Types.ObjectId }[],
-    granteeUserId: string | Types.ObjectId,
-    session?: ClientSession,
-  ): Promise<ShareDocument[]> {
+  //Method to find effective shares for resource or ancestors
+  findEffectiveSharesForResourceOrAncestors(items: { resourceType: 'FILE' | 'FOLDER'; resourceId: Types.ObjectId }[], granteeUserId: string | Types.ObjectId, session?: ClientSession): Promise<ShareDocument[]> {
     const userOid = new Types.ObjectId(granteeUserId);
 
     const resourceConditions = items.map((i) => ({
@@ -56,6 +52,7 @@ export class SharesRepository {
       .exec();
   }
 
+  //Method to upsert the shared file or folder
   upsertShare(
     data: {
       resourceType: 'FILE' | 'FOLDER';
@@ -88,13 +85,8 @@ export class SharesRepository {
       .exec() as Promise<ShareDocument>;
   }
 
-  deleteByResourceAndGrantee(
-    resourceType: 'FILE' | 'FOLDER',
-    resourceId: string | Types.ObjectId,
-    granteeType: GranteeType,
-    granteeId: string | Types.ObjectId | null,
-    session?: ClientSession,
-  ): Promise<boolean> {
+  //Method to delete a share by resource and grantee
+  deleteByResourceAndGrantee(resourceType: 'FILE' | 'FOLDER', resourceId: string | Types.ObjectId, granteeType: GranteeType, granteeId: string | Types.ObjectId | null, session?: ClientSession): Promise<boolean> {
     return this.model
       .deleteOne({
         resourceType,
@@ -106,11 +98,8 @@ export class SharesRepository {
       .then((res) => res.deletedCount > 0);
   }
 
-  deleteByResource(
-    resourceType: 'FILE' | 'FOLDER',
-    resourceId: string | Types.ObjectId,
-    session?: ClientSession,
-  ): Promise<number> {
+  //Method to delete a share by resource
+  deleteByResource(resourceType: 'FILE' | 'FOLDER', resourceId: string | Types.ObjectId, session?: ClientSession): Promise<number> {
     return this.model
       .deleteMany({
         resourceType,

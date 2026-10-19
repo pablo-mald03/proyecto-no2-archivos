@@ -10,6 +10,7 @@ import { DriveItemRow } from '../../common/drive-item-row/drive-item-row';
 import { DriveActionService } from '../../../core/services/drive-action.service';
 import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
 import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
+import { DriveMoveModalComponent } from '../../directories/drive-move-modal-component/drive-move-modal-component';
 
 @Component({
   selector: 'app-drive-home',
@@ -19,8 +20,9 @@ import { DriveItemListComponent } from '../../drive/drive-item-list-component/dr
     NgIcon,
     CustomCard,
     FolderModalComponent,
-    DriveItemListComponent
-  ],
+    DriveItemListComponent,
+    DriveMoveModalComponent
+],
   templateUrl: './drive-home.html',
   styleUrl: './drive-home.css',
   host: { class: 'flex flex-col h-full min-h-0 overflow-y-auto pr-2' }
@@ -30,16 +32,20 @@ export class DriveHome {
   private readonly authState = inject(AuthState);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
-  readonly driveAction = inject(DriveActionService);
+  readonly driveAction = inject(DriveActionService); 
 
   readonly firstName = computed(() => this.authState.user()?.firstName ?? '');
   readonly shortcuts = HOME_NAV_OPTIONS;
 
-  // Signals para Modal
+  // Folder modal state signals
   readonly isFolderModalOpen = signal(false);
   readonly folderModalMode = signal<'create' | 'rename'>('create');
   readonly folderItemType = signal<'folder' | 'file'>('folder');
   readonly folderInitialName = signal('');
+
+  // Move modal state signals
+  readonly isMoveModalOpen = signal(false);
+  readonly itemToMove = signal<DriveItem | null>(null);
 
   constructor() {
     effect(() => {
@@ -52,14 +58,14 @@ export class DriveHome {
     });
   }
 
-  // Mock de elementos recientes
+  // Recent items mock signal
   readonly recentItems = signal<DriveItem[]>([
     { id: '2', name: 'Notas de Arquitectura.md', type: 'file', extension: 'md', sizeBytes: 15400, updatedAt: new Date(), shared: true },
     { id: '3', name: 'Credenciales_Servidor.txt', type: 'file', extension: 'txt', sizeBytes: 1024, updatedAt: new Date() },
     { id: '4', name: 'Guía de Despliegue.md', type: 'file', extension: 'md', sizeBytes: 45200, updatedAt: new Date() }
   ]);
 
-  //Open item signal
+  // Actions
   onOpenItem(item: DriveItem): void {
     if (item.type === 'folder') {
       this.router.navigate(['/drive/files/folder', item.id]);
@@ -68,16 +74,6 @@ export class DriveHome {
     }
   }
 
-  //Method to move with drag and drop method
-  handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
-    const { draggedItem, targetFolder } = event;
-
-    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
-
-    this.recentItems.update(list => list.filter(i => i.id !== draggedItem.id));
-  }
-
-  //Method to share the item
   onShare(item: DriveItem): void {
     this.toastService.success(`Enlace de '${item.name}' copiado.`, 'Compartir');
   }
@@ -103,14 +99,38 @@ export class DriveHome {
     this.driveAction.openRenameModal(item.id, item.name, item.type);
   }
 
-  //Hablde the submin
+  onMoveItem(item: DriveItem): void {
+    this.itemToMove.set(item);
+    this.isMoveModalOpen.set(true);
+  }
+
+  closeMoveModal(): void {
+    this.isMoveModalOpen.set(false);
+    this.itemToMove.set(null);
+  }
+
+  handleMoveTargetSelected(targetFolderId: string | null): void {
+    const item = this.itemToMove();
+    if (!item) return;
+
+    const targetLabel = targetFolderId ? `carpeta ID: ${targetFolderId}` : 'Mis Documentos';
+    this.toastService.success(`'${item.name}' movido a ${targetLabel}.`, 'Elemento movido');
+
+    this.recentItems.update(list => list.filter(i => i.id !== item.id));
+    this.closeMoveModal();
+  }
+
+  handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
+    const { draggedItem, targetFolder } = event;
+    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
+    this.recentItems.update(list => list.filter(i => i.id !== draggedItem.id));
+  }
+
   handleFolderSubmit(newName: string): void {
     const targetId = this.driveAction.folderTargetId();
-
-    this.recentItems.update(list =>
+    this.recentItems.update(list => 
       list.map(i => i.id === targetId ? { ...i, name: newName, updatedAt: new Date() } : i)
     );
-
     this.toastService.success(`Actualizado a '${newName}' con éxito.`, 'Actualizado');
     this.isFolderModalOpen.set(false);
   }
