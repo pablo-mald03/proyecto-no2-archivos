@@ -3,29 +3,22 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, QueryFilter, Types } from 'mongoose';
 import { FileDocument, FileEntity } from '../entities/file.entity';
 import { PageRequest } from 'src/common/types/page-request';
+import { FileFilter } from '../filter/file.filter';
 
-export interface FileFilter {
-  ownerId?: string | Types.ObjectId;
-  folderId?: string | Types.ObjectId | null;
-  extension?: 'txt' | 'md';
-  isDeleted?: boolean;
-  search?: string;
-  from?: Date;
-  to?: Date;
-  minSize?: number;
-  maxSize?: number;
-}
 
+/*Principal file repository class*/
 @Injectable()
 export class FilesRepository {
   constructor(
     @InjectModel(FileEntity.name) private readonly model: Model<FileEntity>,
-  ) {}
+  ) { }
 
+  //Method to find a file by ID
   findById(id: string | Types.ObjectId, session?: ClientSession): Promise<FileDocument | null> {
     return this.model.findById(id).session(session || null).exec();
   }
 
+  //Method to find an active file by ID
   findActiveById(id: string | Types.ObjectId, session?: ClientSession): Promise<FileDocument | null> {
     return this.model
       .findOne({ _id: id, isDeleted: false })
@@ -33,28 +26,20 @@ export class FilesRepository {
       .exec();
   }
 
-  findActiveByFolder(
-    ownerId: string | Types.ObjectId,
-    folderId: string | Types.ObjectId | null,
-    session?: ClientSession,
-  ): Promise<FileDocument[]> {
-    return this.model
-      .find({
-        ownerId: new Types.ObjectId(ownerId),
-        folderId: folderId ? new Types.ObjectId(folderId) : null,
-        isDeleted: false,
-      })
+  //Method to find active files in a folder
+  findActiveByFolder(ownerId: string | Types.ObjectId, folderId: string | Types.ObjectId | null, session?: ClientSession): Promise<FileDocument[]> {
+    return this.model.find({
+      ownerId: new Types.ObjectId(ownerId),
+      folderId: folderId ? new Types.ObjectId(folderId) : null,
+      isDeleted: false,
+    })
       .sort({ name: 1 })
       .session(session || null)
       .exec();
   }
 
-  existsActiveSiblingByName(
-    ownerId: string | Types.ObjectId,
-    folderId: string | Types.ObjectId | null,
-    name: string,
-    excludeId?: string | Types.ObjectId,
-    session?: ClientSession,
+  //Method to check if a file with the same name exists in the same folder
+  existsActiveSiblingByName(ownerId: string | Types.ObjectId, folderId: string | Types.ObjectId | null, name: string, excludeId?: string | Types.ObjectId, session?: ClientSession,
   ): Promise<boolean> {
     const filter: Record<string, any> = {
       ownerId: new Types.ObjectId(ownerId),
@@ -73,6 +58,7 @@ export class FilesRepository {
       .then((res) => res !== null);
   }
 
+  //Method to create a file
   create(
     data: {
       ownerId: Types.ObjectId;
@@ -89,6 +75,7 @@ export class FilesRepository {
     return doc.save({ session });
   }
 
+  //Method to update a file
   updateContent(
     id: string | Types.ObjectId,
     gridFsId: Types.ObjectId,
@@ -104,6 +91,7 @@ export class FilesRepository {
       .exec();
   }
 
+  //Method to rename a file
   rename(
     id: string | Types.ObjectId,
     name: string,
@@ -120,11 +108,8 @@ export class FilesRepository {
       .exec();
   }
 
-  move(
-    id: string | Types.ObjectId,
-    folderId: Types.ObjectId | null,
-    session?: ClientSession,
-  ): Promise<FileDocument | null> {
+  //Method to move a file
+  move(id: string | Types.ObjectId, folderId: Types.ObjectId | null, session?: ClientSession): Promise<FileDocument | null> {
     return this.model
       .findByIdAndUpdate(
         id,
@@ -134,6 +119,7 @@ export class FilesRepository {
       .exec();
   }
 
+  //Method to find a page of files
   async findPage(filter: FileFilter, page: PageRequest) {
     const mongoFilter = this.buildFilter(filter);
     const [content, total] = await Promise.all([
@@ -149,26 +135,27 @@ export class FilesRepository {
     return { content, total };
   }
 
-  private buildFilter(f: FileFilter): QueryFilter<FileDocument> {
+  //Principal build filter helper method
+  private buildFilter(filter: FileFilter): QueryFilter<FileDocument> {
     const q: any = {};
-    if (f.ownerId) q.ownerId = new Types.ObjectId(f.ownerId);
-    if (f.folderId !== undefined) {
-      q.folderId = f.folderId ? new Types.ObjectId(f.folderId) : null;
+    if (filter.ownerId) q.ownerId = new Types.ObjectId(filter.ownerId);
+    if (filter.folderId !== undefined) {
+      q.folderId = filter.folderId ? new Types.ObjectId(filter.folderId) : null;
     }
-    if (f.extension) q.extension = f.extension;
-    if (f.isDeleted !== undefined) q.isDeleted = f.isDeleted;
-    if (f.search) {
-      q.name = { $regex: f.search, $options: 'i' };
+    if (filter.extension) q.extension = filter.extension;
+    if (filter.isDeleted !== undefined) q.isDeleted = filter.isDeleted;
+    if (filter.search) {
+      q.name = { $regex: filter.search, $options: 'i' };
     }
-    if (f.minSize !== undefined || f.maxSize !== undefined) {
+    if (filter.minSize !== undefined || filter.maxSize !== undefined) {
       q.sizeBytes = {};
-      if (f.minSize !== undefined) q.sizeBytes.$gte = f.minSize;
-      if (f.maxSize !== undefined) q.sizeBytes.$lte = f.maxSize;
+      if (filter.minSize !== undefined) q.sizeBytes.$gte = filter.minSize;
+      if (filter.maxSize !== undefined) q.sizeBytes.$lte = filter.maxSize;
     }
-    if (f.from || f.to) {
+    if (filter.from || filter.to) {
       q.createdAt = {};
-      if (f.from) q.createdAt.$gte = f.from;
-      if (f.to) q.createdAt.$lte = f.to;
+      if (filter.from) q.createdAt.$gte = filter.from;
+      if (filter.to) q.createdAt.$lte = filter.to;
     }
     return q;
   }
