@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FileEntity, FileSchema } from './entities/file.entity';
 import { FilesRepository } from './repository/files.repository';
@@ -9,15 +9,15 @@ import { FileValidationHelperService } from './service/file-validation-helper.se
 import { FileQuotaHelperService } from './service/file-quota-helper.service';
 import { FileAccessHelperService } from './service/file-access-helper.service';
 import { UsersModule } from 'src/users/users.module';
-import { FoldersModule } from 'src/folders/folders.module';
 import { SharingModule } from 'src/sharing/sharing.module';
 import { ActivityModule } from 'src/activity/activity.module';
+import { FoldersModule } from 'src/folders/folders.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: FileEntity.name, schema: FileSchema }]),
     UsersModule,
-    FoldersModule,
+    forwardRef(() => FoldersModule),
     SharingModule,
     ActivityModule,
   ],
@@ -32,4 +32,4 @@ import { ActivityModule } from 'src/activity/activity.module';
   ],
   exports: [FilesRepository, FilesService, GridFsStorageService],
 })
-export class FilesModule {}
+export class FilesModule { }

@@ -31,6 +31,7 @@ import { UpdateSettingsComponent } from './components/settings/update-settings-c
 import { DriveFilesPageComponent } from './components/drive/drive-files-page-component/drive-files-page-component';
 import { DriveExplorerComponent } from './components/files/drive-explorer-component/drive-explorer-component';
 import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-page';
+import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
 
 export const routes: Routes = [
 
@@ -76,6 +77,7 @@ export const routes: Routes = [
         children: [
             { path: '', component: DriveHome },
             { path: 'profile', component: ProfileComponent },
+            { path: 'activity', component: UserActivityPage },
             {
                 path: 'files',
                 component: DriveExplorerComponent,

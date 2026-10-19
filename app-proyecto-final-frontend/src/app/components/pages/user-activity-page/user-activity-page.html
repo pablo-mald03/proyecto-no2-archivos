@@ -1,0 +1,99 @@
+<div class="flex min-h-0 flex-col gap-6">
+
+    <div>
+        <h1 class="text-2xl font-bold text-text">Mi Actividad</h1>
+        <p class="mt-1 text-sm text-text-muted">
+            Consulta el historial de acciones y eventos realizados en tu cuenta.
+        </p>
+    </div>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-5 flex flex-col gap-1">
+            <h2 class="text-base font-semibold text-text">
+                Filtros de búsqueda
+            </h2>
+            <p class="text-sm text-text-muted">
+                Filtra por tipo de acción, recurso o rango de fechas.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+
+            <app-custom-dropdown label="Acción" placeholder="Todas las acciones" [options]="actions()" optionKey="value"
+                optionLabel="label" [control]="actionFilterControl" [clearable]="true" />
+
+            <app-custom-dropdown label="Tipo de recurso" placeholder="Todos los recursos" [options]="resourceTypes()"
+                optionKey="value" optionLabel="label" [control]="resourceTypeFilterControl" [clearable]="true" />
+
+            <app-custom-textfield label="ID del recurso" placeholder="Buscar por ID..."
+                [control]="resourceIdFilterControl" [clearable]="true" />
+
+            <app-custom-datepicker label="Desde" [control]="fromDateControl" [max]="toDate()" [clearable]="true" />
+
+            <app-custom-datepicker label="Hasta" [control]="toDateControl" [min]="fromDate()" [clearable]="true" />
+
+            <app-custom-dropdown label="Ordenar por" [options]="[
+                    { value: 'createdAt', label: 'Fecha' },
+                    { value: 'action', label: 'Acción' }
+                ]" optionKey="value" optionLabel="label" [control]="sortControl" />
+
+            <app-custom-dropdown label="Dirección" [options]="[
+                    { value: 'desc', label: 'Descendente' },
+                    { value: 'asc', label: 'Ascendente' }
+                ]" optionKey="value" optionLabel="label" [control]="directionControl" />
+
+        </div>
+
+    </app-custom-card>
+
+    <app-custom-card [hoverable]="false">
+
+        <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h2 class="text-base font-semibold text-text">
+                Historial de eventos
+            </h2>
+
+            <p class="text-sm text-text-muted">
+                {{ totalElements() }} eventos encontrados
+            </p>
+        </div>
+
+        <app-custom-table [columns]="logColumns" [data]="logs()" [loading]="loading()" [hoverable]="true"
+            [striped]="true" [numbered]="true" [startIndex]="page() * size" headerVariant="primary"
+            emptyMessage="No hay actividad registrada que coincida con los filtros.">
+
+            <ng-template appTableCell="createdAt" let-row>
+                {{ row.createdAt | date: 'dd/MM/yyyy HH:mm' }}
+            </ng-template>
+
+            <ng-template appTableCell="actionLabel" let-row>
+                <span class="rounded-full bg-primary/10 text-primary px-2.5 py-1 text-xs font-semibold">
+                    {{ row.actionLabel }}
+                </span>
+            </ng-template>
+
+            <ng-template appTableCell="resourceName" let-row>
+                <span class="font-medium text-text">
+                    {{ row.resourceName || row.resourceId || '—' }}
+                </span>
+            </ng-template>
+
+            <ng-template appTableCell="resourceTypeLabel" let-row>
+                {{ row.resourceTypeLabel || '—' }}
+            </ng-template>
+
+            <ng-template appTableCell="description" let-row>
+                {{ row.description || '—' }}
+            </ng-template>
+
+        </app-custom-table>
+
+        <div class="mt-4">
+            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [loading]="loading()" (pageChange)="onPageChange($event)" />
+        </div>
+
+    </app-custom-card>
+
+</div>

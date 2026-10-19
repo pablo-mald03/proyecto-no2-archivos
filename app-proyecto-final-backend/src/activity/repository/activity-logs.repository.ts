@@ -36,7 +36,11 @@ export class ActivityLogsRepository {
         if (f.actorId) q.actorId = new Types.ObjectId(f.actorId);
         if (f.resourceId) q.resourceId = new Types.ObjectId(f.resourceId);
         if (f.action) q.action = f.action;
+        else if (f.actionIn?.length) q.action = { $in: f.actionIn } as any;
+
         if (f.resourceType) q.resourceType = f.resourceType;
+        else if (f.resourceTypeIn?.length) q.resourceType = { $in: f.resourceTypeIn } as any;
+
         if (f.from || f.to) q.createdAt = { ...(f.from && { $gte: f.from }), ...(f.to && { $lte: f.to }) };
         return q;
     }

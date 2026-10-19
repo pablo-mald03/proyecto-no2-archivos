@@ -10,7 +10,7 @@ export class FileValidationHelperService {
   constructor(private readonly filesRepository: FilesRepository) { }
 
   /**
-   * Validates extension and returns extension and mimeType.
+   * Principal method to parse and validate the extension of a file.
    */
   parseAndValidateExtension(filename: string): FileTypeInfo {
     const lower = filename.toLowerCase();
@@ -21,7 +21,7 @@ export class FileValidationHelperService {
       return { extension: 'md', mimeType: 'text/markdown' };
     }
     throw new InvalidFileTypeException(
-      `El archivo «${filename}» no tiene una extensión permitida. Solo se admiten archivos .txt y .md`,
+      `El archivo "${filename}" no tiene una extensión permitida. Solo se admiten archivos .txt y .md`,
     );
   }
 

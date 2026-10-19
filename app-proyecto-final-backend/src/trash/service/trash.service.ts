@@ -29,7 +29,7 @@ export class TrashService {
   ) { }
 
   /**
-   * List all root deleted items for the user's trash view
+   * Method to list all root deleted items for the user's trash view
    */
   async listTrash(actor: AuthUser): Promise<TrashItemDto[]> {
     const [trashFolders, trashFiles] = await Promise.all([
@@ -60,13 +60,9 @@ export class TrashService {
   }
 
   /**
-   * Move a file or folder into trash (cascade batch for folders)
+   * Method to move a file or folder into trash (cascade batch for folders)
    */
-  async moveToTrash(
-    resourceType: 'FILE' | 'FOLDER',
-    resourceId: string,
-    actor: AuthUser,
-  ): Promise<void> {
+  async moveToTrash(resourceType: 'FILE' | 'FOLDER', resourceId: string, actor: AuthUser): Promise<void> {
     const actorOid = new Types.ObjectId(actor.id);
     const trashBatchId = new Types.ObjectId();
 
@@ -82,7 +78,7 @@ export class TrashService {
       this.activity.record({
         actor: { id: actor.id, username: actor.username, email: actor.email },
         action: ActivityAction.FILE_TRASHED,
-        description: `Envió el archivo "${file.name}" a la papelera`,
+        description: `Envio el archivo "${file.name}" a la papelera`,
         resource: { type: ResourceType.FILE, id: file._id.toString(), name: file.name },
       });
     } else {
@@ -115,7 +111,7 @@ export class TrashService {
           {
             actor: { id: actor.id, username: actor.username, email: actor.email },
             action: ActivityAction.FOLDER_TRASHED,
-            description: `Envió la carpeta "${folder.name}" a la papelera`,
+            description: `Envio la carpeta "${folder.name}" a la papelera`,
             resource: { type: ResourceType.FOLDER, id: folder._id.toString(), name: folder.name },
           },
           session,
@@ -125,7 +121,7 @@ export class TrashService {
   }
 
   /**
-   * Restore a batch of files/folders from trash
+   * Method to restore a batch of files/folders from trash
    */
   async restoreFromTrash(trashBatchId: string, actor: AuthUser): Promise<void> {
     const batchOid = new Types.ObjectId(trashBatchId);
@@ -145,7 +141,6 @@ export class TrashService {
     }
 
     await this.connection.transaction(async (session) => {
-      // 1. Restore folder parent links to root if original parent was deleted
       for (const folder of batchFolders) {
         if (folder.parentId) {
           const parentFolder = await this.foldersRepository.findActiveById(folder.parentId, session);
@@ -155,11 +150,9 @@ export class TrashService {
         }
       }
 
-      // 2. Unmark deletion flags
       await this.foldersRepository.restoreByTrashBatch(batchOid, session);
       await this.filesRepository.restoreByTrashBatch(batchOid, session);
 
-      // 3. Log restoration
       const rootItemName =
         batchFolders.find((f) => f.isTrashRoot)?.name ||
         batchFiles.find((f) => f.isTrashRoot)?.name ||
@@ -169,7 +162,7 @@ export class TrashService {
         {
           actor: { id: actor.id, username: actor.username, email: actor.email },
           action: batchFolders.length > 0 ? ActivityAction.FOLDER_RESTORED : ActivityAction.FILE_RESTORED,
-          description: `Restauró "${rootItemName}" de la papelera`,
+          description: `Restauro "${rootItemName}" de la papelera`,
           resource: {
             type: batchFolders.length > 0 ? ResourceType.FOLDER : ResourceType.FILE,
             id: batchOid.toString(),
@@ -182,7 +175,7 @@ export class TrashService {
   }
 
   /**
-   * Permanently delete a trash batch: deletes documents, binaries from GridFS, shares, and discounts quota
+   * Method to permanently delete a trash batch: deletes documents, binaries from GridFS, shares, and discounts quota
    */
   async deletePermanently(trashBatchId: string, actor: AuthUser): Promise<void> {
     const batchOid = new Types.ObjectId(trashBatchId);
@@ -205,7 +198,6 @@ export class TrashService {
     const gridFsIdsToDelete = batchFiles.map((f) => f.gridFsId);
 
     await this.connection.transaction(async (session) => {
-      // Delete shares associated with deleted items
       for (const f of batchFolders) {
         await this.sharesRepository.deleteByResource('FOLDER', f._id, session);
       }
@@ -213,11 +205,9 @@ export class TrashService {
         await this.sharesRepository.deleteByResource('FILE', f._id, session);
       }
 
-      // Delete database documents
       await this.foldersRepository.deletePermanentlyByBatch(batchOid, session);
       await this.filesRepository.deletePermanentlyByBatch(batchOid, session);
 
-      // Release quota
       if (totalBytesToRelease > 0) {
         await this.usersRepository.releaseStorageQuota(ownerId, totalBytesToRelease, session);
       }
@@ -234,7 +224,7 @@ export class TrashService {
             batchFolders.length > 0
               ? ActivityAction.FOLDER_DELETED_PERMANENTLY
               : ActivityAction.FILE_DELETED_PERMANENTLY,
-          description: `Eliminó definitivamente "${rootName}" (${totalBytesToRelease} bytes liberados)`,
+          description: `Elimino definitivamente "${rootName}" (${totalBytesToRelease} bytes liberados)`,
           resource: {
             type: batchFolders.length > 0 ? ResourceType.FOLDER : ResourceType.FILE,
             id: batchOid.toString(),
@@ -245,7 +235,6 @@ export class TrashService {
       );
     });
 
-    // Delete binaries from GridFS
     for (const gridFsId of gridFsIdsToDelete) {
       await this.gridFsStorage.deleteFile(gridFsId).catch(() => { });
     }

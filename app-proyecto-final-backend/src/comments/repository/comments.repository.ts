@@ -8,7 +8,7 @@ import { CommentDocument, CommentEntity } from '../entities/comment.entity';
 export class CommentsRepository {
   constructor(
     @InjectModel(CommentEntity.name) private readonly model: Model<CommentEntity>,
-  ) {}
+  ) { }
 
   //Method to find a comment by ID
   findById(id: string | Types.ObjectId, session?: ClientSession): Promise<CommentDocument | null> {
@@ -25,25 +25,14 @@ export class CommentsRepository {
   }
 
   //Method to create a comment
-  create(
-    data: {
-      fileId: Types.ObjectId;
-      authorId: Types.ObjectId;
-      parentId: Types.ObjectId | null;
-      content: string;
-    },
-    session?: ClientSession,
-  ): Promise<CommentDocument> {
+  create(data: { fileId: Types.ObjectId; authorId: Types.ObjectId; parentId: Types.ObjectId | null; content: string; }, session?: ClientSession): Promise<CommentDocument> {
     const doc = new this.model(data);
     return doc.save({ session });
   }
 
   //Method to edit a comment content
-  updateContent(
-    id: string | Types.ObjectId,
-    content: string,
-    session?: ClientSession,
-  ): Promise<CommentDocument | null> {
+  updateContent(id: string | Types.ObjectId, content: string, session?: ClientSession,): Promise<CommentDocument | null> {
+
     return this.model
       .findByIdAndUpdate(
         id,
