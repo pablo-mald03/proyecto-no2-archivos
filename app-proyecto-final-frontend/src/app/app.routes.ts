@@ -30,6 +30,7 @@ import { SettingsPage } from './components/pages/settings-page/settings-page';
 import { UpdateSettingsComponent } from './components/settings/update-settings-component/update-settings-component';
 import { DriveFilesPageComponent } from './components/drive/drive-files-page-component/drive-files-page-component';
 import { DriveExplorerComponent } from './components/files/drive-explorer-component/drive-explorer-component';
+import { FilePreviewLayoutComponent } from './components/viewer/file-preview-layout-component/file-preview-layout-component';
 import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-page';
 import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
 
@@ -83,7 +84,9 @@ export const routes: Routes = [
                 component: DriveExplorerComponent,
                 children: [
                     { path: '', component: DriveFilesPageComponent },
-                    { path: 'folder/:id', component: DriveFilesPageComponent }
+                    { path: 'folder/:id', component: DriveFilesPageComponent },
+                    { path: 'preview/:id', component: FilePreviewLayoutComponent },
+                    { path: 'file/:id', redirectTo: 'preview/:id' }
                 ]
             }
         ],

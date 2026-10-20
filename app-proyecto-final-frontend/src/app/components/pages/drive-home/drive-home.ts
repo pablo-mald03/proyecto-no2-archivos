@@ -10,12 +10,9 @@ import { DriveActionService } from '../../../core/services/drive-action.service'
 import { FolderModalComponent } from '../../directories/folder-modal-component/folder-modal-component';
 import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
 import { DriveMoveModalComponent } from '../../directories/drive-move-modal-component/drive-move-modal-component';
-import { FileComment } from '../../../features/files/models/file-comment.model';
-import { FilePreviewLayoutComponent } from '../../viewer/file-preview-layout-component/file-preview-layout-component';
 import { FileService } from '../../../features/files/service/file.service';
 import { FolderService } from '../../../features/folders/service/folder.service';
 import { TrashService } from '../../../features/trash/service/trash.service';
-import { CommentService } from '../../../features/comments/service/comment.service';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { lucideHistory } from '@ng-icons/lucide';
@@ -30,7 +27,6 @@ import { lucideHistory } from '@ng-icons/lucide';
     FolderModalComponent,
     DriveItemListComponent,
     DriveMoveModalComponent,
-    FilePreviewLayoutComponent,
     EmptyStateComponent
   ],
   templateUrl: './drive-home.html',
@@ -47,7 +43,6 @@ export class DriveHome implements OnInit {
   private readonly folderService = inject(FolderService);
   private readonly fileService = inject(FileService);
   private readonly trashService = inject(TrashService);
-  private readonly commentService = inject(CommentService);
 
   readonly firstName = computed(() => this.authState.user()?.firstName ?? '');
   readonly shortcuts = HOME_NAV_OPTIONS;
@@ -61,12 +56,6 @@ export class DriveHome implements OnInit {
   // Move modal state signals
   readonly isMoveModalOpen = signal(false);
   readonly itemToMove = signal<DriveItem | null>(null);
-
-  // File Preview Modal State Signals
-  readonly isPreviewOpen = signal<boolean>(false);
-  readonly activePreviewItem = signal<DriveItem | null>(null);
-  readonly currentFileContent = signal<string>('');
-  readonly currentFileComments = signal<FileComment[]>([]);
 
   // Recent items signal
   readonly recentItems = signal<DriveItem[]>([]);
@@ -120,12 +109,15 @@ export class DriveHome implements OnInit {
     if (item.type === 'folder') {
       this.router.navigate(['/drive/files/folder', item.id]);
     } else {
-      this.onPreview(item);
+      this.router.navigate(['/drive/files/preview', item.id]);
     }
   }
 
   onShare(item: DriveItem): void {
-    const shareUrl = `${window.location.origin}/drive/files/${item.type === 'folder' ? 'folder/' : ''}${item.id}`;
+    const shareUrl = item.type === 'folder'
+      ? `${window.location.origin}/drive/files/folder/${item.id}`
+      : `${window.location.origin}/drive/files/preview/${item.id}`;
+
     if (navigator.clipboard) {
       navigator.clipboard.writeText(shareUrl).then(() => {
         this.toastService.success(`Enlace de '${item.name}' copiado.`, 'Compartir');
@@ -137,95 +129,14 @@ export class DriveHome implements OnInit {
     }
   }
 
-  // Method to show the file preview layout with real content and comments
+  // Method to navigate to the routed file preview layout
   onPreview(item: DriveItem): void {
     if (item.type === 'folder') {
-      this.onOpenItem(item);
+      this.router.navigate(['/drive/files/folder', item.id]);
       return;
     }
 
-    this.activePreviewItem.set(item);
-    this.currentFileContent.set('Cargando contenido...');
-    this.currentFileComments.set([]);
-    this.isPreviewOpen.set(true);
-
-    this.fileService.getFileContent(item.id).subscribe({
-      next: (content) => {
-        this.currentFileContent.set(content);
-      },
-      error: () => {
-        this.currentFileContent.set('');
-      }
-    });
-
-    this.reloadComments(item.id);
-  }
-
-  // Handle content saved from preview layout
-  handleContentSaved(newContent: string): void {
-    const item = this.activePreviewItem();
-    if (!item) return;
-
-    this.fileService.updateContent(item.id, { content: newContent }).subscribe({
-      next: () => {
-        this.currentFileContent.set(newContent);
-        this.toastService.success(`Archivo '${item.name}' guardado con éxito.`, 'Guardado');
-        this.loadRecentItems();
-      },
-      error: (err) => {
-        this.toastService.error(err.message || 'Error al guardar el archivo.', 'Error');
-      }
-    });
-  }
-
-  // Comment handlers
-  handleAddComment(content: string): void {
-    const item = this.activePreviewItem();
-    if (!item) return;
-
-    this.commentService.createComment(item.id, { content }).subscribe({
-      next: () => {
-        this.toastService.success('Comentario añadido.', 'Comentarios');
-        this.reloadComments(item.id);
-      },
-      error: (err) => {
-        this.toastService.error(err.message || 'Error al añadir comentario.', 'Error');
-      }
-    });
-  }
-
-  handleDeleteComment(commentId: string): void {
-    const item = this.activePreviewItem();
-    if (!item) return;
-
-    this.commentService.deleteComment(commentId).subscribe({
-      next: () => {
-        this.currentFileComments.update(list => list.filter(c => c.id !== commentId));
-        this.toastService.success('Comentario eliminado.', 'Comentarios');
-      },
-      error: (err) => {
-        this.toastService.error(err.message || 'Error al eliminar comentario.', 'Error');
-      }
-    });
-  }
-
-  private reloadComments(fileId: string): void {
-    this.commentService.getCommentsByFile(fileId).subscribe({
-      next: (comments) => {
-        const currentUserId = this.authState.user()?.id;
-        const mapped: FileComment[] = comments.map(c => ({
-          id: c.id,
-          authorName: c.authorUsername || c.authorEmail || 'Usuario',
-          createdAt: new Date(c.createdAt),
-          content: c.content,
-          isOwner: currentUserId ? c.authorId === currentUserId : false
-        }));
-        this.currentFileComments.set(mapped);
-      },
-      error: () => {
-        this.currentFileComments.set([]);
-      }
-    });
+    this.router.navigate(['/drive/files/preview', item.id]);
   }
 
   // Method to download the real file
@@ -386,11 +297,12 @@ export class DriveHome implements OnInit {
     );
 
     this.isFolderModalOpen.set(false);
+    this.driveAction.closeFolderModal();
     this.loadRecentItems();
   }
 
   // Method to handle a rename error
-  private handleRenameError(err: Error): void {
+  private handleRenameError(err: ErrorResponse): void {
     this.toastService.error(
       err.message || 'Error al actualizar el nombre.',
       'Error'
@@ -398,7 +310,7 @@ export class DriveHome implements OnInit {
   }
 
   // Method to handle a move error
-  private handleMoveError(err: Error): void {
+  private handleMoveError(err: ErrorResponse): void {
     this.toastService.error(
       err.message || 'Error al mover el elemento.',
       'Error'

@@ -79,13 +79,4 @@
   <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
     (targetSelected)="handleMoveTargetSelected($event)" />
 
-  <app-file-preview-layout-component [isOpen]="isPreviewOpen()"
-    [fileName]="selectedPreviewItem()?.name || 'Archivo sin título'" [fileContent]="previewContent()"
-    [comments]="previewComments()" [canEdit]="true" (closed)="closePreview()"
-    (downloadClicked)="selectedPreviewItem() && onDownload(selectedPreviewItem()!)"
-    (printClicked)="toastService.success('Enviando documento a impresora...', 'Imprimir')"
-    (openNewTabClicked)="toastService.success('Abriendo en pestaña nueva...', 'Pestaña nueva')"
-    (commentAdded)="handleAddComment($event)" (commentDeleted)="handleDeleteComment($event)">
-  </app-file-preview-layout-component>
-
 </div>

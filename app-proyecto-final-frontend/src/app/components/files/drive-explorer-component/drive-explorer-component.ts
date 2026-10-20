@@ -30,7 +30,15 @@ export class DriveExplorerComponent implements OnInit {
   }
 
   private updateBreadcrumbs(): void {
-    const folderId = this.route.firstChild?.snapshot.paramMap.get('id');
+    const child = this.route.firstChild?.snapshot;
+    const pathSegment = child?.url[0]?.path;
+
+    if (pathSegment !== 'folder') {
+      this.breadcrumbItems.set([]);
+      return;
+    }
+
+    const folderId = child?.paramMap.get('id');
 
     if (!folderId) {
       this.breadcrumbItems.set([]);

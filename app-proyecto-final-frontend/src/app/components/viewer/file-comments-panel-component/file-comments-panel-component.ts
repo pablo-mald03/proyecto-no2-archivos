@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { FileComment } from '../../../features/files/models/file-comment.model';
-import { FormControl, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
 import { lucideMessageSquare, lucideSend, lucideTrash2, lucideX } from '@ng-icons/lucide';
 import { NgIconComponent } from '@ng-icons/core';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
@@ -9,7 +9,8 @@ import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-file-comments-panel-component',
-  imports: [NgIconComponent, CustomTextfield, CustomButton,DatePipe],
+  standalone: true,
+  imports: [NgIconComponent, CustomTextfield, CustomButton, DatePipe, ReactiveFormsModule],
   templateUrl: './file-comments-panel-component.html',
   styleUrl: './file-comments-panel-component.css',
 })

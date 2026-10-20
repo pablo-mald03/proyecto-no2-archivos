@@ -38,15 +38,20 @@ export class UserLayout {
   }
 
   async uploadFile(): Promise<void> {
-    await this.router.navigate(['/drive/files']);
-
+    if (!this.router.url.startsWith('/drive/files')) {
+      await this.router.navigate(['/drive/files']);
+    }
     this.driveAction.triggerUpload();
   }
 
   createFolder(): void {
-    this.router.navigate(['/drive/files']).then(() => {
+    if (!this.router.url.startsWith('/drive/files')) {
+      this.router.navigate(['/drive/files']).then(() => {
+        this.driveAction.openCreateFolderModal();
+      });
+    } else {
       this.driveAction.openCreateFolderModal();
-    });
+    }
   }
 
   //Logout method
