@@ -19,7 +19,7 @@ export class CommentsController {
 
   //Endpoint to add a comment or nested reply to a file
   @Post('files/:fileId')
-  @ApiOperation({ summary: 'Add a comment or nested reply to a file (requires COMMENTER access)' })
+  @ApiOperation({ summary: 'Add a comment or nested reply to a file' })
   @ApiOkResponse({ type: CommentResponseDto })
   createComment(
     @Param('fileId', ParseObjectIdPipe) fileId: string,

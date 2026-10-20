@@ -16,6 +16,10 @@ import { ToastService } from '../../../core/services/toast.service';
 import { AuthState } from '../../../stores/auth.state';
 import { FileResponse } from '../../../features/files/models/response/file-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { ShareService } from '../../../features/shares/service/share.service';
+import { ShareAccessLevel } from '../../../features/shares/constants/share.constants';
+import { ShareResponse } from '../../../features/shares/models/response/share-response.model';
+import { AuthUser } from '../../../features/auth/models/aut-user.model';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -40,6 +44,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly fileService = inject(FileService);
   private readonly commentService = inject(CommentService);
+  private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
   private readonly authState = inject(AuthState);
 
@@ -64,7 +69,10 @@ export class FilePreviewLayoutComponent implements OnInit {
   readonly activeFileId = signal<string | null>(null);
   readonly activeFileName = signal<string>('Documento');
   readonly activeComments = signal<FileComment[]>([]);
-  readonly activeCanEdit = signal<boolean>(true);
+  readonly activeCanEdit = signal<boolean>(false);
+  readonly activeCanComment = signal<boolean>(false);
+  readonly activeAccessLevel = signal<ShareAccessLevel>('VIEWER');
+  readonly isOwner = signal<boolean>(false);
   readonly activeFileMetadata = signal<FileResponse | null>(null);
   readonly submittingComment = signal(false);
 
@@ -101,7 +109,6 @@ export class FilePreviewLayoutComponent implements OnInit {
       }
     });
 
-    // Keep editableContent in sync when typing inside custom textarea
     this.contentControl.valueChanges.subscribe(val => {
       this.editableContent.set(val);
     });
@@ -125,7 +132,7 @@ export class FilePreviewLayoutComponent implements OnInit {
     });
   }
 
-  // Fetch file metadata, raw text content, and threaded comments when routed
+  // Method to fetch file metadata, raw text content, and threaded comments when routed
   loadFileData(fileId: string): void {
     this.loading.set(true);
 
@@ -133,10 +140,25 @@ export class FilePreviewLayoutComponent implements OnInit {
       next: (meta) => {
         this.activeFileMetadata.set(meta);
         this.activeFileName.set(meta.name);
-        this.activeCanEdit.set(true);
+
+        const currentUser = this.authState.user();
+        const currentUserId = currentUser?.id;
+        const isOwner = !!(currentUserId && meta.ownerId === currentUserId);
+        this.isOwner.set(isOwner);
+
+        if (isOwner) {
+          this.applyAccessLevel('EDITOR');
+        } else {
+          this.determineSharedAccessLevel(fileId, currentUser);
+        }
       },
       error: (err: ErrorResponse) => {
-        this.toastService.error(err.message || 'Error al obtener la información del archivo.', 'Error');
+        this.loading.set(false);
+        this.toastService.error(
+          err.message || 'No tienes permisos para acceder a este archivo.',
+          'Acceso denegado'
+        );
+        this.router.navigate(['/forbidden']);
       }
     });
 
@@ -150,6 +172,11 @@ export class FilePreviewLayoutComponent implements OnInit {
         this.editableContent.set('');
         this.contentControl.setValue('');
         this.loading.set(false);
+        if (err.code === 'FORBIDDEN' || err.code === 'UNAUTHORIZED' || (err as any).status === 403) {
+          this.toastService.error('No tienes permisos para ver el contenido de este archivo.', 'Acceso denegado');
+          this.router.navigate(['/forbidden']);
+          return;
+        }
         this.toastService.error(err.message || 'Error al cargar el contenido del archivo.', 'Error');
       }
     });
@@ -157,18 +184,96 @@ export class FilePreviewLayoutComponent implements OnInit {
     this.reloadComments(fileId);
   }
 
+  // Method to determine the access level from shares or shared-with-me list
+  private determineSharedAccessLevel(fileId: string, currentUser: AuthUser | null): void {
+    this.shareService.getResourceShares('files', fileId).subscribe({
+      next: (shares) => {
+        const matchingShare = this.findMatchingShare(shares, currentUser);
+        if (matchingShare) {
+          this.applyAccessLevel(matchingShare.access);
+        } else {
+          this.checkSharedWithMe(fileId);
+        }
+      },
+      error: () => {
+        this.checkSharedWithMe(fileId);
+      }
+    });
+  }
+
+  // Fallback method to checking shared-with-me items
+  private checkSharedWithMe(fileId: string): void {
+    this.shareService.getSharedWithMe().subscribe({
+      next: (items) => {
+        const match = items.find(
+          item => item.resource?.id === fileId || item.share?.resourceId === fileId
+        );
+        if (match?.share?.access) {
+          this.applyAccessLevel(match.share.access);
+        } else {
+          this.applyAccessLevel('VIEWER');
+        }
+      },
+      error: () => {
+        this.applyAccessLevel('VIEWER');
+      }
+    });
+  }
+
+  // Method to find direct user share or ANY_USER share
+  private findMatchingShare(shares: ShareResponse[], currentUser: AuthUser | null): ShareResponse | null {
+    if (!shares || !shares.length) return null;
+
+    const userShare = shares.find(s =>
+      s.granteeType === 'USER' && (
+        (s.granteeId && s.granteeId === currentUser?.id) ||
+        (s.granteeEmail && currentUser?.email && s.granteeEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
+        (s.granteeUsername && currentUser?.username && s.granteeUsername.toLowerCase() === currentUser.username.toLowerCase())
+      )
+    );
+    if (userShare) return userShare;
+
+    const anyUserShare = shares.find(s => s.granteeType === 'ANY_USER');
+    return anyUserShare || null;
+  }
+
+  // Apply access level permissions
+  private applyAccessLevel(level: ShareAccessLevel): void {
+    this.activeAccessLevel.set(level);
+    if (level === 'EDITOR') {
+      this.activeCanEdit.set(true);
+      this.activeCanComment.set(true);
+    } else if (level === 'COMMENTER') {
+      this.activeCanEdit.set(false);
+      this.activeCanComment.set(true);
+    } else { // 'VIEWER'
+      this.activeCanEdit.set(false);
+      this.activeCanComment.set(false);
+    }
+
+    const fileId = this.activeFileId();
+    if (fileId) {
+      this.reloadComments(fileId);
+    }
+  }
+
   // Reload threaded comments for the active file
   reloadComments(fileId: string): void {
     this.commentService.getCommentsByFile(fileId).subscribe({
       next: (comments) => {
         const currentUserId = this.authState.user()?.id;
-        const mapped: FileComment[] = comments.map(c => ({
-          id: c.id,
-          authorName: c.authorUsername || c.authorEmail || 'Usuario',
-          createdAt: new Date(c.createdAt),
-          content: c.content,
-          isOwner: currentUserId ? c.authorId === currentUserId : true
-        }));
+        const isEditorOrOwner = this.isOwner() || this.displayAccessLevel() === 'EDITOR';
+
+        const mapped: FileComment[] = comments.map(c => {
+          const isAuthor = currentUserId ? c.authorId === currentUserId : false;
+          return {
+            id: c.id,
+            authorName: c.authorUsername || c.authorEmail || 'Usuario',
+            createdAt: new Date(c.createdAt),
+            content: c.content,
+            isOwner: isEditorOrOwner || isAuthor
+          };
+        });
         this.activeComments.set(mapped);
       },
       error: () => {
@@ -188,6 +293,18 @@ export class FilePreviewLayoutComponent implements OnInit {
 
   readonly displayCanEdit = computed(() => {
     return this.isRouted() ? this.activeCanEdit() : this.canEdit();
+  });
+
+  readonly displayCanComment = computed(() => {
+    return this.isRouted() ? this.activeCanComment() : true;
+  });
+
+  readonly displayAccessLevel = computed<ShareAccessLevel>(() => {
+    return this.isOwner() ? 'EDITOR' : this.activeAccessLevel();
+  });
+
+  readonly canDeleteComments = computed(() => {
+    return this.isOwner() || this.displayAccessLevel() === 'EDITOR';
   });
 
   // Computed to parse Markdown into safe HTML using marked
@@ -245,6 +362,11 @@ export class FilePreviewLayoutComponent implements OnInit {
 
   // Handle adding a comment to the file
   handleCommentAdded(content: string): void {
+    if (!this.displayCanComment()) {
+      this.toastService.warning('Tu nivel de acceso es solo lectura. No puedes comentar.', 'Permiso denegado');
+      return;
+    }
+
     const fileId = this.activeFileId();
 
     if (!fileId) {
@@ -313,6 +435,11 @@ export class FilePreviewLayoutComponent implements OnInit {
 
   // Handle saving the updated text content to backend
   saveChanges(): void {
+    if (!this.displayCanEdit()) {
+      this.toastService.warning('No tienes permisos de edición en este archivo.', 'Permiso denegado');
+      return;
+    }
+
     const fileId = this.activeFileId();
     const newContent = this.editableContent();
 
@@ -384,17 +511,21 @@ export class FilePreviewLayoutComponent implements OnInit {
     this.openNewTabClicked.emit();
   }
 
-  // Close preview layout and navigate back to parent folder when routed
+  // Close preview layout and navigate back when routed
   closeLayout(): void {
     this.isEditMode.set(false);
     this.closed.emit();
 
     if (this.isRouted()) {
-      const folderId = this.activeFileMetadata()?.folderId;
-      if (folderId) {
-        this.router.navigate(['/drive/files/folder', folderId]);
+      if (window.history.length > 1) {
+        this.location.back();
       } else {
-        this.router.navigate(['/drive/files']);
+        const folderId = this.isOwner() ? this.activeFileMetadata()?.folderId : null;
+        if (folderId) {
+          this.router.navigate(['/drive/files/folder', folderId]);
+        } else {
+          this.router.navigate(['/drive/files']);
+        }
       }
     }
   }

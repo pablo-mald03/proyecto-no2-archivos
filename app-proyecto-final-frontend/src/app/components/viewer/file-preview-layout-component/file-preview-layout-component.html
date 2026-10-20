@@ -12,10 +12,34 @@
                 <ng-icon [svg]="lucideXIcon" size="22" />
             </button>
 
-            <div class="min-w-0">
+            <div class="flex items-center gap-2.5 min-w-0">
                 <h2 class="truncate font-semibold text-white text-base">
                     {{ displayFileName() }}
                 </h2>
+
+                @if (isRouted()) {
+                @if (isOwner()) {
+                <span
+                    class="shrink-0 rounded-full bg-primary/20 border border-primary/40 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                    Propietario
+                </span>
+                } @else if (displayAccessLevel() === 'EDITOR') {
+                <span
+                    class="shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
+                    Editor
+                </span>
+                } @else if (displayAccessLevel() === 'COMMENTER') {
+                <span
+                    class="shrink-0 rounded-full bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-semibold text-amber-400">
+                    Comentador
+                </span>
+                } @else {
+                <span
+                    class="shrink-0 rounded-full bg-neutral-600/30 border border-neutral-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-300">
+                    Solo lectura
+                </span>
+                }
+                }
             </div>
         </div>
 
@@ -156,8 +180,9 @@
 
         <div (click)="$event.stopPropagation()" class="h-full">
             <app-file-comments-panel-component [isOpen]="isCommentsOpen()" [comments]="displayComments()"
-                [isSubmitting]="submittingComment()" (closePanel)="isCommentsOpen.set(false)"
-                (commentAdded)="handleCommentAdded($event)" (commentDeleted)="handleCommentDeleted($event)" />
+                [isSubmitting]="submittingComment()" [canComment]="displayCanComment()"
+                (closePanel)="isCommentsOpen.set(false)" (commentAdded)="handleCommentAdded($event)"
+                (commentDeleted)="handleCommentDeleted($event)" />
         </div>
 
     </div>

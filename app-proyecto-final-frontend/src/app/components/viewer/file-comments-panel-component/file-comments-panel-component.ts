@@ -1,7 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
 import { FileComment } from '../../../features/files/models/file-comment.model';
 import { FormsModule, ReactiveFormsModule, FormControl, Validators } from '@angular/forms';
-import { lucideMessageSquare, lucideSend, lucideTrash2, lucideX } from '@ng-icons/lucide';
+import { lucideEye, lucideMessageSquare, lucideSend, lucideTrash2, lucideX } from '@ng-icons/lucide';
 import { NgIconComponent } from '@ng-icons/core';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
 import { CustomButton } from '../../common/custom-button/custom-button';
@@ -20,6 +20,7 @@ export class FileCommentsPanelComponent {
   readonly comments = input<FileComment[]>([]);
   readonly isOpen = input<boolean>(true);
   readonly isSubmitting = input<boolean>(false);
+  readonly canComment = input<boolean>(true);
 
   readonly closePanel = output<void>();
   readonly commentAdded = output<string>();
@@ -36,6 +37,7 @@ export class FileCommentsPanelComponent {
   readonly lucideMessageSquareIcon = lucideMessageSquare;
   readonly lucideXIcon = lucideX;
   readonly lucideTrashIcon = lucideTrash2;
+  readonly lucideEyeIcon = lucideEye;
 
   // Submit comment handler
   onSubmitComment(): void {

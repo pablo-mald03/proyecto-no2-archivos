@@ -61,6 +61,7 @@
   </div>
 
   <div class="border-t border-border/40 p-3 bg-surface">
+    @if (canComment()) {
     <form (ngSubmit)="onSubmitComment()" class="flex flex-col gap-2">
       <app-custom-textfield label="" placeholder="Añadir un comentario..." [control]="commentControl"
         [clearable]="true" />
@@ -70,6 +71,13 @@
           [disabled]="commentControl.invalid || isSubmitting()" [loading]="isSubmitting()" type="submit" />
       </div>
     </form>
+    } @else {
+    <div
+      class="flex items-center gap-2 p-2.5 rounded-xl bg-surface-raised/80 border border-border/40 text-text-muted text-xs">
+      <ng-icon [svg]="lucideEyeIcon" size="16" class="text-text-muted shrink-0" />
+      <span>Modo solo lectura. No tienes permisos para comentar.</span>
+    </div>
+    }
   </div>
 
 </aside>
