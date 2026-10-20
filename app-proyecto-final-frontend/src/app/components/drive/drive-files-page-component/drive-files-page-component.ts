@@ -7,7 +7,7 @@ import { CustomTextfield } from '../../common/custom-textfield/custom-textfield'
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { ToastService } from '../../../core/services/toast.service';
-import { DriveItem } from '../../../features/drive/drive-item.model';
+import { DriveItem, mapFileToDriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
 import { lucideChevronDown, lucidePlus, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
@@ -17,6 +17,11 @@ import { DriveItemListComponent } from '../drive-item-list-component/drive-item-
 import { DriveMoveModalComponent } from '../../directories/drive-move-modal-component/drive-move-modal-component';
 import { FileComment } from '../../../features/files/models/file-comment.model';
 import { FilePreviewLayoutComponent } from '../../viewer/file-preview-layout-component/file-preview-layout-component';
+import { AuthState } from '../../../stores/auth.state';
+import { FileService } from '../../../features/files/service/file.service';
+import { FolderService } from '../../../features/folders/service/folder.service';
+import { TrashService } from '../../../features/trash/service/trash.service';
+import { CommentService } from '../../../features/comments/service/comment.service';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -34,7 +39,7 @@ import { FilePreviewLayoutComponent } from '../../viewer/file-preview-layout-com
     DriveItemListComponent,
     DriveMoveModalComponent,
     FilePreviewLayoutComponent
-],
+  ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
   host: { class: 'flex flex-col h-full min-h-0' }
@@ -47,16 +52,22 @@ export class DriveFilesPageComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly driveAction = inject(DriveActionService);
+  private readonly folderService = inject(FolderService);
+  private readonly fileService = inject(FileService);
+  private readonly trashService = inject(TrashService);
+  private readonly commentService = inject(CommentService);
+  private readonly authState = inject(AuthState);
 
   // Filters State
   readonly filtersExpanded = signal(false);
   readonly searchControl = new FormControl('', { nonNullable: true });
 
   // Infinite Scroll & Data State
+  private readonly allRawItems = signal<DriveItem[]>([]);
   readonly items = signal<DriveItem[]>([]);
   readonly loading = signal(false);
   readonly initialized = signal(false);
-  readonly hasMore = signal(true);
+  readonly hasMore = signal(false);
 
   // Icons
   readonly lucideSlidersHorizontalIcon = lucideSlidersHorizontal;
@@ -81,10 +92,11 @@ export class DriveFilesPageComponent implements OnInit {
   readonly currentFolderId = signal<string | null>(null);
   readonly isInsideFolder = computed(() => !!this.currentFolderId());
 
-
+  // File Preview Modal State Signals
   readonly isPreviewOpen = signal(false);
   readonly selectedPreviewItem = signal<DriveItem | null>(null);
-  readonly previewContent = signal<string>('# Contenido del Archivo\n\nEste es un texto simulado para previsualizar el archivo `.md` o `.txt` con soporte de comentarios en burbujas.');
+  readonly previewContent = signal<string>('');
+  readonly previewComments = signal<FileComment[]>([]);
 
   constructor() {
     effect(() => {
@@ -94,10 +106,14 @@ export class DriveFilesPageComponent implements OnInit {
 
       if (this.driveAction.folderModalOpen()) {
         this.folderModalMode.set(this.driveAction.folderModalMode());
-        this.folderItemType.set(this.driveAction.folderItemType()); 
+        this.folderItemType.set(this.driveAction.folderItemType());
         this.folderInitialName.set(this.driveAction.folderInitialName());
         this.isFolderModalOpen.set(true);
       }
+    });
+
+    this.searchControl.valueChanges.subscribe(searchTerm => {
+      this.applyFilter(searchTerm);
     });
   }
 
@@ -105,51 +121,57 @@ export class DriveFilesPageComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       const folderId = params.get('id');
       this.currentFolderId.set(folderId);
-      this.loadMockFiles(folderId);
+      this.loadFolderContent(folderId);
     });
   }
 
-  // Load mock items for current folder
-  loadMockFiles(folderId: string | null): void {
+  // Fetch real items for the current folder from api
+  loadFolderContent(folderId: string | null): void {
     this.loading.set(true);
     this.initialized.set(false);
 
-    setTimeout(() => {
-      let mockData: DriveItem[] = [];
+    const request$ = folderId
+      ? this.folderService.findFolderContent(folderId)
+      : this.folderService.findRootContent();
 
-      if (!folderId) {
-        mockData = [
-          { id: '1', name: 'Documentación del Proyecto', type: 'folder', updatedAt: new Date() },
-          { id: '2', name: 'Carpeta Personal', type: 'folder', updatedAt: new Date() },
-          { id: '3', name: 'Credenciales_Servidor.txt', type: 'file', extension: 'txt', sizeBytes: 1024, updatedAt: new Date() },
-          { id: '4', name: 'Guía de Despliegue.md', type: 'file', extension: 'md', sizeBytes: 45200, updatedAt: new Date() }
-        ];
-      } else if (folderId === '1') {
-        mockData = [
-          { id: '1-1', name: 'Notas de Arquitectura.md', type: 'file', extension: 'md', sizeBytes: 15400, updatedAt: new Date(), shared: true },
-          { id: '1-2', name: 'Subcarpeta Backend', type: 'folder', updatedAt: new Date() }
-        ];
-      } else if (folderId === '2') {
-        mockData = [
-          { id: '2-1', name: 'Apuntes Personales.txt', type: 'file', extension: 'txt', sizeBytes: 512, updatedAt: new Date() }
-        ];
-      } else if (folderId === '1-2') {
-        mockData = [
-          { id: '1-2-1', name: 'Endpoints_API.md', type: 'file', extension: 'md', sizeBytes: 8900, updatedAt: new Date() }
-        ];
+    request$.subscribe({
+      next: (response) => {
+        const folders: DriveItem[] = (response.folders || []).map(f => mapFolderToDriveItem(f));
+        const files: DriveItem[] = (response.files || []).map(f => mapFileToDriveItem(f));
+        const combined = [...folders, ...files];
+
+        this.allRawItems.set(combined);
+        this.applyFilter(this.searchControl.value);
+        this.loading.set(false);
+        this.initialized.set(true);
+        this.hasMore.set(false);
+      },
+      error: (err) => {
+        this.allRawItems.set([]);
+        this.items.set([]);
+        this.loading.set(false);
+        this.initialized.set(true);
+        this.hasMore.set(false);
+        this.toastService.error(err.message || 'Error al cargar el contenido de la carpeta.', 'Error');
       }
-
-      this.items.set(mockData);
-      this.loading.set(false);
-      this.initialized.set(true);
-      this.hasMore.set(false);
-    }, 400);
+    });
   }
 
-  readonly previewComments = signal<FileComment[]>([
-    { id: 'c1', authorName: 'Carlos Pérez', createdAt: new Date(), content: 'Excelente documentación, muy clara.', isOwner: false },
-    { id: 'c2', authorName: 'Tú', createdAt: new Date(), content: 'Gracias Carlos, cualquier ajuste me avisas.', isOwner: true }
-  ]);
+  // Filter items in memory by search query
+  private applyFilter(query: string): void {
+    const raw = this.allRawItems();
+    const trimmed = (query || '').trim().toLowerCase();
+
+    if (!trimmed) {
+      this.items.set(raw);
+      return;
+    }
+
+    const filtered = raw.filter(item =>
+      item.name.toLowerCase().includes(trimmed)
+    );
+    this.items.set(filtered);
+  }
 
   // Upload Modal handlers
   openUploadModal(): void {
@@ -160,36 +182,109 @@ export class DriveFilesPageComponent implements OnInit {
     this.isUploadModalOpen.set(false);
   }
 
+  // Upload real file to the backend
   handleFileUpload(file: File): void {
     const parentId = this.currentFolderId();
-    console.log(`Subiendo archivo '${file.name}' al directorio parentId:`, parentId);
-    this.toastService.success(`Archivo '${file.name}' subido con éxito.`, 'Subida completada');
-    this.loadMockFiles(parentId);
+    this.fileService.uploadFiles([file], parentId).subscribe({
+      next: () => {
+        this.toastService.success(`Archivo '${file.name}' subido con éxito.`, 'Subida completada');
+        this.closeUploadModal();
+        this.loadFolderContent(parentId);
+      },
+      error: (err) => {
+        this.toastService.error(err.message || 'Error al subir el archivo.', 'Error');
+      }
+    });
   }
 
   // Drag and Drop move handler
   handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
     const { draggedItem, targetFolder } = event;
-    this.toastService.success(`Movido '${draggedItem.name}' a '${targetFolder.name}'`, 'Elemento movido');
-    this.items.update(list => list.filter(i => i.id !== draggedItem.id));
+
+    if (draggedItem.type === 'folder') {
+      this.folderService.moveFolder(draggedItem.id, {
+        targetParentId: targetFolder.id
+      }).subscribe({
+        next: () => this.handleDropSuccess(draggedItem, targetFolder),
+        error: (err) => this.handleMoveError(err)
+      });
+
+      return;
+    }
+
+    this.fileService.moveFile(draggedItem.id, {
+      targetFolderId: targetFolder.id
+    }).subscribe({
+      next: () => this.handleDropSuccess(draggedItem, targetFolder),
+      error: (err) => this.handleMoveError(err)
+    });
   }
 
-  // Folder Modal submit handler
+  // Handle a successful drag-and-drop move
+  private handleDropSuccess(draggedItem: DriveItem, targetFolder: DriveItem): void {
+    this.toastService.success(
+      `Movido '${draggedItem.name}' a '${targetFolder.name}'`,
+      'Elemento movido'
+    );
+    this.loadFolderContent(this.currentFolderId());
+  }
+
+  // Folder Modal submit handler (create or rename)
   handleFolderSubmit(folderName: string): void {
     const parentId = this.currentFolderId();
     const mode = this.folderModalMode();
-    const targetId = this.driveAction.folderTargetId();
 
     if (mode === 'create') {
-      console.log(`Creando carpeta '${folderName}' con parentId:`, parentId);
-      this.toastService.success(`Carpeta '${folderName}' creada con éxito.`, 'Carpeta creada');
-    } else {
-      console.log(`Renombrando ítem ID ${targetId} a '${folderName}'`);
-      this.toastService.success(`Actualizado a '${folderName}'.`, 'Actualizado');
+      this.folderService.createFolder({ name: folderName, parentId }).subscribe({
+        next: (created) => this.handleCreateSuccess(created.name, parentId),
+        error: (err) => this.handleCreateError(err)
+      });
+
+      return;
     }
 
+    const targetId = this.driveAction.folderTargetId();
+    if (!targetId) return;
+
+    const type = this.folderItemType();
+
+    if (type === 'folder') {
+      this.folderService.renameFolder(targetId, { name: folderName }).subscribe({
+        next: () => this.handleRenameSuccess(folderName, parentId),
+        error: (err) => this.handleRenameError(err)
+      });
+
+      return;
+    }
+
+    this.fileService.renameFile(targetId, { name: folderName }).subscribe({
+      next: () => this.handleRenameSuccess(folderName, parentId),
+      error: (err) => this.handleRenameError(err)
+    });
+  }
+
+  // Handle a successful folder creation
+  private handleCreateSuccess(name: string, parentId: string | null): void {
+    this.toastService.success(`Carpeta '${name}' creada con éxito.`, 'Carpeta creada');
     this.isFolderModalOpen.set(false);
-    this.loadMockFiles(parentId);
+    this.loadFolderContent(parentId);
+  }
+
+  // Handle a folder creation error
+  private handleCreateError(err: Error): void {
+    this.toastService.error(err.message || 'Error al crear la carpeta.', 'Error');
+  }
+
+  // Handle a successful rename
+  private handleRenameSuccess(newName: string, parentId: string | null): void {
+    this.toastService.success(`Actualizado a '${newName}'.`, 'Actualizado');
+    this.isFolderModalOpen.set(false);
+    this.loadFolderContent(parentId);
+  }
+
+  // Handle a rename error
+  private handleRenameError(err: Error): void {
+    this.toastService.error(err.message || 'Error al renombrar el elemento.', 'Error');
   }
 
   // Open "Move to..." modal
@@ -208,26 +303,71 @@ export class DriveFilesPageComponent implements OnInit {
     const item = this.itemToMove();
     if (!item) return;
 
-    const targetLabel = targetFolderId ? `carpeta ID: ${targetFolderId}` : 'Raíz (Mis Documentos)';
-    this.toastService.success(`'${item.name}' movido a ${targetLabel}.`, 'Elemento movido');
+    if (item.type === 'folder') {
+      this.folderService.moveFolder(item.id, {
+        targetParentId: targetFolderId
+      }).subscribe({
+        next: () => this.handleMoveTargetSuccess(item.name, targetFolderId),
+        error: (err) => this.handleMoveError(err)
+      });
 
-    // TODO: Remove item locally from active list view
-    this.items.update(list => list.filter(i => i.id !== item.id));
+      return;
+    }
+
+    this.fileService.moveFile(item.id, {
+      targetFolderId
+    }).subscribe({
+      next: () => this.handleMoveTargetSuccess(item.name, targetFolderId),
+      error: (err) => this.handleMoveError(err)
+    });
+  }
+
+  // Handle a successful move to the selected target
+  private handleMoveTargetSuccess(itemName: string, targetFolderId: string | null): void {
+    const targetLabel = targetFolderId ? 'la carpeta destino' : 'Raíz (Mis Documentos)';
+    this.toastService.success(`'${itemName}' movido a ${targetLabel}.`, 'Elemento movido');
     this.closeMoveModal();
+    this.loadFolderContent(this.currentFolderId());
+  }
+
+  // Handle a move error
+  private handleMoveError(err: Error): void {
+    this.toastService.error(err.message || 'Error al mover el elemento.', 'Error');
   }
 
   // Row Action Listeners
   onShare(item: DriveItem): void {
-    this.toastService.success(`Enlace de '${item.name}' copiado al portapapeles.`, 'Compartir');
+    const shareUrl = `${window.location.origin}/drive/files/${item.type === 'folder' ? 'folder/' : ''}${item.id}`;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        this.toastService.success(`Enlace de '${item.name}' copiado al portapapeles.`, 'Compartir');
+      }).catch(() => {
+        this.toastService.info(`Enlace: ${shareUrl}`, 'Compartir');
+      });
+    } else {
+      this.toastService.info(`Enlace: ${shareUrl}`, 'Compartir');
+    }
   }
 
-  //Preview event
+  // Preview event and fetch content + comments from real backend
   onPreview(item: DriveItem): void {
-    if (item.type === 'folder') return; 
+    if (item.type === 'folder') return;
 
     this.selectedPreviewItem.set(item);
-    this.previewContent.set(`# ${item.name}\n\nContenido simulado para el archivo seleccionado con ID: ${item.id}\n\nPuedes hacer zoom, cambiar a modo edición, imprimir o dejar comentarios laterales.`);
+    this.previewContent.set('Cargando contenido del archivo...');
+    this.previewComments.set([]);
     this.isPreviewOpen.set(true);
+
+    this.fileService.getFileContent(item.id).subscribe({
+      next: (content) => {
+        this.previewContent.set(content);
+      },
+      error: () => {
+        this.previewContent.set('');
+      }
+    });
+
+    this.reloadPreviewComments(item.id);
   }
 
   closePreview(): void {
@@ -237,34 +377,88 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Handle comment actions inside preview layout
   handleAddComment(content: string): void {
-    const newComment: FileComment = {
-      id: Date.now().toString(),
-      authorName: 'Tú',
-      createdAt: new Date(),
-      content: content,
-      isOwner: true
-    };
-    this.previewComments.update(list => [...list, newComment]);
-    this.toastService.success('Comentario añadido.', 'Comentarios');
+    const item = this.selectedPreviewItem();
+    if (!item) return;
+
+    this.commentService.createComment(item.id, { content }).subscribe({
+      next: () => {
+        this.toastService.success('Comentario añadido.', 'Comentarios');
+        this.reloadPreviewComments(item.id);
+      },
+      error: (err) => {
+        this.toastService.error(err.message || 'Error al añadir el comentario.', 'Error');
+      }
+    });
   }
 
   handleDeleteComment(commentId: string): void {
-    this.previewComments.update(list => list.filter(c => c.id !== commentId));
-    this.toastService.success('Comentario eliminado.', 'Comentarios');
+    this.commentService.deleteComment(commentId).subscribe({
+      next: () => {
+        this.previewComments.update(list => list.filter(c => c.id !== commentId));
+        this.toastService.success('Comentario eliminado.', 'Comentarios');
+      },
+      error: (err) => {
+        this.toastService.error(err.message || 'Error al eliminar el comentario.', 'Error');
+      }
+    });
   }
 
+  private reloadPreviewComments(fileId: string): void {
+    this.commentService.getCommentsByFile(fileId).subscribe({
+      next: (comments) => {
+        const currentUserId = this.authState.user()?.id;
+        const mappedComments: FileComment[] = comments.map(c => ({
+          id: c.id,
+          authorName: c.authorUsername || c.authorEmail || 'Usuario',
+          createdAt: new Date(c.createdAt),
+          content: c.content,
+          isOwner: currentUserId ? c.authorId === currentUserId : false
+        }));
+        this.previewComments.set(mappedComments);
+      },
+      error: () => {
+        this.previewComments.set([]);
+      }
+    });
+  }
 
-  //Download event
+  // Download real file from backend
   onDownload(item: DriveItem): void {
-    this.toastService.success(`Descargando ${item.name}...`, 'Descarga');
+    if (item.type === 'folder') return;
+
+    this.fileService.downloadFile(item.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = item.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        this.toastService.success(`Descargando ${item.name}...`, 'Descarga');
+      },
+      error: (err) => {
+        this.toastService.error(err.message || 'Error al descargar el archivo.', 'Error');
+      }
+    });
   }
 
+  // Delete item sending it to trash
   onDelete(item: DriveItem): void {
-    this.items.update(list => list.filter(i => i.id !== item.id));
-    this.toastService.success(`Se eliminó '${item.name}' correctamente.`, 'Eliminado');
+    const type = item.type === 'folder' ? 'folders' : 'files';
+    this.trashService.moveToTrash(type, item.id).subscribe({
+      next: () => {
+        this.toastService.success(`Se envió '${item.name}' a la papelera.`, 'Papelera');
+        this.loadFolderContent(this.currentFolderId());
+      },
+      error: (err) => {
+        this.toastService.error(err.message || 'Error al mover a la papelera.', 'Error');
+      }
+    });
   }
 
-  //open event method
+  // Open item event method
   onOpenItem(item: DriveItem): void {
     if (item.type === 'folder') {
       this.router.navigate(['/drive/files/folder', item.id]);
@@ -282,5 +476,5 @@ export class DriveFilesPageComponent implements OnInit {
     this.driveAction.closeFolderModal();
   }
 
-  loadMore(): void {}
+  loadMore(): void { }
 }

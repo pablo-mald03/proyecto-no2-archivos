@@ -1,10 +1,11 @@
-import { Component, effect, input, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { CustomModalComponent } from '../../common/custom-modal-component/custom-modal-component';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CommonModule } from '@angular/common';
 import { NgIconComponent } from '@ng-icons/core';
-import { DriveItem } from '../../../features/drive/drive-item.model';
+import { DriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
 import { lucideArrowLeft, lucideChevronRight, lucideFolder } from '@ng-icons/lucide';
+import { FolderService } from '../../../features/folders/services/folder.service';
 
 @Component({
   selector: 'app-drive-move-modal-component',
@@ -15,6 +16,8 @@ import { lucideArrowLeft, lucideChevronRight, lucideFolder } from '@ng-icons/luc
 })
 //Drive move modal component
 export class DriveMoveModalComponent {
+  private readonly folderService = inject(FolderService);
+
   // Component Inputs & Outputs
   readonly isOpen = input.required<boolean>();
   readonly itemToMove = input<DriveItem | null>(null);
@@ -40,39 +43,37 @@ export class DriveMoveModalComponent {
   constructor() {
     effect(() => {
       if (this.isOpen()) {
+        this.breadcrumbs.set([{ id: null, name: 'Raíz' }]);
         this.navigateTo(null, 'Mis Documentos');
       }
     });
   }
 
-  // Fetch mock subfolders based on parent ID
+  // Fetch real subfolders based on parent ID
   navigateTo(folderId: string | null, folderName: string): void {
     this.loading.set(true);
     this.currentFolderId.set(folderId);
     this.currentFolderName.set(folderName);
 
-    setTimeout(() => {
-      let folders: DriveItem[] = [];
+    const request$ = folderId
+      ? this.folderService.findFolderContent(folderId)
+      : this.folderService.findRootContent();
 
-      if (!folderId) {
-        folders = [
-          { id: '1', name: 'Documentación del Proyecto', type: 'folder', updatedAt: new Date() },
-          { id: '2', name: 'Carpeta Personal', type: 'folder', updatedAt: new Date() }
-        ];
-      } else if (folderId === '1') {
-        folders = [
-          { id: '1-2', name: 'Subcarpeta Backend', type: 'folder', updatedAt: new Date() }
-        ];
-      } else {
-        folders = [];
+    request$.subscribe({
+      next: (response) => {
+        const folders: DriveItem[] = (response.folders || []).map(f => mapFolderToDriveItem(f));
+        const activeItem = this.itemToMove();
+        // Prevent moving a folder inside itself
+        const filtered = folders.filter(f => f.id !== activeItem?.id);
+
+        this.subFolders.set(filtered);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.subFolders.set([]);
+        this.loading.set(false);
       }
-
-      const activeItem = this.itemToMove();
-      const filtered = folders.filter(f => f.id !== activeItem?.id);
-
-      this.subFolders.set(filtered);
-      this.loading.set(false);
-    }, 250);
+    });
   }
 
   // Enter into a subfolder

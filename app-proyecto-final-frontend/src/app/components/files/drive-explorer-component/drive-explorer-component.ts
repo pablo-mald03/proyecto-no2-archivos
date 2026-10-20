@@ -3,6 +3,7 @@ import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/ro
 import { DriveBreadcrumb } from '../drive-breadcrumb/drive-breadcrumb';
 import { BreadcrumbItem } from '../constants/breadcrum-item';
 import { filter } from 'rxjs';
+import { FolderService } from '../../../features/folders/service/folder.service';
 
 @Component({
   selector: 'app-drive-explorer-component',
@@ -14,6 +15,7 @@ import { filter } from 'rxjs';
 export class DriveExplorerComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly folderService = inject(FolderService);
 
   readonly breadcrumbItems = signal<BreadcrumbItem[]>([]);
 
@@ -29,24 +31,23 @@ export class DriveExplorerComponent implements OnInit {
 
   private updateBreadcrumbs(): void {
     const folderId = this.route.firstChild?.snapshot.paramMap.get('id');
-    
+
     if (!folderId) {
       this.breadcrumbItems.set([]);
       return;
     }
 
-    //MOCK
-    if (folderId === '1') {
-      this.breadcrumbItems.set([{ label: 'Documentación del Proyecto' }]);
-    } else if (folderId === '2') {
-      this.breadcrumbItems.set([{ label: 'Carpeta Personal' }]);
-    } else if (folderId === '1-2') {
-      this.breadcrumbItems.set([
-        { label: 'Documentación del Proyecto', route: '/drive/files/folder/1' },
-        { label: 'Subcarpeta Backend' }
-      ]);
-    } else {
-      this.breadcrumbItems.set([{ label: 'Carpeta' }]);
-    }
+    this.folderService.findFolderContent(folderId).subscribe({
+      next: (response) => {
+        const crumbs: BreadcrumbItem[] = (response.breadcrumbs || []).map((b, index, arr: typeof response.breadcrumbs) => ({
+          label: b.name,
+          route: index < arr.length - 1 ? `/drive/files/folder/${b.id}` : undefined
+        }));
+        this.breadcrumbItems.set(crumbs);
+      },
+      error: () => {
+        this.breadcrumbItems.set([{ label: 'Carpeta' }]);
+      }
+    });
   }
 }
