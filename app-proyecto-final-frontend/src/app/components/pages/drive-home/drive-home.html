@@ -21,19 +21,31 @@
     <div class="space-y-4 pt-4">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-text">Archivos recientes</h2>
+
+            @if (recentItems().length > 0) {
             <a routerLink="/drive/files" class="text-xs font-semibold text-primary hover:underline">
                 Ver todos
             </a>
+            }
         </div>
 
-        @if (recentItems().length > 0) {
+        @if (loadingRecent()) {
+        <app-empty-state-component [loading]="true" loadingText="Cargando tus archivos recientes..." />
+        } @else if (recentItems().length > 0) {
         <app-drive-item-list-component [items]="recentItems()" (shareClicked)="onShare($event)"
             (previewClicked)="onPreview($event)" (downloadClicked)="onDownload($event)"
             (deleteClicked)="onDelete($event)" (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)"
             (itemDoubleClicked)="onOpenItem($event)" (itemClicked)="onOpenItem($event)"
             (itemDropped)="handleItemDrop($event)" />
         } @else {
-        <p class="text-sm text-text-muted">No hay archivos recientes para mostrar.</p>
+        <app-empty-state-component [icon]="lucideHistoryIcon" title="Nada por aquí últimamente"
+            description="Los archivos que abras, edites o subas recientemente aparecerán en este espacio para un acceso rápido.">
+
+            <a routerLink="/drive/files"
+                class="btn-primary text-xs px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5">
+                Explorar mis archivos
+            </a>
+        </app-empty-state-component>
         }
     </div>
 

@@ -22,6 +22,7 @@ import { FileService } from '../../../features/files/service/file.service';
 import { FolderService } from '../../../features/folders/service/folder.service';
 import { TrashService } from '../../../features/trash/service/trash.service';
 import { CommentService } from '../../../features/comments/service/comment.service';
+import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -32,13 +33,13 @@ import { CommentService } from '../../../features/comments/service/comment.servi
     CustomButton,
     CustomCard,
     CustomTextfield,
-    CustomAlert,
     CustomInfiniteScroll,
     UploadFileModalComponent,
     FolderModalComponent,
     DriveItemListComponent,
     DriveMoveModalComponent,
-    FilePreviewLayoutComponent
+    FilePreviewLayoutComponent,
+    EmptyStateComponent
   ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
@@ -97,6 +98,22 @@ export class DriveFilesPageComponent implements OnInit {
   readonly selectedPreviewItem = signal<DriveItem | null>(null);
   readonly previewContent = signal<string>('');
   readonly previewComments = signal<FileComment[]>([]);
+
+  //Signal to know if there is a search filter active
+  readonly isSearching = computed(() => !!this.searchControl.value.trim());
+
+  readonly emptyStateType = computed(() => {
+    if (!this.initialized() || (this.loading() && this.allRawItems().length === 0)) {
+      return 'loading';
+    }
+    if (this.allRawItems().length === 0) {
+      return 'folder-empty';
+    }
+    if (this.items().length === 0 && this.isSearching()) {
+      return 'search-empty';
+    }
+    return 'has-content';
+  });
 
   constructor() {
     effect(() => {

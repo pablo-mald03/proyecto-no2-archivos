@@ -17,6 +17,8 @@ import { FolderService } from '../../../features/folders/service/folder.service'
 import { TrashService } from '../../../features/trash/service/trash.service';
 import { CommentService } from '../../../features/comments/service/comment.service';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
+import { lucideHistory } from '@ng-icons/lucide';
 
 @Component({
   selector: 'app-drive-home',
@@ -28,7 +30,8 @@ import { ErrorResponse } from '../../../features/errors/models/error-response.mo
     FolderModalComponent,
     DriveItemListComponent,
     DriveMoveModalComponent,
-    FilePreviewLayoutComponent
+    FilePreviewLayoutComponent,
+    EmptyStateComponent
   ],
   templateUrl: './drive-home.html',
   styleUrl: './drive-home.css',
@@ -68,6 +71,8 @@ export class DriveHome implements OnInit {
   // Recent items signal
   readonly recentItems = signal<DriveItem[]>([]);
   readonly loadingRecent = signal<boolean>(false);
+
+  readonly lucideHistoryIcon = lucideHistory;
 
   constructor() {
     effect(() => {

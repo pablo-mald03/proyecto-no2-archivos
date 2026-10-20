@@ -39,11 +39,25 @@
     }
   </app-custom-card>
 
-  @if (initialized() && items().length === 0 && !loading()) {
-  <app-custom-alert type="info" title="Carpeta vacía" message="No hay archivos ni carpetas en este directorio." />
+
+  @switch (emptyStateType()) {
+  @case ('loading') {
+  <app-empty-state-component [loading]="true" loadingText="Cargando tus documentos..." />
   }
 
-  @if (items().length > 0) {
+  @case ('folder-empty') {
+  <app-empty-state-component title="Esta carpeta está vacía"
+    description="No hay archivos ni carpetas en este directorio. ¡Sube tu primer archivo para comenzar!">
+    <app-custom-button label="Subir archivo" size="sm" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
+  </app-empty-state-component>
+  }
+
+  @case ('search-empty') {
+  <app-empty-state-component title="Sin resultados en la búsqueda"
+    description="No encontramos ningún archivo o carpeta que coincida con lo que estás buscando." />
+  }
+
+  @default {
   <app-custom-infinite-scroll class="min-h-0 flex-1 overflow-y-auto pr-2" [loading]="loading()" [hasMore]="hasMore()"
     (loadMore)="loadMore()">
 
@@ -53,6 +67,7 @@
       (itemClicked)="onOpenItem($event)" (itemDropped)="handleItemDrop($event)" />
 
   </app-custom-infinite-scroll>
+  }
   }
 
   <app-upload-file-modal-component [isOpen]="isUploadModalOpen()" (closed)="closeUploadModal()"
@@ -64,20 +79,13 @@
   <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
     (targetSelected)="handleMoveTargetSelected($event)" />
 
-
-  <app-file-preview-layout-component 
-    [isOpen]="isPreviewOpen()"
-    [fileName]="selectedPreviewItem()?.name || 'Archivo sin título'" 
-    [fileContent]="previewContent()"
-    [comments]="previewComments()" 
-    [canEdit]="true"
-    (closed)="closePreview()" 
+  <app-file-preview-layout-component [isOpen]="isPreviewOpen()"
+    [fileName]="selectedPreviewItem()?.name || 'Archivo sin título'" [fileContent]="previewContent()"
+    [comments]="previewComments()" [canEdit]="true" (closed)="closePreview()"
     (downloadClicked)="selectedPreviewItem() && onDownload(selectedPreviewItem()!)"
     (printClicked)="toastService.success('Enviando documento a impresora...', 'Imprimir')"
     (openNewTabClicked)="toastService.success('Abriendo en pestaña nueva...', 'Pestaña nueva')"
-    (commentAdded)="handleAddComment($event)" 
-    (commentDeleted)="handleDeleteComment($event)"
-  >
+    (commentAdded)="handleAddComment($event)" (commentDeleted)="handleDeleteComment($event)">
   </app-file-preview-layout-component>
 
 </div>
