@@ -3,7 +3,8 @@ import { HydratedDocument, Types } from 'mongoose';
 import { AuditableEntity } from 'src/common/entities/auditable.entity';
 import { UserEntity } from 'src/users/entities/user.entity';
 import { ResourceType } from 'src/common/constants/actions/resource-type';
-import { AccessLevel, GranteeType } from 'src/common/constants/permissions/access-level';
+import { AccessLevel } from 'src/common/constants/permissions/access-level';
+import { GranteeType } from 'src/common/constants/permissions/grantee-type';
 
 //Principal share entity model
 @Schema({ collection: 'shares', timestamps: true })

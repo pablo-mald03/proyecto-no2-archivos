@@ -8,7 +8,6 @@ import { ActivityRecorderService } from 'src/activity/service/activity-recorder.
 import { AuthUser } from 'src/users/models/auth-user.model';
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception';
 import { AccessDeniedException } from 'src/common/exceptions/access-deniend.exception';
-import { GranteeType } from 'src/common/constants/permissions/access-level';
 import { ActivityAction } from 'src/common/constants/actions/activity-action';
 import { SharesRepository } from '../repository/shares.repository';
 import { ShareResourceDto } from '../dto/request/share-resource.dto';
@@ -18,6 +17,7 @@ import { ShareMapper } from '../mapper/share.mapper';
 import { RevokeShareDto } from '../dto/request/revoke-share.dto';
 import { SharedWithMeItemDto } from '../dto/response/shared-with-me-item.dto';
 import { FileNotFoundException } from 'src/files/exceptions/file-not-found.exception';
+import { GranteeType } from 'src/common/constants/permissions/grantee-type';
 
 /*Principal sharing service class*/
 @Injectable()

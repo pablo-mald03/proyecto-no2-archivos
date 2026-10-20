@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
 import { ShareDocument, ShareEntity } from '../entities/share.entity';
-import { AccessLevel, GranteeType } from 'src/common/constants/permissions/access-level';
+import { AccessLevel } from 'src/common/constants/permissions/access-level';
+import { GranteeType } from 'src/common/constants/permissions/grantee-type';
 
 //Principal shares repository class
 @Injectable()

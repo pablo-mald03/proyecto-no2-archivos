@@ -9,11 +9,12 @@ import { CommentsRepository } from 'src/comments/repository/comments.repository'
 import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
 import { ActivityAction } from 'src/common/constants/actions/activity-action';
 import { ResourceType } from 'src/common/constants/actions/resource-type';
-import { AccessLevel, GranteeType } from 'src/common/constants/permissions/access-level';
+import { AccessLevel } from 'src/common/constants/permissions/access-level';
 import { DEV_USERS } from './data/dev-users.data';
 import { UserDocument } from 'src/users/entities/user.entity';
 import { FolderDocument } from 'src/folders/entities/folder.entity';
 import { FileDocument } from 'src/files/entities/file.entity';
+import { GranteeType } from 'src/common/constants/permissions/grantee-type';
 
 /*Principal drive demo seeder class*/
 export class DriveDemoSeeder {

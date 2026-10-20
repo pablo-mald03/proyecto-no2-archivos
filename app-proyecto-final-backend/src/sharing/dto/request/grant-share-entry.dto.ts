@@ -1,5 +1,6 @@
 import { IsEnum, IsOptional, Matches } from "class-validator";
-import { AccessLevel, GranteeType } from "src/common/constants/permissions/access-level";
+import { AccessLevel } from "src/common/constants/permissions/access-level";
+import { GranteeType } from "src/common/constants/permissions/grantee-type";
 import { OBJECT_ID_REGEX } from "src/common/constants/regex/object-id";
 
 /*Principal grant share entry dto model*/
