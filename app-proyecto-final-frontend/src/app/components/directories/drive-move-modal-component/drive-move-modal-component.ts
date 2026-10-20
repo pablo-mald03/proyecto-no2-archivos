@@ -5,7 +5,7 @@ import { CommonModule } from '@angular/common';
 import { NgIconComponent } from '@ng-icons/core';
 import { DriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
 import { lucideArrowLeft, lucideChevronRight, lucideFolder } from '@ng-icons/lucide';
-import { FolderService } from '../../../features/folders/services/folder.service';
+import { FolderService } from '../../../features/folders/service/folder.service';
 
 @Component({
   selector: 'app-drive-move-modal-component',

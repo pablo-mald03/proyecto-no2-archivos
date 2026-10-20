@@ -12,7 +12,7 @@ const validator = {
       authorId: { bsonType: 'objectId' },
       parentId: { bsonType: ['objectId', 'null'] },
       content: { bsonType: 'string', minLength: 1, maxLength: 2000 },
-      isDeleted: { bsonType: 'boolean' },
+      isDeleted: { bsonType: 'bool' },
       editedAt: { bsonType: ['date', 'null'] },
       createdAt: { bsonType: 'date' },
     },

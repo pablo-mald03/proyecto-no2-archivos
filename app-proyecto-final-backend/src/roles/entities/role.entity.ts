@@ -7,7 +7,7 @@ import { AuditableEntity } from 'src/common/entities/auditable.entity';
 @Schema({ collection: 'roles', timestamps: true })
 export class RoleEntity extends AuditableEntity {
     @Prop({
-        required: true, unique: true, trim: true, uppercase: true,
+        type: String, required: true, unique: true, trim: true, uppercase: true,
         minlength: FieldLimits.ROLE_CODE.min, maxlength: FieldLimits.ROLE_CODE.max,
     })
     code!: string;
