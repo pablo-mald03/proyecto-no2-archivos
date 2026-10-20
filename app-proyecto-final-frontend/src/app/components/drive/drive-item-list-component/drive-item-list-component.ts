@@ -12,7 +12,7 @@ import { DriveItem } from '../../../features/drive/drive-item.model';
 export class DriveItemListComponent {
   readonly items = input.required<DriveItem[]>();
   readonly selectedId = signal<string | null>(null);
-  readonly mode = input<'default' | 'trash'>('default');
+  readonly mode = input<'default' | 'trash' | 'shared'>('default');
 
   // Outputs
   readonly itemClicked = output<DriveItem>();

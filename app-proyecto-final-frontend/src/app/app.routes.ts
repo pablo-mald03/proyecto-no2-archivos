@@ -34,6 +34,7 @@ import { FilePreviewLayoutComponent } from './components/viewer/file-preview-lay
 import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-page';
 import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
 import { TrashPage } from './components/pages/trash-page/trash-page';
+import { SharedWithMePage } from './components/pages/shared-with-me-page/shared-with-me-page';
 
 export const routes: Routes = [
 
@@ -81,6 +82,7 @@ export const routes: Routes = [
             { path: 'profile', component: ProfileComponent },
             { path: 'activity', component: UserActivityPage },
             { path: 'trash', component: TrashPage },
+            { path: 'shared', component: SharedWithMePage },
             {
                 path: 'files',
                 component: DriveExplorerComponent,

@@ -26,7 +26,19 @@ export class DriveItemRow {
   // Inputs & Outputs
   readonly item = input.required<DriveItem>();
   readonly isSelected = input(false);
-  readonly mode = input<'default' | 'trash'>('default');
+  readonly mode = input<'default' | 'trash' | 'shared'>('default');
+
+  // Computed access level label for shared items
+  readonly accessLabel = computed(() => {
+    const access = this.item().access;
+    if (!access) return null;
+    switch (access) {
+      case 'VIEWER': return 'Lector';
+      case 'COMMENTER': return 'Comentador';
+      case 'EDITOR': return 'Editor';
+      default: return access;
+    }
+  });
 
   readonly itemClicked = output<DriveItem>();
   readonly itemDoubleClicked = output<DriveItem>();

@@ -6,7 +6,7 @@
 
   <div class="flex items-center gap-3 min-w-0 flex-1">
 
-    @if (mode() !== 'trash') {
+    @if (mode() === 'default') {
     <div
       class="cursor-grab active:cursor-grabbing text-text-muted opacity-0 group-hover:opacity-100 transition-opacity p-1 -ml-2 hover:text-text"
       draggable="true" (dragstart)="dragStartHandle.emit($event)" title="Arrastrar para mover">
@@ -24,9 +24,16 @@
     </div>
 
     <div class="min-w-0 flex-1">
-      <p class="truncate font-medium text-text group-hover:text-primary transition-colors">
-        {{ item().name }}
-      </p>
+      <div class="flex items-center gap-2">
+        <p class="truncate font-medium text-text group-hover:text-primary transition-colors">
+          {{ item().name }}
+        </p>
+        @if (accessLabel()) {
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 shrink-0">
+          {{ accessLabel() }}
+        </span>
+        }
+      </div>
       <p class="text-[11px] text-text-muted sm:hidden">
         {{ (item().deletedAt || item().updatedAt) | date:'mediumDate' }} • {{ formattedSize() }}
       </p>
@@ -46,15 +53,35 @@
 
     @if (mode() === 'trash') {
     <button type="button" aria-label="Restaurar" (click)="restoreClicked.emit(item())"
-      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-primary hover:bg-surface hover:text-primary transition-colors"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
       title="Restaurar de la papelera">
       <ng-icon [svg]="lucideRotateCcwIcon" size="16" />
     </button>
 
     <button type="button" aria-label="Eliminar definitivamente" (click)="permanentDeleteClicked.emit(item())"
-      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-red hover:bg-red-500/10 hover:text-red-500 transition-colors"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-error/10 hover:text-error transition-colors"
       title="Eliminar definitivamente">
       <ng-icon [svg]="lucideTrashIcon" size="16" />
+    </button>
+    } @else if (mode() === 'shared') {
+    @if (item().type === 'file') {
+    <button type="button" aria-label="Descargar" (click)="downloadClicked.emit(item())"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
+      title="Descargar">
+      <ng-icon [svg]="lucideDownloadIcon" size="16" />
+    </button>
+
+    <button type="button" aria-label="Vista previa" (click)="previewClicked.emit(item())"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
+      title="Vista previa">
+      <ng-icon [svg]="lucideEyeIcon" size="16" />
+    </button>
+    }
+
+    <button type="button" aria-label="Más opciones" (click)="onRightClick($event)"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-text transition-colors"
+      title="Más opciones">
+      <ng-icon [svg]="lucideMoreIcon" size="16" />
     </button>
     } @else {
     <button type="button" aria-label="Compartir" (click)="shareClicked.emit(item())"
@@ -96,6 +123,22 @@
         (clicked)="permanentDeleteClicked.emit(item()); closeContextMenu()">
         <span class="text-error">Eliminar definitivamente</span>
       </app-custom-toggle-menu-item>
+      } @else if (mode() === 'shared') {
+      @if (item().type === 'file') {
+      <app-custom-toggle-menu-item [icon]="lucideEyeIcon" (clicked)="previewClicked.emit(item()); closeContextMenu()">
+        Vista previa
+      </app-custom-toggle-menu-item>
+
+      <app-custom-toggle-menu-item [icon]="lucideDownloadIcon"
+        (clicked)="downloadClicked.emit(item()); closeContextMenu()">
+        Descargar
+      </app-custom-toggle-menu-item>
+      } @else {
+      <app-custom-toggle-menu-item [icon]="lucideFolderIcon"
+        (clicked)="itemClicked.emit(item()); closeContextMenu()">
+        Abrir carpeta
+      </app-custom-toggle-menu-item>
+      }
       } @else {
       <app-custom-toggle-menu-item [icon]="lucideFolderInputIcon"
         (clicked)="moveClicked.emit(item()); closeContextMenu()">

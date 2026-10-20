@@ -1,6 +1,8 @@
 import { FolderResponse } from "../../folders/models/response/folder-response.model";
 import { FileResponse } from "../../files/models/response/file-response.model";
 import { TrashItem } from "../../trash/models/trash-item.model";
+import { SharedWithMeItem } from "../../shares/models/response/shared-with-me-item.model";
+import { ShareAccessLevel } from "../../shares/constants/share.constants";
 
 /*Principal drive item type */
 export type DriveItemType = 'folder' | 'file';
@@ -16,6 +18,8 @@ export interface DriveItem {
   shared?: boolean;
   trashBatchId?: string;
   deletedAt?: string;
+  access?: ShareAccessLevel;
+  ownerId?: string;
 }
 
 //Helper to map folder response to drive item representation
@@ -53,3 +57,19 @@ export function mapTrashItemToDriveItem(trash: TrashItem): DriveItem {
     trashBatchId: trash.trashBatchId
   };
 }
+
+//Helper to map shared with me response to drive item representation
+export function mapSharedWithMeToDriveItem(item: SharedWithMeItem): DriveItem {
+  return {
+    id: item.resource.id,
+    name: item.resource.name,
+    type: item.resource.type === 'FOLDER' ? 'folder' : 'file',
+    extension: item.resource.extension,
+    sizeBytes: item.resource.sizeBytes,
+    updatedAt: item.resource.updatedAt,
+    shared: true,
+    access: item.share.access,
+    ownerId: item.resource.ownerId
+  };
+}
+

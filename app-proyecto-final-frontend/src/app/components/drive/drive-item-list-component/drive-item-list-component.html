@@ -16,12 +16,12 @@
       (itemClicked)="onSelectItem(item)"
       (dragStartHandle)="onDragStart($event, item)" 
       class="transition-all duration-200 rounded-xl block"
-      [class.scale-[1.02]]="mode() !== 'trash' && isTargetFolder(item)" 
-      [class.bg-primary/15]="mode() !== 'trash' && isTargetFolder(item)"
-      [class.border-primary]="mode() !== 'trash' && isTargetFolder(item)" 
-      (dragover)="mode() !== 'trash' && onDragOver($event, item)"
-      (dragleave)="mode() !== 'trash' && onDragLeave(item)" 
-      (drop)="mode() !== 'trash' && onDrop($event, item)" 
+      [class.scale-[1.02]]="mode() === 'default' && isTargetFolder(item)" 
+      [class.bg-primary/15]="mode() === 'default' && isTargetFolder(item)"
+      [class.border-primary]="mode() === 'default' && isTargetFolder(item)" 
+      (dragover)="mode() === 'default' && onDragOver($event, item)"
+      (dragleave)="mode() === 'default' && onDragLeave(item)" 
+      (drop)="mode() === 'default' && onDrop($event, item)" 
     />
   }
 </div>

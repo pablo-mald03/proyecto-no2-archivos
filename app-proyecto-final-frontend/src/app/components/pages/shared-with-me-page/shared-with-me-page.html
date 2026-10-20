@@ -1,0 +1,110 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-3">
+      <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <ng-icon [svg]="lucideUsersIcon" size="24" />
+      </div>
+      <div>
+        <h1 class="text-xl font-bold text-text">Compartidos conmigo</h1>
+        <p class="text-xs text-text-muted">
+          Archivos y carpetas compartidos contigo
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <app-custom-button label="Actualizar" variant="secondary" size="md" [icon]="lucideRotateCcwIcon" [bordered]="true"
+        (clicked)="loadSharedItems()" />
+    </div>
+  </div>
+
+  <app-custom-alert type="warning"
+    message="Tienes acceso a estos documentos según los permisos otorgados por sus propietarios." />
+
+  <app-custom-card [hoverable]="false">
+    <button type="button" class="flex w-full items-center justify-between gap-3 text-left"
+      [attr.aria-expanded]="filtersExpanded()" (click)="filtersExpanded.set(!filtersExpanded())">
+
+      <div class="flex min-w-0 items-center gap-3">
+        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <ng-icon [svg]="lucideSlidersHorizontalIcon" size="16" />
+        </div>
+
+        <div class="min-w-0">
+          <h3 class="text-sm font-semibold text-text">
+            Filtros y ordenamiento
+          </h3>
+        </div>
+      </div>
+
+      <ng-icon [svg]="lucideChevronDownIcon" size="18"
+        class="shrink-0 text-text-muted transition-transform duration-200" [class.rotate-180]="filtersExpanded()" />
+    </button>
+
+    @if (filtersExpanded()) {
+    <div class="mt-4 border-t border-border pt-4">
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <app-custom-textfield label="Buscar compartido" placeholder="Nombre del archivo o carpeta..."
+          [control]="searchControl" [icon]="lucideSearchIcon" [clearable]="true" />
+
+        <app-custom-dropdown label="Tipo de elemento" [options]="typeOptions" optionKey="value" optionLabel="label"
+          [control]="typeFilterControl" />
+
+        <app-custom-dropdown label="Nivel de acceso" [options]="accessOptions" optionKey="value" optionLabel="label"
+          [control]="accessFilterControl" />
+
+        <app-custom-dropdown label="Ordenar por" [options]="sortOptions" optionKey="value" optionLabel="label"
+          [control]="sortOptionControl" />
+      </div>
+
+      <div class="mt-4 flex justify-end">
+        <app-custom-button label="Limpiar filtros" variant="ghost" size="sm" [icon]="lucideRotateCcwIcon"
+          (clicked)="resetFilters()" />
+      </div>
+    </div>
+    }
+  </app-custom-card>
+
+  @switch (emptyStateType()) {
+  @case ('loading') {
+  <app-empty-state-component [loading]="true" loadingText="Cargando elementos compartidos..." />
+  }
+
+  @case ('shared-empty') {
+  <app-empty-state-component title="Nada compartido contigo aún"
+    description="Cuando otros usuarios compartan archivos o carpetas contigo, podrás consultarlos y trabajar con ellos aquí.">
+    <div class="flex items-center gap-2">
+      <app-custom-button label="Actualizar" variant="secondary" size="sm" [icon]="lucideRotateCcwIcon" [bordered]="true"
+        (clicked)="loadSharedItems()" />
+    </div>
+  </app-empty-state-component>
+  }
+
+  @case ('search-empty') {
+  <app-empty-state-component title="Sin resultados"
+    description="No encontramos ningún elemento compartido que coincida con los filtros seleccionados.">
+    <div class="flex items-center gap-2">
+      <app-custom-button label="Restablecer filtros" variant="secondary" size="sm" [icon]="lucideRotateCcwIcon"
+        [bordered]="true" (clicked)="resetFilters()" />
+    </div>
+  </app-empty-state-component>
+  }
+
+  @default {
+  <div class="flex flex-col gap-2 min-h-0 flex-1">
+    <div class="flex items-center justify-between px-6 py-2 text-xs font-semibold text-text-muted">
+      <div class="flex-1">Nombre</div>
+      <div class="hidden sm:block w-36">Última modificación</div>
+      <div class="hidden md:block w-24 text-right">Tamaño</div>
+      <div class="w-16 text-right">Acciones</div>
+    </div>
+
+    <app-drive-item-list-component [items]="displayedItems()" mode="shared" (itemClicked)="onOpenItem($event)"
+      (itemDoubleClicked)="onOpenItem($event)" (previewClicked)="onPreview($event)"
+      (downloadClicked)="onDownload($event)" />
+  </div>
+  }
+  }
+
+</div>

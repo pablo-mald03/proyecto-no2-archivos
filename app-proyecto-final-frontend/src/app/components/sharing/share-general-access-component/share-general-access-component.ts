@@ -15,7 +15,7 @@ import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
   templateUrl: './share-general-access-component.html',
   styleUrl: './share-general-access-component.css'
 })
-// General access component
+//Principal share general access component
 export class ShareGeneralAccessComponent {
   // Inputs
   readonly anyUserShare = input<ShareResponse | null>(null);
@@ -25,7 +25,7 @@ export class ShareGeneralAccessComponent {
   readonly generalAccessChanged = output<{ enabled: boolean; access: ShareAccessLevel }>();
   readonly copyLinkClicked = output<void>();
 
-  // Computed
+  // Computed state driven strictly by the DTO input
   readonly isPublic = computed(() => !!this.anyUserShare());
   readonly accessLevel = computed(() => this.anyUserShare()?.access ?? 'VIEWER');
 
@@ -54,8 +54,15 @@ export class ShareGeneralAccessComponent {
   constructor() {
     effect(() => {
       const publicMode = this.isPublic() ? 'ANY_USER' : 'RESTRICTED';
-      this.modeControl.setValue(publicMode, { emitEvent: false });
-      this.accessControl.setValue(this.accessLevel(), { emitEvent: false });
+      const currentLevel = this.accessLevel();
+
+      if (this.modeControl.value !== publicMode) {
+        this.modeControl.setValue(publicMode, { emitEvent: false });
+      }
+
+      if (this.accessControl.value !== currentLevel) {
+        this.accessControl.setValue(currentLevel, { emitEvent: false });
+      }
     });
 
     this.modeControl.valueChanges.subscribe(value => {
@@ -67,26 +74,27 @@ export class ShareGeneralAccessComponent {
     });
   }
 
-  // Method to handle the mode selection
-  onModeSelect(value: string): void {
-    if (value === 'ANY_USER') {
-      this.generalAccessChanged.emit({
-        enabled: true,
-        access: this.accessLevel()
-      });
-    } else {
-      this.generalAccessChanged.emit({
-        enabled: false,
-        access: 'VIEWER'
-      });
-    }
+  // Method to handle mode selection change
+  private onModeSelect(value: string): void {
+    const isPublicTarget = value === 'ANY_USER';
+
+    if (isPublicTarget === this.isPublic()) return;
+
+    this.generalAccessChanged.emit({
+      enabled: isPublicTarget,
+      access: isPublicTarget ? this.accessLevel() : 'VIEWER'
+    });
   }
 
-  // Method to handle the access level selection
-  onAccessSelect(level: string): void {
+  // Method to handle access level selection change
+  private onAccessSelect(level: string): void {
+    const targetAccess = level as ShareAccessLevel;
+
+    if (targetAccess === this.accessLevel()) return;
+
     this.generalAccessChanged.emit({
       enabled: true,
-      access: level as ShareAccessLevel
+      access: targetAccess
     });
   }
 }

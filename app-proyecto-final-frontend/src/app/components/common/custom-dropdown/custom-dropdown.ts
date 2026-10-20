@@ -1,5 +1,4 @@
 import { Component, computed, effect, ElementRef, HostListener, inject, input, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { IconType, NgIconComponent } from '@ng-icons/core';
 import { lucideCheck, lucideChevronDown, lucideX } from '@ng-icons/lucide';
@@ -35,7 +34,7 @@ export class CustomDropdown {
   selectableFirst = input(false);
   size = input<'sm' | 'md' | 'lg'>('md');
 
-  // Open state and position
+  // Open state and floating list position
   readonly isOpen = signal(false);
   readonly dropdownPosition = signal<{ top: number; left: number; width: number }>({
     top: 0,
@@ -43,22 +42,29 @@ export class CustomDropdown {
     width: 0
   });
 
+  // Reactive signal tracking form control value safely across silent updates
   readonly controlValue = signal<any>(null);
   private readonly valueChangeTrigger = signal(0);
 
   private firstOptionInitialized = false;
 
   constructor() {
+    // Continuously sync controlValue with the actual form control value, even when emitEvent: false is used
     effect(() => {
       const ctrl = this.control();
       if (ctrl) {
         this.controlValue.set(ctrl.value);
-        ctrl.valueChanges.subscribe(val => {
+
+        const sub = ctrl.valueChanges.subscribe(val => {
           this.controlValue.set(val);
         });
+
+        return () => sub.unsubscribe();
       }
+      return;
     });
 
+    // Auto-select first option if selectableFirst is enabled
     effect(() => {
       const options = this.options();
       if (!this.selectableFirst() || !options.length || this.firstOptionInitialized) return;
@@ -120,6 +126,7 @@ export class CustomDropdown {
     return 'Invalid value';
   });
 
+  // Reactive calculation of selected option tracking control value changes
   readonly selectedOption = computed(() => {
     this.controlValue();
     this.valueChangeTrigger();
