@@ -6,7 +6,11 @@
         @if (isInsideFolder()) { Contenido } @else { Mis Documentos }
       </h2>
     </div>
-    <app-custom-button label="Subir archivo" size="md" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
+    <div class="flex items-center gap-3">
+      <app-custom-button label="Nueva carpeta" variant="secondary" size="md" [icon]="lucideFolderPlusIcon"
+        (clicked)="openCreateFolderModal()" />
+      <app-custom-button label="Subir archivo" size="md" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
+    </div>
   </div>
 
   <app-custom-card [hoverable]="false">
@@ -47,8 +51,12 @@
 
   @case ('folder-empty') {
   <app-empty-state-component title="Esta carpeta está vacía"
-    description="No hay archivos ni carpetas en este directorio. ¡Sube tu primer archivo para comenzar!">
-    <app-custom-button label="Subir archivo" size="sm" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
+    description="No hay archivos ni carpetas en este directorio. ¡Sube tu primer archivo o crea una carpeta para comenzar!">
+    <div class="flex items-center gap-2">
+      <app-custom-button label="Nueva carpeta" variant="secondary" size="sm" [icon]="lucideFolderPlusIcon"
+        (clicked)="openCreateFolderModal()" />
+      <app-custom-button label="Subir archivo" size="sm" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
+    </div>
   </app-empty-state-component>
   }
 

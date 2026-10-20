@@ -1,5 +1,5 @@
 import { Component, computed, effect, input, output } from '@angular/core';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CustomModalComponent } from '../../common/custom-modal-component/custom-modal-component';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
@@ -10,6 +10,7 @@ import { driveNameValidator } from '../../../core/validators/drive-name.validato
   selector: 'app-folder-modal-component',
   standalone: true,
   imports: [
+    FormsModule,
     ReactiveFormsModule,
     CustomModalComponent,
     CustomButton,
@@ -27,6 +28,8 @@ export class FolderModalComponent {
 
   readonly closed = output<void>();
   readonly submitted = output<string>();
+
+  readonly loading = input<boolean>(false);
 
   // Form Control
   readonly nameControl = new FormControl('', {
@@ -94,17 +97,24 @@ export class FolderModalComponent {
   });
 
   onSubmit(): void {
+    if (this.loading()) return;
+
     if (this.nameControl.invalid) {
       this.nameControl.markAllAsTouched();
       return;
     }
 
     const name = this.nameControl.value.trim();
+
+    if (!name) return;
+
     this.submitted.emit(name);
     this.close();
   }
 
   close(): void {
+    if (this.loading()) return;
+
     this.closed.emit();
   }
 }

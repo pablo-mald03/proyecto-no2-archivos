@@ -66,6 +66,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   readonly activeComments = signal<FileComment[]>([]);
   readonly activeCanEdit = signal<boolean>(true);
   readonly activeFileMetadata = signal<FileResponse | null>(null);
+  readonly submittingComment = signal(false);
 
   // Layout Controls State
   readonly zoomLevel = signal<number>(100);
@@ -245,19 +246,47 @@ export class FilePreviewLayoutComponent implements OnInit {
   // Handle adding a comment to the file
   handleCommentAdded(content: string): void {
     const fileId = this.activeFileId();
+
     if (!fileId) {
       this.commentAdded.emit(content);
       return;
     }
 
+    if (this.submittingComment()) return;
+
+    this.submittingComment.set(true);
+
     this.commentService.createComment(fileId, { content }).subscribe({
-      next: () => {
-        this.toastService.success('Comentario añadido con éxito.', 'Comentarios');
-        this.reloadComments(fileId);
+      next: (created) => {
+        const newComment: FileComment = {
+          id: created.id,
+          authorName:
+            created.authorUsername ||
+            created.authorEmail ||
+            this.authState.user()?.username ||
+            'Usuario',
+          createdAt: new Date(created.createdAt || Date.now()),
+          content: created.content,
+          isOwner: true
+        };
+
+        this.activeComments.update(list => [...list, newComment]);
+
+        this.toastService.success(
+          'Comentario añadido con éxito.',
+          'Comentarios'
+        );
+
         this.commentAdded.emit(content);
+        this.submittingComment.set(false);
       },
       error: (err: ErrorResponse) => {
-        this.toastService.error(err.message || 'Error al añadir el comentario.', 'Error');
+        this.toastService.error(
+          err.message || 'Error al añadir el comentario.',
+          'Error'
+        );
+
+        this.submittingComment.set(false);
       }
     });
   }
@@ -355,21 +384,17 @@ export class FilePreviewLayoutComponent implements OnInit {
     this.openNewTabClicked.emit();
   }
 
-  // Close preview layout and navigate back when routed
+  // Close preview layout and navigate back to parent folder when routed
   closeLayout(): void {
     this.isEditMode.set(false);
     this.closed.emit();
 
     if (this.isRouted()) {
-      if (window.history.length > 1) {
-        this.location.back();
+      const folderId = this.activeFileMetadata()?.folderId;
+      if (folderId) {
+        this.router.navigate(['/drive/files/folder', folderId]);
       } else {
-        const folderId = this.activeFileMetadata()?.folderId;
-        if (folderId) {
-          this.router.navigate(['/drive/files/folder', folderId]);
-        } else {
-          this.router.navigate(['/drive/files']);
-        }
+        this.router.navigate(['/drive/files']);
       }
     }
   }

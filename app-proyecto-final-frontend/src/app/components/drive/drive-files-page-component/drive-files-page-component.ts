@@ -8,7 +8,7 @@ import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { ToastService } from '../../../core/services/toast.service';
 import { DriveItem, mapFileToDriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
-import { lucideChevronDown, lucidePlus, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
+import { lucideChevronDown, lucideFolderPlus, lucidePlus, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
 import { DriveActionService } from '../../../core/services/drive-action.service';
@@ -69,6 +69,7 @@ export class DriveFilesPageComponent implements OnInit {
   readonly lucideChevronDownIcon = lucideChevronDown;
   readonly lucideSearchIcon = lucideSearch;
   readonly lucidePlusIcon = lucidePlus;
+  readonly lucideFolderPlusIcon = lucideFolderPlus;
 
   // Upload modal status
   readonly isUploadModalOpen = signal(false);
@@ -176,6 +177,14 @@ export class DriveFilesPageComponent implements OnInit {
       item.name.toLowerCase().includes(trimmed)
     );
     this.items.set(filtered);
+  }
+
+  // Folder modal handlers
+  openCreateFolderModal(): void {
+    this.folderModalMode.set('create');
+    this.folderItemType.set('folder');
+    this.folderInitialName.set('');
+    this.isFolderModalOpen.set(true);
   }
 
   // Upload Modal handlers

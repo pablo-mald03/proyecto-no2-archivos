@@ -34,7 +34,12 @@ import { CommentsModule } from './comments/comments.module';
         autoIndex: false, // indexes are owned by the migrations
       }),
     }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 200,
+      },
+    ]),
     AuthModule,
     UsersModule,
     FoldersModule,

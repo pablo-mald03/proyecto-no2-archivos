@@ -50,7 +50,8 @@
             </button>
 
             @if (isEditMode()) {
-            <app-custom-button label="Guardar" size="sm" [icon]="lucideSaveIcon" [loading]="saving()" (clicked)="saveChanges()" />
+            <app-custom-button label="Guardar" size="sm" [icon]="lucideSaveIcon" [loading]="saving()"
+                (clicked)="saveChanges()" />
             }
             }
         </div>
@@ -155,8 +156,8 @@
 
         <div (click)="$event.stopPropagation()" class="h-full">
             <app-file-comments-panel-component [isOpen]="isCommentsOpen()" [comments]="displayComments()"
-                (closePanel)="isCommentsOpen.set(false)" (commentAdded)="handleCommentAdded($event)"
-                (commentDeleted)="handleCommentDeleted($event)" />
+                [isSubmitting]="submittingComment()" (closePanel)="isCommentsOpen.set(false)"
+                (commentAdded)="handleCommentAdded($event)" (commentDeleted)="handleCommentDeleted($event)" />
         </div>
 
     </div>
