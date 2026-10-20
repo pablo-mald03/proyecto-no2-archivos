@@ -2,186 +2,26 @@
 <div class="fixed inset-0 z-50 flex h-screen w-screen flex-col bg-neutral-950/90 text-text backdrop-blur-md select-none"
     (click)="onBackdropClick($event)">
 
-    <header
-        class="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4 bg-neutral-900/60 backdrop-blur-lg"
-        (click)="$event.stopPropagation()">
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-            <button type="button" (click)="closeLayout()"
-                class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-                title="Cerrar previsualización">
-                <ng-icon [svg]="lucideXIcon" size="22" />
-            </button>
-
-            <div class="flex items-center gap-2.5 min-w-0">
-                <h2 class="truncate font-semibold text-white text-base">
-                    {{ displayFileName() }}
-                </h2>
-
-                @if (isRouted()) {
-                @if (isOwner()) {
-                <span
-                    class="shrink-0 rounded-full bg-primary/20 border border-primary/40 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                    Propietario
-                </span>
-                } @else if (displayAccessLevel() === 'EDITOR') {
-                <span
-                    class="shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-                    Editor
-                </span>
-                } @else if (displayAccessLevel() === 'COMMENTER') {
-                <span
-                    class="shrink-0 rounded-full bg-amber-500/20 border border-amber-500/40 px-2.5 py-0.5 text-[11px] font-semibold text-amber-400">
-                    Comentador
-                </span>
-                } @else {
-                <span
-                    class="shrink-0 rounded-full bg-neutral-600/30 border border-neutral-500/30 px-2.5 py-0.5 text-[11px] font-semibold text-neutral-300">
-                    Solo lectura
-                </span>
-                }
-                }
-            </div>
-        </div>
-
-        <div class="hidden md:flex items-center gap-2 rounded-2xl bg-white/5 p-1 border border-white/10">
-            <button type="button" (click)="zoomOut()"
-                class="rounded-xl p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-                title="Alejar">
-                <ng-icon [svg]="lucideZoomOutIcon" size="18" />
-            </button>
-
-            <button type="button" (click)="resetZoom()"
-                class="px-2 text-xs font-mono font-medium text-white/80 hover:text-white" title="Restablecer zoom">
-                {{ zoomLevel() }}%
-            </button>
-
-            <button type="button" (click)="zoomIn()"
-                class="rounded-xl p-1.5 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-                title="Acercar">
-                <ng-icon [svg]="lucideZoomInIcon" size="18" />
-            </button>
-
-            @if (displayCanEdit()) {
-            <div class="h-4 w-px bg-white/20 mx-1"></div>
-
-            <button type="button" (click)="toggleEditMode()"
-                class="flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-medium transition-all"
-                [class.bg-primary]="isEditMode()" [class.text-white]="isEditMode()"
-                [class.text-white/70]="!isEditMode()" [class.hover:bg-white/10]="!isEditMode()"
-                title="Alternar modo edición">
-                <ng-icon [svg]="isEditMode() ? lucideEyeIcon : lucideEditIcon" size="16" />
-                <span>{{ isEditMode() ? 'Modo Lectura' : 'Editar' }}</span>
-            </button>
-
-            @if (isEditMode()) {
-            <app-custom-button label="Guardar" size="sm" [icon]="lucideSaveIcon" [loading]="saving()"
-                (clicked)="saveChanges()" />
-            }
-            }
-        </div>
-
-        <div class="flex items-center gap-1.5 flex-1 justify-end">
-            <button type="button" (click)="toggleComments()" class="relative rounded-xl p-2 transition-colors"
-                [class.bg-primary/20]="isCommentsOpen()" [class.text-primary]="isCommentsOpen()"
-                [class.text-white/70]="!isCommentsOpen()" [class.hover:bg-white/10]="!isCommentsOpen()"
-                title="Ver comentarios">
-                <ng-icon [svg]="lucideMessageSquareIcon" size="20" />
-                @if (displayComments().length > 0) {
-                <span class="absolute top-1 right-1 h-2 w-2 rounded-full bg-primary"></span>
-                }
-            </button>
-
-            <button type="button" (click)="openInNewTab()"
-                class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-                title="Abrir en una pestaña nueva">
-                <ng-icon [svg]="lucideExternalLinkIcon" size="20" />
-            </button>
-
-            <app-custom-button label="Descargar" size="sm" [icon]="lucideDownloadIcon" (clicked)="downloadFile()" />
-        </div>
-    </header>
+    <app-file-preview-header-component [fileName]="displayFileName()" [isRouted]="isRouted()" [isOwner]="isOwner()"
+        [accessLevel]="displayAccessLevel()" [zoomLevel]="zoomLevel()" [canEdit]="displayCanEdit()"
+        [isEditMode]="isEditMode()" [saving]="saving()" [isCommentsOpen]="isCommentsOpen()"
+        [commentsCount]="displayComments().length" (close)="closeLayout()" (zoomIn)="zoomIn()" (zoomOut)="zoomOut()"
+        (zoomReset)="resetZoom()" (toggleEdit)="toggleEditMode()" (save)="saveChanges()"
+        (toggleComments)="toggleComments()" (openNewTab)="openInNewTab()" (download)="downloadFile()" />
 
     <div class="relative flex flex-1 min-h-0 w-full overflow-hidden">
 
-        <main class="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
-            @if (loading()) {
-            <div class="flex flex-col items-center justify-center gap-4 text-white/70">
-                <span class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></span>
-                <p class="text-sm font-medium">Cargando documento...</p>
-            </div>
-            } @else {
-            <div #documentContainer
-                class="transition-transform duration-150 ease-out origin-center max-w-4xl w-full rounded-2xl bg-surface p-6 shadow-2xl border border-white/10 my-auto max-h-[85vh] flex flex-col"
-                [style.transform]="'scale(' + (zoomLevel() / 100) + ')'">
-
-                @if (isMarkdown() && !isEditMode()) {
-                <div class="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
-                    <div class="flex items-center gap-1 rounded-xl bg-surface-raised p-1 border border-border/40">
-                        <button type="button" (click)="setMarkdownView('preview')"
-                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-                            [class.bg-primary]="markdownViewMode() === 'preview'"
-                            [class.text-white]="markdownViewMode() === 'preview'"
-                            [class.text-text-muted]="markdownViewMode() !== 'preview'"
-                            [class.hover:text-text]="markdownViewMode() !== 'preview'">
-                            <ng-icon [svg]="lucideEyeIcon" size="14" />
-                            <span>Preview</span>
-                        </button>
-
-                        <button type="button" (click)="setMarkdownView('raw')"
-                            class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
-                            [class.bg-primary]="markdownViewMode() === 'raw'"
-                            [class.text-white]="markdownViewMode() === 'raw'"
-                            [class.text-text-muted]="markdownViewMode() !== 'raw'"
-                            [class.hover:text-text]="markdownViewMode() !== 'raw'">
-                            <ng-icon [svg]="lucideCodeIcon" size="14" />
-                            <span>Raw</span>
-                        </button>
-                    </div>
-                    <span class="text-xs text-text-muted font-mono">Markdown Viewer</span>
-                </div>
-                } @else if (!isEditMode()) {
-                <div
-                    class="flex items-center justify-between border-b border-border/40 pb-3 mb-4 text-xs text-text-muted font-sans">
-                    <span class="font-semibold uppercase tracking-wider text-blue-400">Texto Plano (.TXT)</span>
-                    <span class="font-mono">{{ displayFileName() }}</span>
-                </div>
-                } @else {
-                <div
-                    class="flex items-center justify-between border-b border-primary/40 pb-3 mb-4 text-xs text-primary font-sans">
-                    <span class="font-semibold uppercase tracking-wider">Modo Edición Activo</span>
-                    <span class="font-mono">{{ displayFileName() }}</span>
-                </div>
-                }
-
-                <div class="flex-1 overflow-y-auto pr-1">
-                    @if (isEditMode()) {
-                    <app-custom-text-area label="" placeholder="Escribe el contenido de tu documento aquí..."
-                        [control]="contentControl" [clearable]="true" [rows]="16" [resizable]="false" />
-                    } @else {
-                    @if (isMarkdown()) {
-                    @if (markdownViewMode() === 'preview') {
-                    <div class="prose prose-invert max-w-none font-sans leading-loose space-y-4 text-text/90"
-                        [innerHTML]="renderedMarkdown()">
-                    </div>
-                    } @else {
-                    <pre
-                        class="font-mono text-xs leading-loose bg-surface-raised/60 p-4 rounded-xl border border-border/40 overflow-x-auto text-text/90 whitespace-pre-wrap">{{ editableContent() }}</pre>
-                    }
-                    } @else {
-                    <pre
-                        class="font-mono text-sm leading-loose bg-surface-raised/60 p-4 rounded-xl border border-border/40 overflow-x-auto text-text/90 whitespace-pre-wrap">{{ editableContent() }}</pre>
-                    }
-                    }
-                </div>
-
-            </div>
-            }
-        </main>
+        <div class="flex flex-1 items-center justify-center overflow-auto p-4 md:p-8">
+            <app-file-preview-content-component #canvas [loading]="loading()" [fileName]="displayFileName()"
+                [editableContent]="editableContent()" [contentControl]="contentControl" [zoomLevel]="zoomLevel()"
+                [isEditMode]="isEditMode()" />
+        </div>
 
         <div (click)="$event.stopPropagation()" class="h-full">
             <app-file-comments-panel-component [isOpen]="isCommentsOpen()" [comments]="displayComments()"
                 [isSubmitting]="submittingComment()" [canComment]="displayCanComment()"
-                (closePanel)="isCommentsOpen.set(false)" (commentAdded)="handleCommentAdded($event)"
+                [currentUserId]="currentUserId()" (closePanel)="isCommentsOpen.set(false)"
+                (commentAdded)="handleCommentAdded($event)" (commentUpdated)="handleCommentUpdated($event)"
                 (commentDeleted)="handleCommentDeleted($event)" />
         </div>
 

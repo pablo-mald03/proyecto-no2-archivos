@@ -1,22 +1,22 @@
-import { Component, computed, effect, ElementRef, HostListener, inject, input, OnInit, output, signal, ViewChild } from '@angular/core';
-import { NgIcon } from '@ng-icons/core';
-import { CustomButton } from '../../common/custom-button/custom-button';
-import { FileComment } from '../../../features/files/models/file-comment.model';
-import { lucideCode, lucideDownload, lucideExternalLink, lucideEye, lucideFileText, lucideMessageSquare, lucidePencil, lucidePrinter, lucideRotateCcw, lucideSave, lucideX, lucideZoomIn, lucideZoomOut } from '@ng-icons/lucide';
-import { FileCommentsPanelComponent } from '../file-comments-panel-component/file-comments-panel-component';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { marked } from 'marked';
+import { Component, computed, effect, HostListener, inject, input, OnInit, output, signal, ViewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { CustomTextarea } from '../../common/custom-text-area/custom-text-area';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
+
+import { FilePreviewHeaderComponent } from '../file-preview-header-component/file-preview-header-component';
+import { FilePreviewContentComponent } from '../file-preview-content-component/file-preview-content-component';
+import { FileCommentsPanelComponent } from '../file-comments-panel-component/file-comments-panel-component';
+
 import { FileService } from '../../../features/files/service/file.service';
 import { CommentService } from '../../../features/comments/service/comment.service';
+import { ShareService } from '../../../features/shares/service/share.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthState } from '../../../stores/auth.state';
+
 import { FileResponse } from '../../../features/files/models/response/file-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
-import { ShareService } from '../../../features/shares/service/share.service';
+import { FileComment } from '../../../features/files/models/file-comment.model';
+import { CommentResponse } from '../../../features/comments/models/response/comment-response.model';
 import { ShareAccessLevel } from '../../../features/shares/constants/share.constants';
 import { ShareResponse } from '../../../features/shares/models/response/share-response.model';
 import { AuthUser } from '../../../features/auth/models/aut-user.model';
@@ -25,20 +25,18 @@ import { AuthUser } from '../../../features/auth/models/aut-user.model';
   selector: 'app-file-preview-layout-component',
   standalone: true,
   imports: [
-    NgIcon,
-    CustomButton,
-    FileCommentsPanelComponent,
-    CustomTextarea,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    FilePreviewHeaderComponent,
+    FilePreviewContentComponent,
+    FileCommentsPanelComponent
   ],
   templateUrl: './file-preview-layout-component.html',
   styleUrl: './file-preview-layout-component.css',
 })
-// Principal file preview layout component, supports both routed mode and modal mode
+// Principal file preview layout orchestrator component
 export class FilePreviewLayoutComponent implements OnInit {
 
   // Dependencies
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
@@ -80,25 +78,12 @@ export class FilePreviewLayoutComponent implements OnInit {
   readonly zoomLevel = signal<number>(100);
   readonly isEditMode = signal<boolean>(false);
   readonly isCommentsOpen = signal<boolean>(false);
-  readonly markdownViewMode = signal<'preview' | 'raw'>('preview');
 
   // Editable local content signal synced with control
   readonly editableContent = signal<string>('');
   readonly contentControl = new FormControl('', { nonNullable: true });
 
-  @ViewChild('documentContainer') documentContainer?: ElementRef<HTMLDivElement>;
-
-  // Icons
-  readonly lucideXIcon = lucideX;
-  readonly lucideZoomInIcon = lucideZoomIn;
-  readonly lucideZoomOutIcon = lucideZoomOut;
-  readonly lucideDownloadIcon = lucideDownload;
-  readonly lucideExternalLinkIcon = lucideExternalLink;
-  readonly lucideMessageSquareIcon = lucideMessageSquare;
-  readonly lucideEditIcon = lucidePencil;
-  readonly lucideEyeIcon = lucideEye;
-  readonly lucideCodeIcon = lucideCode;
-  readonly lucideSaveIcon = lucideSave;
+  @ViewChild('canvas') canvasComponent?: FilePreviewContentComponent;
 
   constructor() {
     effect(() => {
@@ -264,16 +249,9 @@ export class FilePreviewLayoutComponent implements OnInit {
         const currentUserId = this.authState.user()?.id;
         const isEditorOrOwner = this.isOwner() || this.displayAccessLevel() === 'EDITOR';
 
-        const mapped: FileComment[] = comments.map(c => {
-          const isAuthor = currentUserId ? c.authorId === currentUserId : false;
-          return {
-            id: c.id,
-            authorName: c.authorUsername || c.authorEmail || 'Usuario',
-            createdAt: new Date(c.createdAt),
-            content: c.content,
-            isOwner: isEditorOrOwner || isAuthor
-          };
-        });
+        const mapped: FileComment[] = comments.map(c =>
+          this.mapCommentResponse(c, currentUserId, isEditorOrOwner)
+        );
         this.activeComments.set(mapped);
       },
       error: () => {
@@ -282,7 +260,34 @@ export class FilePreviewLayoutComponent implements OnInit {
     });
   }
 
-  // Computed properties resolving between routed and input mode
+  // Recursive comment mapper supporting threaded replies and permissions
+  private mapCommentResponse(
+    c: CommentResponse,
+    currentUserId: string | null | undefined,
+    isEditorOrOwner: boolean
+  ): FileComment {
+    const isAuthor = !!(currentUserId && c.authorId === currentUserId);
+    const canEdit = isAuthor;
+    const canDelete = isAuthor || isEditorOrOwner;
+
+    return {
+      id: c.id,
+      authorId: c.authorId,
+      authorName: c.authorUsername || c.authorEmail || 'Usuario',
+      createdAt: new Date(c.createdAt),
+      editedAt: c.editedAt ? new Date(c.editedAt) : null,
+      content: c.content,
+      parentId: c.parentId,
+      canEdit,
+      canDelete,
+      isOwner: isAuthor,
+      replies: (c.replies || []).map(r => this.mapCommentResponse(r, currentUserId, isEditorOrOwner))
+    };
+  }
+
+  // Computed properties
+  readonly currentUserId = computed(() => this.authState.user()?.id ?? null);
+
   readonly displayFileName = computed(() => {
     return this.isRouted() ? this.activeFileName() : (this.fileName() || 'Documento_Sin_Titulo.txt');
   });
@@ -303,21 +308,6 @@ export class FilePreviewLayoutComponent implements OnInit {
     return this.isOwner() ? 'EDITOR' : this.activeAccessLevel();
   });
 
-  readonly canDeleteComments = computed(() => {
-    return this.isOwner() || this.displayAccessLevel() === 'EDITOR';
-  });
-
-  // Computed to parse Markdown into safe HTML using marked
-  readonly renderedMarkdown = computed<SafeHtml>(() => {
-    const rawContent = this.editableContent();
-    const parsedHtml = marked.parse(rawContent) as string;
-    return this.sanitizer.bypassSecurityTrustHtml(parsedHtml);
-  });
-
-  readonly isMarkdown = computed(() => {
-    return this.displayFileName().toLowerCase().endsWith('.md');
-  });
-
   @HostListener('document:keydown.escape')
   onKeydownHandler(): void {
     if (this.isOpen()) {
@@ -326,7 +316,8 @@ export class FilePreviewLayoutComponent implements OnInit {
   }
 
   onBackdropClick(event: MouseEvent): void {
-    if (this.documentContainer && !this.documentContainer.nativeElement.contains(event.target as Node)) {
+    const container = this.canvasComponent?.documentContainer?.nativeElement;
+    if (container && !container.contains(event.target as Node)) {
       this.closeLayout();
     }
   }
@@ -356,59 +347,54 @@ export class FilePreviewLayoutComponent implements OnInit {
     this.isCommentsOpen.update(open => !open);
   }
 
-  setMarkdownView(mode: 'preview' | 'raw'): void {
-    this.markdownViewMode.set(mode);
-  }
-
-  // Handle adding a comment to the file
-  handleCommentAdded(content: string): void {
+  // Handle adding a top-level comment or threaded reply
+  handleCommentAdded(event: { content: string; parentId?: string | null }): void {
     if (!this.displayCanComment()) {
       this.toastService.warning('Tu nivel de acceso es solo lectura. No puedes comentar.', 'Permiso denegado');
       return;
     }
 
     const fileId = this.activeFileId();
-
     if (!fileId) {
-      this.commentAdded.emit(content);
+      this.commentAdded.emit(event.content);
       return;
     }
 
     if (this.submittingComment()) return;
-
     this.submittingComment.set(true);
 
-    this.commentService.createComment(fileId, { content }).subscribe({
-      next: (created) => {
-        const newComment: FileComment = {
-          id: created.id,
-          authorName:
-            created.authorUsername ||
-            created.authorEmail ||
-            this.authState.user()?.username ||
-            'Usuario',
-          createdAt: new Date(created.createdAt || Date.now()),
-          content: created.content,
-          isOwner: true
-        };
-
-        this.activeComments.update(list => [...list, newComment]);
-
+    this.commentService.createComment(fileId, {
+      content: event.content,
+      parentId: event.parentId || null
+    }).subscribe({
+      next: () => {
         this.toastService.success(
-          'Comentario añadido con éxito.',
+          event.parentId ? 'Respuesta añadida con éxito.' : 'Comentario añadido con éxito.',
           'Comentarios'
         );
-
-        this.commentAdded.emit(content);
+        this.reloadComments(fileId);
+        this.commentAdded.emit(event.content);
         this.submittingComment.set(false);
       },
       error: (err: ErrorResponse) => {
-        this.toastService.error(
-          err.message || 'Error al añadir el comentario.',
-          'Error'
-        );
-
+        this.toastService.error(err.message || 'Error al añadir el comentario.', 'Error');
         this.submittingComment.set(false);
+      }
+    });
+  }
+
+  // Handle editing a comment
+  handleCommentUpdated(event: { id: string; content: string }): void {
+    const fileId = this.activeFileId();
+    if (!fileId) return;
+
+    this.commentService.updateComment(event.id, { content: event.content }).subscribe({
+      next: () => {
+        this.toastService.success('Comentario actualizado con éxito.', 'Comentarios');
+        this.reloadComments(fileId);
+      },
+      error: (err: ErrorResponse) => {
+        this.toastService.error(err.message || 'Error al actualizar el comentario.', 'Error');
       }
     });
   }
@@ -423,8 +409,8 @@ export class FilePreviewLayoutComponent implements OnInit {
 
     this.commentService.deleteComment(commentId).subscribe({
       next: () => {
-        this.activeComments.update(list => list.filter(c => c.id !== commentId));
         this.toastService.success('Comentario eliminado.', 'Comentarios');
+        this.reloadComments(fileId);
         this.commentDeleted.emit(commentId);
       },
       error: (err: ErrorResponse) => {

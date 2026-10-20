@@ -74,6 +74,8 @@ export class CustomTextfield {
 
   readonly = input(false);
 
+  size = input<'sm' | 'md' | 'lg'>('md');
+
   min = input<number>();
   max = input<number>();
   step = input(1);

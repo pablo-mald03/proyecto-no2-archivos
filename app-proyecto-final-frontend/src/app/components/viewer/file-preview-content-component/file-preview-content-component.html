@@ -1,0 +1,72 @@
+<main class="flex-1 overflow-y-auto p-4 md:p-8 flex items-center justify-center">
+  @if (loading()) {
+  <div class="flex flex-col items-center justify-center gap-4 text-white/70">
+    <span class="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></span>
+    <p class="text-sm font-medium">Cargando documento...</p>
+  </div>
+  } @else {
+  <div #documentContainer
+    class="transition-transform duration-150 ease-out origin-center max-w-4xl w-full rounded-2xl bg-surface p-6 shadow-2xl border border-white/10 my-auto max-h-[85vh] flex flex-col"
+    [style.transform]="'scale(' + (zoomLevel() / 100) + ')'">
+
+    @if (isMarkdown() && !isEditMode()) {
+    <div class="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
+      <div class="flex items-center gap-1 rounded-xl bg-surface-raised p-1 border border-border/40">
+        <button type="button" (click)="setMarkdownView('preview')"
+          class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+          [class.bg-primary]="markdownViewMode() === 'preview'"
+          [class.text-white]="markdownViewMode() === 'preview'"
+          [class.text-text-muted]="markdownViewMode() !== 'preview'"
+          [class.hover:text-text]="markdownViewMode() !== 'preview'">
+          <ng-icon [svg]="lucideEyeIcon" size="14" />
+          <span>Preview</span>
+        </button>
+
+        <button type="button" (click)="setMarkdownView('raw')"
+          class="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors"
+          [class.bg-primary]="markdownViewMode() === 'raw'"
+          [class.text-white]="markdownViewMode() === 'raw'"
+          [class.text-text-muted]="markdownViewMode() !== 'raw'"
+          [class.hover:text-text]="markdownViewMode() !== 'raw'">
+          <ng-icon [svg]="lucideCodeIcon" size="14" />
+          <span>Raw</span>
+        </button>
+      </div>
+      <span class="text-xs text-text-muted font-mono">Markdown Viewer</span>
+    </div>
+    } @else if (!isEditMode()) {
+    <div class="flex items-center justify-between border-b border-border/40 pb-3 mb-4 text-xs text-text-muted font-sans">
+      <span class="font-semibold uppercase tracking-wider text-blue-400">Texto Plano (.TXT)</span>
+      <span class="font-mono">{{ fileName() }}</span>
+    </div>
+    } @else {
+    <div class="flex items-center justify-between border-b border-primary/40 pb-3 mb-4 text-xs text-primary font-sans">
+      <span class="font-semibold uppercase tracking-wider">Modo Edición Activo</span>
+      <span class="font-mono">{{ fileName() }}</span>
+    </div>
+    }
+
+    <div class="flex-1 overflow-y-auto pr-1">
+      @if (isEditMode()) {
+      <app-custom-text-area label="" placeholder="Escribe el contenido de tu documento aquí..."
+        [control]="contentControl()" [clearable]="true" [rows]="16" [resizable]="false" />
+      } @else {
+      @if (isMarkdown()) {
+      @if (markdownViewMode() === 'preview') {
+      <div class="prose prose-invert max-w-none font-sans leading-loose space-y-4 text-text/90"
+        [innerHTML]="renderedMarkdown()">
+      </div>
+      } @else {
+      <pre
+        class="font-mono text-xs leading-loose bg-surface-raised/60 p-4 rounded-xl border border-border/40 overflow-x-auto text-text/90 whitespace-pre-wrap">{{ editableContent() }}</pre>
+      }
+      } @else {
+      <pre
+        class="font-mono text-sm leading-loose bg-surface-raised/60 p-4 rounded-xl border border-border/40 overflow-x-auto text-text/90 whitespace-pre-wrap">{{ editableContent() }}</pre>
+      }
+      }
+    </div>
+
+  </div>
+  }
+</main>
