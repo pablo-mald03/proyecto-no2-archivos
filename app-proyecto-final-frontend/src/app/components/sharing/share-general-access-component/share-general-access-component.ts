@@ -25,25 +25,22 @@ export class ShareGeneralAccessComponent {
   readonly generalAccessChanged = output<{ enabled: boolean; access: ShareAccessLevel }>();
   readonly copyLinkClicked = output<void>();
 
-  // Computed state driven strictly by the DTO input
+  // Computed state
   readonly isPublic = computed(() => !!this.anyUserShare());
   readonly accessLevel = computed(() => this.anyUserShare()?.access ?? 'VIEWER');
 
   // Dropdown options
-  readonly modeOptions = [
-    { value: 'RESTRICTED', label: 'Restringido' },
-    { value: 'ANY_USER', label: 'Cualquier persona con el enlace' }
-  ];
-
   readonly accessOptions = [
     { value: 'VIEWER', label: 'Lector' },
     { value: 'COMMENTER', label: 'Comentador' },
     { value: 'EDITOR', label: 'Editor' }
   ];
 
-  // Form controls for custom dropdowns
-  readonly modeControl = new FormControl<string>('RESTRICTED', { nonNullable: true });
-  readonly accessControl = new FormControl<string>('VIEWER', { nonNullable: true });
+  // Form control para el nivel de acceso secundario
+  readonly accessControl = new FormControl<string>(
+    this.anyUserShare()?.access ?? 'VIEWER',
+    { nonNullable: true }
+  );
 
   // Icons
   readonly lucideLockIcon = lucideLock;
@@ -53,20 +50,11 @@ export class ShareGeneralAccessComponent {
 
   constructor() {
     effect(() => {
-      const publicMode = this.isPublic() ? 'ANY_USER' : 'RESTRICTED';
-      const currentLevel = this.accessLevel();
-
-      if (this.modeControl.value !== publicMode) {
-        this.modeControl.setValue(publicMode, { emitEvent: false });
-      }
-
+      const share = this.anyUserShare();
+      const currentLevel = share?.access ?? 'VIEWER';
       if (this.accessControl.value !== currentLevel) {
         this.accessControl.setValue(currentLevel, { emitEvent: false });
       }
-    });
-
-    this.modeControl.valueChanges.subscribe(value => {
-      this.onModeSelect(value);
     });
 
     this.accessControl.valueChanges.subscribe(level => {
@@ -74,15 +62,13 @@ export class ShareGeneralAccessComponent {
     });
   }
 
-  // Method to handle mode selection change
-  private onModeSelect(value: string): void {
-    const isPublicTarget = value === 'ANY_USER';
-
-    if (isPublicTarget === this.isPublic()) return;
+  // Method to switch mode directly via buttons with idempotency guard
+  setPublicMode(enabled: boolean): void {
+    if (enabled === this.isPublic()) return;
 
     this.generalAccessChanged.emit({
-      enabled: isPublicTarget,
-      access: isPublicTarget ? this.accessLevel() : 'VIEWER'
+      enabled: enabled,
+      access: enabled ? this.accessLevel() : 'VIEWER'
     });
   }
 

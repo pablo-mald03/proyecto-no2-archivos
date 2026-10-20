@@ -42,36 +42,32 @@ export class CustomDropdown {
     width: 0
   });
 
-  // Reactive signal tracking form control value safely across silent updates
   readonly controlValue = signal<any>(null);
-  private readonly valueChangeTrigger = signal(0);
 
   private firstOptionInitialized = false;
 
   constructor() {
-    // Continuously sync controlValue with the actual form control value, even when emitEvent: false is used
-    effect(() => {
+    effect((onCleanup) => {
       const ctrl = this.control();
-      if (ctrl) {
-        this.controlValue.set(ctrl.value);
+      if (!ctrl) return;
 
-        const sub = ctrl.valueChanges.subscribe(val => {
-          this.controlValue.set(val);
-        });
+      this.controlValue.set(ctrl.value);
 
-        return () => sub.unsubscribe();
-      }
-      return;
+      const sub = ctrl.valueChanges.subscribe(val => {
+        this.controlValue.set(val);
+      });
+
+      onCleanup(() => sub.unsubscribe());
     });
 
-    // Auto-select first option if selectableFirst is enabled
     effect(() => {
       const options = this.options();
       if (!this.selectableFirst() || !options.length || this.firstOptionInitialized) return;
 
       const control = this.control();
       if (control && (control.value === null || control.value === undefined || control.value === '')) {
-        control.setValue(this.getOptionValue(options[0]));
+        control.setValue(this.getOptionValue(options[0]), { emitEvent: false });
+        this.controlValue.set(control.value);
       }
       this.firstOptionInitialized = true;
     });
@@ -126,13 +122,9 @@ export class CustomDropdown {
     return 'Invalid value';
   });
 
-  // Reactive calculation of selected option tracking control value changes
+  // Reactive calculation tracking the controlValue signal cleanly
   readonly selectedOption = computed(() => {
-    this.controlValue();
-    this.valueChangeTrigger();
-
-    const ctrl = this.control();
-    const val = ctrl?.value;
+    const val = this.controlValue();
     if (val === null || val === undefined || val === '') return null;
     return this.options().find(opt => this.getOptionValue(opt) === val) ?? null;
   });
@@ -148,17 +140,24 @@ export class CustomDropdown {
   selectOption(option: Record<string, unknown>): void {
     const val = this.getOptionValue(option);
     const ctrl = this.control();
+
+
+    if (ctrl.value === val) {
+      this.isOpen.set(false);
+      return;
+    }
+
     ctrl.setValue(val);
+    this.controlValue.set(val);
     ctrl.markAsDirty();
-    ctrl.updateValueAndValidity();
-    this.valueChangeTrigger.update(v => v + 1);
     this.isOpen.set(false);
   }
 
   clear(event?: MouseEvent): void {
     if (event) event.stopPropagation();
-    this.control().reset();
-    this.valueChangeTrigger.update(v => v + 1);
+    const ctrl = this.control();
+    ctrl.reset();
+    this.controlValue.set(null);
     this.isOpen.set(false);
   }
 }
