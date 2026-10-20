@@ -2,9 +2,10 @@ import { Types } from "mongoose";
 
 
 /*Principal user filter model */
-export interface UserFilter { 
-    search?: string; 
-    isActive?: boolean; 
-    roleId?: Types.ObjectId 
+export interface UserFilter {
+    search?: string;
+    isActive?: boolean;
+    roleId?: Types.ObjectId
+    excludeId?: string;
 }
 

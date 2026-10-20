@@ -19,14 +19,14 @@
       </div>
 
       <div class="min-w-0 flex-1">
-        <div class="w-64">
+        <div class="w-full sm:w-52">
           <app-custom-dropdown [options]="modeOptions" optionKey="value" optionLabel="label" [control]="modeControl"
             size="sm" />
         </div>
 
-        <p class="text-[11px] text-text-muted mt-1 truncate">
+        <p class="text-[10px] text-text-muted mt-1 truncate">
           @if (isPublic()) {
-          Cualquier persona en Internet con este enlace puede acceder.
+          Cualquier persona con este enlace puede acceder.
           } @else {
           Solo las personas con acceso concedido pueden abrir este elemento.
           }

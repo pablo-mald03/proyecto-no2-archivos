@@ -157,6 +157,7 @@ export class UsersRepository {
             const rx = new RegExp(escapeRegex(f.search), 'i');
             q.$or = [{ username: rx }, { email: rx }, { firstName: rx }, { lastName: rx }];
         }
+        if (f.excludeId) q._id = { $ne: new Types.ObjectId(f.excludeId) };
         return q;
     }
 }
