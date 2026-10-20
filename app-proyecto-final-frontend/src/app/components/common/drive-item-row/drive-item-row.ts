@@ -1,6 +1,6 @@
 import { Component, computed, effect, HostListener, inject, input, output, signal } from '@angular/core';
 import { DriveItem } from '../../../features/drive/drive-item.model';
-import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideGripVertical, lucideMapPlus, lucideMenu, lucideOption, lucidePencil, lucideProportions, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideDownload, lucideEye, lucideFileCode, lucideFileText, lucideFolder, lucideGitCompareArrows, lucideGripVertical, lucideMapPlus, lucideMenu, lucideOption, lucidePencil, lucideProportions, lucideRotateCcw, lucideShare2, lucideTrash2 } from '@ng-icons/lucide';
 import { CustomToggleMenu } from '../custom-toggle-menu/custom-toggle-menu';
 import { CustomToggleMenuItem } from '../custom-toggle-menu-item/custom-toggle-menu-item';
 import { NgIcon } from '@ng-icons/core';
@@ -19,13 +19,14 @@ import { DriveActionService } from '../../../core/services/drive-action.service'
   templateUrl: './drive-item-row.html',
   styleUrl: './drive-item-row.css',
 })
-//Principal drive item row
+//Principal drive item row component
 export class DriveItemRow {
   private readonly driveAction = inject(DriveActionService);
 
   // Inputs & Outputs
   readonly item = input.required<DriveItem>();
   readonly isSelected = input(false);
+  readonly mode = input<'default' | 'trash'>('default');
 
   readonly itemClicked = output<DriveItem>();
   readonly itemDoubleClicked = output<DriveItem>();
@@ -33,9 +34,11 @@ export class DriveItemRow {
   readonly previewClicked = output<DriveItem>();
   readonly downloadClicked = output<DriveItem>();
   readonly deleteClicked = output<DriveItem>();
-  readonly renameClicked = output<DriveItem>(); 
+  readonly renameClicked = output<DriveItem>();
   readonly dragStartHandle = output<DragEvent>();
   readonly moveClicked = output<DriveItem>();
+  readonly restoreClicked = output<DriveItem>();
+  readonly permanentDeleteClicked = output<DriveItem>();
 
   // State for Context Menu 
   readonly contextMenuOpen = signal(false);
@@ -50,9 +53,10 @@ export class DriveItemRow {
   readonly lucideMoreIcon = lucideMenu;
   readonly lucideDownloadIcon = lucideDownload;
   readonly lucideTrashIcon = lucideTrash2;
+  readonly lucideRotateCcwIcon = lucideRotateCcw;
   readonly lucidePencilIcon = lucidePencil;
-  readonly lucideGripVerticalIcon = lucideGripVertical; 
-  readonly lucideFolderInputIcon = lucideFolder; 
+  readonly lucideGripVerticalIcon = lucideGripVertical;
+  readonly lucideFolderInputIcon = lucideFolder;
 
   constructor() {
     effect(() => {

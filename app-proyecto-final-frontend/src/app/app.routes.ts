@@ -33,6 +33,7 @@ import { DriveExplorerComponent } from './components/files/drive-explorer-compon
 import { FilePreviewLayoutComponent } from './components/viewer/file-preview-layout-component/file-preview-layout-component';
 import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-page';
 import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
+import { TrashPage } from './components/pages/trash-page/trash-page';
 
 export const routes: Routes = [
 
@@ -79,6 +80,7 @@ export const routes: Routes = [
             { path: '', component: DriveHome },
             { path: 'profile', component: ProfileComponent },
             { path: 'activity', component: UserActivityPage },
+            { path: 'trash', component: TrashPage },
             {
                 path: 'files',
                 component: DriveExplorerComponent,

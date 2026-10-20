@@ -12,6 +12,7 @@ import { DriveItem } from '../../../features/drive/drive-item.model';
 export class DriveItemListComponent {
   readonly items = input.required<DriveItem[]>();
   readonly selectedId = signal<string | null>(null);
+  readonly mode = input<'default' | 'trash'>('default');
 
   // Outputs
   readonly itemClicked = output<DriveItem>();
@@ -22,6 +23,8 @@ export class DriveItemListComponent {
   readonly deleteClicked = output<DriveItem>();
   readonly renameClicked = output<DriveItem>();
   readonly moveClicked = output<DriveItem>();
+  readonly restoreClicked = output<DriveItem>();
+  readonly permanentDeleteClicked = output<DriveItem>();
   readonly itemDropped = output<{ draggedItem: DriveItem; targetFolder: DriveItem }>();
   readonly folderAutoOpened = output<DriveItem>(); 
 

@@ -6,11 +6,13 @@
 
   <div class="flex items-center gap-3 min-w-0 flex-1">
 
+    @if (mode() !== 'trash') {
     <div
       class="cursor-grab active:cursor-grabbing text-text-muted opacity-0 group-hover:opacity-100 transition-opacity p-1 -ml-2 hover:text-text"
       draggable="true" (dragstart)="dragStartHandle.emit($event)" title="Arrastrar para mover">
       <ng-icon [svg]="lucideGripVerticalIcon" size="16" />
     </div>
+    }
 
     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors"
       [class.bg-amber-500/10]="item().type === 'folder'" [class.text-amber-500]="item().type === 'folder'"
@@ -26,13 +28,13 @@
         {{ item().name }}
       </p>
       <p class="text-[11px] text-text-muted sm:hidden">
-        {{ item().updatedAt | date:'mediumDate' }} • {{ formattedSize() }}
+        {{ (item().deletedAt || item().updatedAt) | date:'mediumDate' }} • {{ formattedSize() }}
       </p>
     </div>
   </div>
 
   <div class="hidden sm:block w-36 text-xs text-text-muted truncate">
-    {{ item().updatedAt | date:'mediumDate' }}
+    {{ (item().deletedAt || item().updatedAt) | date:'mediumDate' }}
   </div>
 
   <div class="hidden md:block w-24 text-xs text-text-muted text-right truncate">
@@ -41,6 +43,20 @@
 
   <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
     (click)="$event.stopPropagation()">
+
+    @if (mode() === 'trash') {
+    <button type="button" aria-label="Restaurar" (click)="restoreClicked.emit(item())"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-primary hover:bg-surface hover:text-primary transition-colors"
+      title="Restaurar de la papelera">
+      <ng-icon [svg]="lucideRotateCcwIcon" size="16" />
+    </button>
+
+    <button type="button" aria-label="Eliminar definitivamente" (click)="permanentDeleteClicked.emit(item())"
+      class="flex h-8 w-8 items-center justify-center rounded-lg text-text-red hover:bg-red-500/10 hover:text-red-500 transition-colors"
+      title="Eliminar definitivamente">
+      <ng-icon [svg]="lucideTrashIcon" size="16" />
+    </button>
+    } @else {
     <button type="button" aria-label="Compartir" (click)="shareClicked.emit(item())"
       class="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:bg-surface hover:text-primary transition-colors"
       title="Compartir">
@@ -60,6 +76,7 @@
       title="Más opciones">
       <ng-icon [svg]="lucideMoreIcon" size="16" />
     </button>
+    }
   </div>
 
   @if (contextMenuOpen()) {
@@ -67,6 +84,19 @@
     (click)="$event.stopPropagation()">
     <app-custom-toggle-menu [isOpen]="contextMenuOpen()" (closed)="closeContextMenu()">
 
+      @if (mode() === 'trash') {
+      <app-custom-toggle-menu-item [icon]="lucideRotateCcwIcon"
+        (clicked)="restoreClicked.emit(item()); closeContextMenu()">
+        Restaurar
+      </app-custom-toggle-menu-item>
+
+      <div class="my-1 h-px bg-border/50"></div>
+
+      <app-custom-toggle-menu-item [icon]="lucideTrashIcon"
+        (clicked)="permanentDeleteClicked.emit(item()); closeContextMenu()">
+        <span class="text-error">Eliminar definitivamente</span>
+      </app-custom-toggle-menu-item>
+      } @else {
       <app-custom-toggle-menu-item [icon]="lucideFolderInputIcon"
         (clicked)="moveClicked.emit(item()); closeContextMenu()">
         Mover a...
@@ -96,6 +126,7 @@
       <app-custom-toggle-menu-item [icon]="lucideTrashIcon" (clicked)="deleteClicked.emit(item()); closeContextMenu()">
         <span class="text-error">Eliminar</span>
       </app-custom-toggle-menu-item>
+      }
 
     </app-custom-toggle-menu>
   </div>

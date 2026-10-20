@@ -1,5 +1,6 @@
 import { FolderResponse } from "../../folders/models/response/folder-response.model";
 import { FileResponse } from "../../files/models/response/file-response.model";
+import { TrashItem } from "../../trash/models/trash-item.model";
 
 /*Principal drive item type */
 export type DriveItemType = 'folder' | 'file';
@@ -13,6 +14,8 @@ export interface DriveItem {
   sizeBytes?: number;
   updatedAt: string | Date;
   shared?: boolean;
+  trashBatchId?: string;
+  deletedAt?: string;
 }
 
 //Helper to map folder response to drive item representation
@@ -34,5 +37,19 @@ export function mapFileToDriveItem(file: FileResponse): DriveItem {
     extension: file.extension,
     sizeBytes: file.sizeBytes,
     updatedAt: file.updatedAt
+  };
+}
+
+//Helper to map trash item response to drive item representation
+export function mapTrashItemToDriveItem(trash: TrashItem): DriveItem {
+  return {
+    id: trash.id,
+    name: trash.name,
+    type: trash.type === 'FOLDER' ? 'folder' : 'file',
+    extension: trash.extension,
+    sizeBytes: trash.sizeBytes,
+    updatedAt: trash.deletedAt,
+    deletedAt: trash.deletedAt,
+    trashBatchId: trash.trashBatchId
   };
 }
