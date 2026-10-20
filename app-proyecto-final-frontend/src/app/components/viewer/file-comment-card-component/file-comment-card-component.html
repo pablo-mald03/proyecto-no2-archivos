@@ -29,7 +29,7 @@
       <div class="flex items-center gap-1 shrink-0">
         @if (comment().canEdit && !isEditing()) {
         <button type="button" (click)="startEdit()"
-          class="rounded-lg p-1 text-text-muted hover:text-primary hover:bg-primary/10 transition-colors"
+          class="rounded-lg p-1 text-text-muted hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors"
           title="Editar comentario">
           <ng-icon [svg]="lucidePencilIcon" size="14" />
         </button>
@@ -37,7 +37,7 @@
 
         @if (comment().canDelete) {
         <button type="button" (click)="deleteComment()"
-          class="rounded-lg p-1 text-text-muted hover:text-error hover:bg-error/10 transition-colors"
+          class="rounded-lg p-1 text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
           title="Eliminar comentario">
           <ng-icon [svg]="lucideTrashIcon" size="14" />
         </button>

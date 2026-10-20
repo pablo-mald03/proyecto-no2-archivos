@@ -28,10 +28,8 @@
     }
 
     @for (comment of comments(); track comment.id) {
-    <app-file-comment-card-component [comment]="comment" [canComment]="canComment()"
-      [currentUserId]="currentUserId()"
-      (commentUpdated)="commentUpdated.emit($event)"
-      (commentDeleted)="commentDeleted.emit($event)"
+    <app-file-comment-card-component [comment]="comment" [canComment]="canComment()" [currentUserId]="currentUserId()"
+      (commentUpdated)="commentUpdated.emit($event)" (commentDeleted)="commentDeleted.emit($event)"
       (replySubmitted)="handleReply($event)" />
     }
   </div>
@@ -43,7 +41,7 @@
         [clearable]="true" />
 
       <div class="flex justify-end">
-        <app-custom-button label="Comentar" size="sm" [icon]="lucideSendIcon"
+        <app-custom-button label="Comentar" size="md" [icon]="lucideSendIcon"
           [disabled]="commentControl.invalid || isSubmitting()" [loading]="isSubmitting()" type="submit" />
       </div>
     </form>

@@ -64,10 +64,11 @@
 
 
         @if (clearable() && !isPassword() && !readonly() && control().value) {
-        <button type="button" (click)="clear()" class="absolute top-1/2 -translate-y-1/2 rounded-md p-1
+        <button type="button" (click)="clear()" class="absolute top-1/2 -translate-y-1/2 rounded-md
                     text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
-            [class.right-12]="isNumber()" [class.right-3]="!isNumber()" aria-label="Limpiar campo">
-            <ng-icon [svg]="lucideXIcon" [size]="size() === 'sm' ? '16' : '18'" />
+            [class.p-1]="size() !== 'sm'" [class.p-0.5]="size() === 'sm'" [class.right-12]="isNumber()"
+            [class.right-3]="!isNumber()" aria-label="Limpiar campo">
+            <ng-icon [svg]="lucideXIcon" [size]="size() === 'sm' ? '14' : '18'" />
         </button>
         }
 
