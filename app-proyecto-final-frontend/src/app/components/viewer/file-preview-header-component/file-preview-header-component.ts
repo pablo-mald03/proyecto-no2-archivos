@@ -9,6 +9,7 @@ import {
   lucideMessageSquare,
   lucidePencil,
   lucideSave,
+  lucideShare2,
   lucideX,
   lucideZoomIn,
   lucideZoomOut
@@ -30,6 +31,7 @@ export class FilePreviewHeaderComponent {
   readonly accessLevel = input<ShareAccessLevel>('VIEWER');
   readonly zoomLevel = input<number>(100);
   readonly canEdit = input<boolean>(false);
+  readonly canShare = input<boolean>(false);
   readonly isEditMode = input<boolean>(false);
   readonly saving = input<boolean>(false);
   readonly isCommentsOpen = input<boolean>(false);
@@ -45,6 +47,7 @@ export class FilePreviewHeaderComponent {
   readonly toggleComments = output<void>();
   readonly openNewTab = output<void>();
   readonly download = output<void>();
+  readonly share = output<void>();
 
   // Icons
   readonly lucideXIcon = lucideX;
@@ -56,4 +59,5 @@ export class FilePreviewHeaderComponent {
   readonly lucideMessageSquareIcon = lucideMessageSquare;
   readonly lucideExternalLinkIcon = lucideExternalLink;
   readonly lucideDownloadIcon = lucideDownload;
+  readonly lucideShareIcon = lucideShare2;
 }

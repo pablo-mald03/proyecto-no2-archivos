@@ -16,6 +16,7 @@ import { TrashService } from '../../../features/trash/service/trash.service';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { lucideHistory } from '@ng-icons/lucide';
+import { ShareModalComponent } from '../../sharing/share-modal-component/share-modal-component';
 
 @Component({
   selector: 'app-drive-home',
@@ -27,7 +28,8 @@ import { lucideHistory } from '@ng-icons/lucide';
     FolderModalComponent,
     DriveItemListComponent,
     DriveMoveModalComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    ShareModalComponent
   ],
   templateUrl: './drive-home.html',
   styleUrl: './drive-home.css',
@@ -56,6 +58,10 @@ export class DriveHome implements OnInit {
   // Move modal state signals
   readonly isMoveModalOpen = signal(false);
   readonly itemToMove = signal<DriveItem | null>(null);
+
+  // Share modal state signals
+  readonly isShareModalOpen = signal(false);
+  readonly itemToShare = signal<DriveItem | null>(null);
 
   // Recent items signal
   readonly recentItems = signal<DriveItem[]>([]);
@@ -114,19 +120,13 @@ export class DriveHome implements OnInit {
   }
 
   onShare(item: DriveItem): void {
-    const shareUrl = item.type === 'folder'
-      ? `${window.location.origin}/drive/files/folder/${item.id}`
-      : `${window.location.origin}/drive/files/preview/${item.id}`;
+    this.itemToShare.set(item);
+    this.isShareModalOpen.set(true);
+  }
 
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        this.toastService.success(`Enlace de '${item.name}' copiado.`, 'Compartir');
-      }).catch(() => {
-        this.toastService.info(`Enlace: ${shareUrl}`, 'Compartir');
-      });
-    } else {
-      this.toastService.info(`Enlace: ${shareUrl}`, 'Compartir');
-    }
+  closeShareModal(): void {
+    this.isShareModalOpen.set(false);
+    this.itemToShare.set(null);
   }
 
   // Method to navigate to the routed file preview layout

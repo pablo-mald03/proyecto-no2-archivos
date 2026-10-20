@@ -20,6 +20,7 @@ import { TrashService } from '../../../features/trash/service/trash.service';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { FileUploadQueueService } from '../../../features/files/service/file-upload-queue.service';
+import { ShareModalComponent } from '../../sharing/share-modal-component/share-modal-component';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -35,7 +36,8 @@ import { FileUploadQueueService } from '../../../features/files/service/file-upl
     FolderModalComponent,
     DriveItemListComponent,
     DriveMoveModalComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    ShareModalComponent
   ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
@@ -84,6 +86,10 @@ export class DriveFilesPageComponent implements OnInit {
   // Move modal state
   readonly isMoveModalOpen = signal(false);
   readonly itemToMove = signal<DriveItem | null>(null);
+
+  // Share modal state
+  readonly isShareModalOpen = signal(false);
+  readonly itemToShare = signal<DriveItem | null>(null);
 
   // Current Directory State
   readonly currentFolderId = signal<string | null>(null);
@@ -352,19 +358,13 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Row Action Listeners
   onShare(item: DriveItem): void {
-    const shareUrl = item.type === 'folder'
-      ? `${window.location.origin}/drive/files/folder/${item.id}`
-      : `${window.location.origin}/drive/files/preview/${item.id}`;
+    this.itemToShare.set(item);
+    this.isShareModalOpen.set(true);
+  }
 
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        this.toastService.success(`Enlace de '${item.name}' copiado al portapapeles.`, 'Compartir');
-      }).catch(() => {
-        this.toastService.info(`Enlace: ${shareUrl}`, 'Compartir');
-      });
-    } else {
-      this.toastService.info(`Enlace: ${shareUrl}`, 'Compartir');
-    }
+  closeShareModal(): void {
+    this.isShareModalOpen.set(false);
+    this.itemToShare.set(null);
   }
 
   // Navigate directly to routed preview

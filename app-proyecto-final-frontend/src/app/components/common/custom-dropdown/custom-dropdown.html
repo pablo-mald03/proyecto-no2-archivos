@@ -1,137 +1,78 @@
-<div class="w-full">
+<div class="w-full relative">
 
-    @if (label()) {
+  @if (label()) {
+  <label class="mb-2 block text-sm font-medium text-text">
+    {{ label() }}
+  </label>
+  }
 
-    <label class="
-      mb-2
-      block
-      text-sm
-      font-medium
-      text-text
-    ">
-        {{ label() }}
-    </label>
+  <div #triggerBtn (click)="toggleDropdown()"
+    class="relative flex w-full items-center justify-between rounded-xl border bg-surface transition-all cursor-pointer select-none"
+    [class.px-3]="size() === 'sm'" [class.py-1.5]="size() === 'sm'" [class.text-xs]="size() === 'sm'"
+    [class.px-4]="size() === 'md'" [class.py-2.5]="size() === 'md'" [class.text-sm]="size() === 'md'"
+    [class.px-5]="size() === 'lg'" [class.py-3]="size() === 'lg'" [class.text-base]="size() === 'lg'"
+    [class.pl-10]="icon()" [class.border-border]="!hasError() && !isOpen()"
+    [class.border-primary]="!hasError() && isOpen()" [class.border-red-500]="hasError()" [class.ring-2]="isOpen()"
+    [class.ring-primary/20]="isOpen() && !hasError()" [class.ring-red-500/20]="isOpen() && hasError()">
 
+    @if (icon()) {
+    <div class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
+      <ng-icon [svg]="icon()!" [size]="size() === 'sm' ? '16' : '18'" />
+    </div>
     }
 
+    <span class="truncate min-w-0" [class.text-text-muted]="!selectedOption()">
+      {{ selectedOption() ? getOptionLabel(selectedOption()!) : placeholder() }}
+    </span>
 
-    <div class="relative">
+    <div class="flex items-center gap-1 shrink-0 ml-2">
+      @if (clearable() && selectedOption()) {
+      <button type="button" (click)="clear($event)"
+        class="rounded-md text-text-muted hover:bg-surface-raised hover:text-text transition-colors"
+        [class.p-0.5]="size() === 'sm'" [class.p-1]="size() !== 'sm'" aria-label="Clear selection">
+        <ng-icon [svg]="lucideXIcon" [size]="size() === 'sm' ? '14' : '16'" />
+      </button>
+      }
 
-        @if (icon()) {
-
-        <div class="
-        pointer-events-none
-        absolute
-        left-3
-        top-1/2
-        z-10
-        -translate-y-1/2
-        text-text-muted
-      ">
-
-            <ng-icon [svg]="icon()!" size="18" />
-
-        </div>
-
-        }
-
-
-        <select [formControl]="control()" class="
-        w-full
-        appearance-none
-        rounded-xl
-        border
-        bg-surface
-        px-4
-        py-3
-        pr-11
-        text-text
-        outline-none
-        transition
-      " [class.pl-10]="icon()" [class.pr-20]="clearable() && control().value != null"
-            [class.border-border]="!hasError()" [class.border-red-500]="hasError()"
-            [class.focus:border-primary]="!hasError()" [class.focus:border-red-500]="hasError()">
-
-            @if (!selectableFirst()) {
-
-            <option [ngValue]="null" disabled>
-                {{ placeholder() }}
-            </option>
-
-            }
-
-
-            @for (
-            option of options();
-            track getOptionValue(option)
-            ) {
-
-            <option [ngValue]="getOptionValue(option)">
-                {{ getOptionLabel(option) }}
-            </option>
-
-            }
-
-        </select>
-
-
-
-        <div class="
-      pointer-events-none
-      absolute
-      right-3
-      top-1/2
-      z-10
-      -translate-y-1/2
-      text-text-muted
-    ">
-
-            <ng-icon [svg]="lucideChevronDownIcon" size="16" />
-
-        </div>
-
-
-
-        @if (
-        clearable()
-        && control().value !== null
-        && control().value !== undefined
-        && control().value !== ''
-        ) {
-
-        <button type="button" (click)="clear()" class="
-          absolute
-          right-9
-          top-1/2
-          z-10
-          -translate-y-1/2
-          rounded-md
-          p-1
-          text-text-muted
-          transition-colors
-          hover:bg-surface-raised
-          hover:text-text
-        " aria-label="Limpiar selección">
-
-            <ng-icon [svg]="lucideXIcon" size="16" />
-
-        </button>
-
-        }
-
+      <ng-icon [svg]="lucideChevronDownIcon" [size]="size() === 'sm' ? '14' : '16'"
+        class="text-text-muted transition-transform duration-200" [class.rotate-180]="isOpen()" />
     </div>
 
+  </div>
 
-    @if (hasError()) {
+  @if (isOpen()) {
+  <div [style.top.px]="dropdownPosition().top" [style.left.px]="dropdownPosition().left"
+    [style.width.px]="dropdownPosition().width"
+    class="fixed z-9999 max-h-60 overflow-y-auto rounded-2xl border border-border/80 bg-surface/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
 
-    <p class="
-      mt-1
-      text-sm
-      text-red-500
-    ">
-        {{ errorMessage() }}
-    </p>
+    @if (options().length === 0) {
+    <div class="p-3 text-center text-xs text-text-muted">
+      No options available
+    </div>
+    } @else {
+    @for (option of options(); track getOptionValue(option)) {
+    @let isSelected = selectedOption() && getOptionValue(selectedOption()!) === getOptionValue(option);
 
+    <div (click)="selectOption(option)"
+      class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-all hover:bg-primary/10 hover:text-primary"
+      [class.bg-primary/15]="isSelected" [class.text-primary]="isSelected" [class.font-semibold]="isSelected"
+      [class.text-text]="!isSelected">
+
+      <span class="truncate">{{ getOptionLabel(option) }}</span>
+
+      @if (isSelected) {
+      <ng-icon [svg]="lucideCheckIcon" size="14" class="text-primary shrink-0" />
+      }
+    </div>
     }
+    }
+  </div>
+  }
+
+  @if (hasError()) {
+  <p class="mt-1 text-xs text-red-500">
+    {{ errorMessage() }}
+  </p>
+  }
 
 </div>

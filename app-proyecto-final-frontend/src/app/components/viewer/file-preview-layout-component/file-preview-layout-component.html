@@ -4,10 +4,11 @@
 
     <app-file-preview-header-component [fileName]="displayFileName()" [isRouted]="isRouted()" [isOwner]="isOwner()"
         [accessLevel]="displayAccessLevel()" [zoomLevel]="zoomLevel()" [canEdit]="displayCanEdit()"
-        [isEditMode]="isEditMode()" [saving]="saving()" [isCommentsOpen]="isCommentsOpen()"
+        [canShare]="canShare()" [isEditMode]="isEditMode()" [saving]="saving()" [isCommentsOpen]="isCommentsOpen()"
         [commentsCount]="displayComments().length" (close)="closeLayout()" (zoomIn)="zoomIn()" (zoomOut)="zoomOut()"
         (zoomReset)="resetZoom()" (toggleEdit)="toggleEditMode()" (save)="saveChanges()"
-        (toggleComments)="toggleComments()" (openNewTab)="openInNewTab()" (download)="downloadFile()" />
+        (toggleComments)="toggleComments()" (openNewTab)="openInNewTab()" (download)="downloadFile()"
+        (share)="openShareModal()" />
 
     <div class="relative flex flex-1 min-h-0 w-full overflow-hidden">
 
@@ -28,4 +29,13 @@
     </div>
 
 </div>
+}
+
+@if (isShareModalOpen() && activeFileId()) {
+<app-share-modal-component
+    [isOpen]="isShareModalOpen()"
+    [resourceId]="activeFileId()!"
+    [resourceName]="displayFileName()"
+    resourceType="files"
+    (closed)="closeShareModal()" />
 }

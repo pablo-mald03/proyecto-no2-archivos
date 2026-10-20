@@ -87,4 +87,10 @@
   <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
     (targetSelected)="handleMoveTargetSelected($event)" />
 
+  @if (itemToShare(); as item) {
+  <app-share-modal-component [isOpen]="isShareModalOpen()" [resourceId]="item.id"
+    [resourceName]="item.name" [resourceType]="item.type === 'folder' ? 'folders' : 'files'"
+    (closed)="closeShareModal()" />
+  }
+
 </div>

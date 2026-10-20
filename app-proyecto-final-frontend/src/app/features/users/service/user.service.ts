@@ -40,41 +40,55 @@ export class UserService {
     }
 
 
-    /*Get all users query request endpoint*/
-
-    getUsers(query: UserQuery = {}): Observable<UserPage> {
+    // Helper method to build shared query parameters
+    private buildUserParams(query: UserQuery = {}): HttpParams {
         let params = new HttpParams();
 
         if (query.page !== undefined) {
             params = params.set('page', query.page);
         }
-
         if (query.size !== undefined) {
             params = params.set('size', query.size);
         }
-
         if (query.sortBy) {
             params = params.set('sortBy', query.sortBy);
         }
-
         if (query.direction) {
             params = params.set('direction', query.direction);
         }
-
         if (query.search?.trim()) {
             params = params.set('search', query.search.trim());
         }
-
         if (query.isActive !== undefined) {
             params = params.set('isActive', query.isActive);
         }
-
         if (query.roleCode) {
             params = params.set('roleCode', query.roleCode);
         }
 
+        return params;
+    }
+
+    /*Get all users query request endpoint*/
+    getUsers(query: UserQuery = {}): Observable<UserPage> {
+        const params = this.buildUserParams(query);
+
         return this.http.get<UserPage>(
             `${this.apiUrl}/users`,
+            { params }
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
+        );
+    }
+
+    /*Get all registered users query request public endpoint*/
+    getRegisteredUsers(query: UserQuery = {}): Observable<UserPage> {
+        const params = this.buildUserParams(query);
+
+        return this.http.get<UserPage>(
+            `${this.apiUrl}/users/registered`,
             { params }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
@@ -182,7 +196,7 @@ export class UserService {
         );
     }
 
-    
+
     /**
      * Change password for the current authenticated user
      */

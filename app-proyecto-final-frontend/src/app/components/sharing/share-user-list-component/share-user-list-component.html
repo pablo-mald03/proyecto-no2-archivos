@@ -1,0 +1,62 @@
+<div class="flex flex-col gap-2">
+  <h3 class="text-xs font-bold text-text-muted uppercase tracking-wider px-1">
+    Personas con acceso
+  </h3>
+
+  <div class="max-h-48 overflow-y-auto rounded-2xl border border-border/50 bg-surface divide-y divide-border/30">
+
+    @if (owner(); as ownerData) {
+    <div class="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-surface-raised/40">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary font-bold text-xs ring-1 ring-primary/20">
+          {{ ownerData.username ? ownerData.username.charAt(0).toUpperCase() : 'P' }}
+        </div>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-semibold text-text">
+            {{ ownerData.username || 'Propietario' }}
+            <span class="text-text-muted font-normal text-[11px]">(Tú)</span>
+          </p>
+          <p class="truncate text-[11px] text-text-muted">{{ ownerData.email }}</p>
+        </div>
+      </div>
+      <span
+        class="shrink-0 rounded-full bg-primary/10 border border-primary/20 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+        Propietario
+      </span>
+    </div>
+    }
+
+    @for (share of shares(); track share.id) {
+    <div class="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-surface-raised/40">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-surface-raised text-text-muted font-bold text-xs ring-1 ring-border/50">
+          {{ (share.granteeUsername || share.granteeEmail || 'U').charAt(0).toUpperCase() }}
+        </div>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-semibold text-text">
+            {{ share.granteeUsername || 'Usuario' }}
+          </p>
+          <p class="truncate text-[11px] text-text-muted">{{ share.granteeEmail }}</p>
+        </div>
+      </div>
+
+      <!-- Custom dropdown implementation for each list item -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <div class="w-36">
+          <app-custom-dropdown [options]="roleOptions" optionKey="value" optionLabel="label"
+            [control]="getRoleControl(share)" size="sm" />
+        </div>
+      </div>
+    </div>
+    }
+
+    @if (shares().length === 0 && !owner()) {
+    <div class="p-4 text-center text-xs text-text-muted">
+      Aún no se ha compartido con ningún usuario.
+    </div>
+    }
+
+  </div>
+</div>

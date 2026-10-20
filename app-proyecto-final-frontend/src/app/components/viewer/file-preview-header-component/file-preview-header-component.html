@@ -93,6 +93,11 @@
       <ng-icon [svg]="lucideExternalLinkIcon" size="20" />
     </button>
 
+    @if (canShare()) {
+    <app-custom-button label="Compartir" size="sm" variant="secondary" [bordered]="true"
+      [icon]="lucideShareIcon" (clicked)="share.emit()" />
+    }
+
     <app-custom-button label="Descargar" size="sm" [icon]="lucideDownloadIcon" (clicked)="download.emit()" />
   </div>
 </header>

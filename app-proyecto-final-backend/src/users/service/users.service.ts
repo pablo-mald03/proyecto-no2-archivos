@@ -112,6 +112,18 @@ export class UsersService {
     return PageResponseDto.of(items, total, query);
   }
 
+   /*Principal method to fetch all registered users */
+  async findAllUsers(query: ListUsersQueryDto): Promise<PageResponseDto<UserResponseDto>> {
+    const role = await this.roles.getByCodeOrFail('USER');
+    const { content, total } = await this.users.findPage(
+      { search: query.search, isActive: query.isActive, roleId: role?._id }, query);
+
+    const roleMap = await this.roles.getMapByIds([...new Set(content.map((u) => u.roleId.toString()))]);
+    const items = content.map((u) => UserMapper.toResponse(u, this.roleOf(roleMap, u)));
+    return PageResponseDto.of(items, total, query);
+  }
+
+
   /*Principal method to fetch an user by id*/
   async findById(id: string): Promise<UserDetailResponseDto> {
     const user = await this.getOrFail(id);

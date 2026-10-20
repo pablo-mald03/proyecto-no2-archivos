@@ -6,6 +6,7 @@ import { Location } from '@angular/common';
 import { FilePreviewHeaderComponent } from '../file-preview-header-component/file-preview-header-component';
 import { FilePreviewContentComponent } from '../file-preview-content-component/file-preview-content-component';
 import { FileCommentsPanelComponent } from '../file-comments-panel-component/file-comments-panel-component';
+import { ShareModalComponent } from '../../sharing/share-modal-component/share-modal-component';
 
 import { FileService } from '../../../features/files/service/file.service';
 import { CommentService } from '../../../features/comments/service/comment.service';
@@ -28,7 +29,8 @@ import { AuthUser } from '../../../features/auth/models/aut-user.model';
     ReactiveFormsModule,
     FilePreviewHeaderComponent,
     FilePreviewContentComponent,
-    FileCommentsPanelComponent
+    FileCommentsPanelComponent,
+    ShareModalComponent
   ],
   templateUrl: './file-preview-layout-component.html',
   styleUrl: './file-preview-layout-component.css',
@@ -78,6 +80,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   readonly zoomLevel = signal<number>(100);
   readonly isEditMode = signal<boolean>(false);
   readonly isCommentsOpen = signal<boolean>(false);
+  readonly isShareModalOpen = signal<boolean>(false);
 
   // Editable local content signal synced with control
   readonly editableContent = signal<string>('');
@@ -308,6 +311,10 @@ export class FilePreviewLayoutComponent implements OnInit {
     return this.isOwner() ? 'EDITOR' : this.activeAccessLevel();
   });
 
+  readonly canShare = computed(() => {
+    return this.isOwner() || this.displayAccessLevel() === 'EDITOR';
+  });
+
   @HostListener('document:keydown.escape')
   onKeydownHandler(): void {
     if (this.isOpen()) {
@@ -514,5 +521,14 @@ export class FilePreviewLayoutComponent implements OnInit {
         }
       }
     }
+  }
+
+  // Share modal handlers
+  openShareModal(): void {
+    this.isShareModalOpen.set(true);
+  }
+
+  closeShareModal(): void {
+    this.isShareModalOpen.set(false);
   }
 }

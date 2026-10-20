@@ -1,0 +1,22 @@
+<app-custom-modal-component [isOpen]="isOpen()" [title]="'Compartir \'' + resourceName() + '\''"
+  [subtitle]="resourceType() === 'folders' ? 'Administra quién tiene acceso a esta carpeta' : 'Administra quién tiene acceso a este archivo'"
+  maxWidth="lg" (closed)="close()">
+
+  <div class="flex flex-col gap-4 text-text">
+
+    <app-share-user-search-component (userSelected)="handleUserSelected($event)" />
+
+    <app-share-user-list-component [shares]="userShares()" [owner]="ownerInfo()"
+      [currentUserId]="currentUser()?.id ?? null" (accessChanged)="handleAccessChanged($event)"
+      (revokeAccess)="handleRevokeAccess($event)" />
+
+    <app-share-general-access-component [anyUserShare]="anyUserShare()" [resourceShareUrl]="resourceShareUrl()"
+      (generalAccessChanged)="handleGeneralAccessChanged($event)" (copyLinkClicked)="copyShareLink()" />
+
+    <div class="flex items-center justify-end gap-2 pt-2">
+      <app-custom-button label="Listo" (clicked)="close()" />
+    </div>
+
+  </div>
+
+</app-custom-modal-component>

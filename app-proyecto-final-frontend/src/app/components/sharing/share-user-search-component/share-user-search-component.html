@@ -1,0 +1,91 @@
+<div class="relative flex flex-col gap-3">
+
+  @if (!selectedUser()) {
+  <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+    <div class="relative flex-1">
+      <app-custom-textfield label="" placeholder="Agregar personas por nombre, usuario o correo..."
+        [control]="searchControl" [clearable]="true" [icon]="lucideSearchIcon" size="md" />
+
+      @if (isDropdownOpen() && searchControl.value.trim().length > 0) {
+      <div
+        class="absolute left-0 right-0 top-full mt-1.5 z-40 max-h-60 overflow-y-auto rounded-2xl border border-border/80 bg-surface/95 backdrop-blur-xl shadow-2xl divide-y divide-border/30">
+        @if (searching()) {
+        <div class="flex items-center justify-center gap-2 p-4 text-xs text-text-muted">
+          <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
+          <span>Buscando usuarios...</span>
+        </div>
+        } @else if (searchResults().length === 0) {
+        <div class="p-4 text-center text-xs text-text-muted">
+          No se encontraron usuarios con el rol estándar.
+        </div>
+        } @else {
+        @for (user of searchResults(); track user.id) {
+        <div (click)="selectUser(user)"
+          class="flex items-center justify-between gap-3 p-3 transition-colors hover:bg-primary/10 cursor-pointer group">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/20 text-primary font-bold text-xs ring-1 ring-primary/20">
+              {{ user.firstName ? user.firstName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase() }}
+            </div>
+            <div class="min-w-0">
+              <p class="truncate text-xs font-semibold text-text group-hover:text-primary transition-colors">
+                {{ user.firstName }} {{ user.lastName }}
+                <span class="text-text-muted font-normal text-[11px]">(@{{ user.username }})</span>
+              </p>
+              <p class="truncate text-[11px] text-text-muted">{{ user.email }}</p>
+            </div>
+          </div>
+          <span class="shrink-0 text-[10px] font-semibold text-primary/80 group-hover:text-primary">
+            Seleccionar
+          </span>
+        </div>
+        }
+        }
+      </div>
+      }
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+      <div class="w-44">
+        <app-custom-dropdown [options]="sortPresets" optionKey="id" optionLabel="label" [control]="presetControl"
+          [icon]="lucideArrowUpDownIcon" size="md" />
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (selectedUser(); as user) {
+  <div
+    class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-3.5 animate-in fade-in zoom-in-95 duration-200">
+    <div class="flex items-center gap-2.5 min-w-0">
+      <div
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-white font-bold text-xs shadow-md">
+        {{ user.firstName ? user.firstName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase() }}
+      </div>
+      <div class="min-w-0">
+        <p class="truncate text-xs font-bold text-text">
+          {{ user.firstName }} {{ user.lastName }}
+          <span class="text-text-muted font-normal text-[11px]">(@{{ user.username }})</span>
+        </p>
+        <p class="truncate text-[11px] text-text-muted">{{ user.email }}</p>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
+      <div class="w-36">
+        <app-custom-dropdown [options]="accessOptions" optionKey="value" optionLabel="label" [control]="accessControl"
+          size="sm" />
+      </div>
+
+      <app-custom-button label="Compartir" size="sm" [icon]="lucideUserPlusIcon" (clicked)="confirmShare()" />
+
+      <button type="button" (click)="clearSelectedUser()"
+        class="rounded-xl p-2 text-text-muted hover:bg-surface-raised hover:text-text transition-colors"
+        title="Cancelar selección">
+        <ng-icon [svg]="lucideXIcon" size="16" />
+      </button>
+    </div>
+  </div>
+  }
+
+</div>

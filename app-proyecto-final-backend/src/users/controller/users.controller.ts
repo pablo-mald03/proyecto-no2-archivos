@@ -55,6 +55,15 @@ export class UsersController {
     return this.users.findAll(query);
   }
 
+  @Public()
+  @Get('registered')
+  @ApiOperation({ summary: 'List all registered users at the system with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedUsersResponseDto })
+  findAllUsers(@Query() query: ListUsersQueryDto) {
+    return this.users.findAllUsers(query);
+  }
+
+
   @Get('profile')
   @ApiOperation({ summary: 'Get the full profile of the current user' })
   profile(@CurrentUser() actor: AuthUser) {
