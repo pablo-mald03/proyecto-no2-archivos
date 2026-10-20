@@ -7,10 +7,11 @@ import { DriveMobileSidebar } from '../../components/drive/drive-mobile-sidebar/
 import { ToastService } from '../../core/services/toast.service';
 import { ErrorResponse } from '../../features/errors/models/error-response.model';
 import { DriveActionService } from '../../core/services/drive-action.service';
+import { DriveUploadWidgetComponent } from '../../components/files/drive-upload-widget-component/drive-upload-widget-component';
 
 @Component({
   selector: 'app-user-layout',
-  imports: [RouterOutlet, Topbar, DriveSidebar, DriveMobileSidebar],
+  imports: [RouterOutlet, Topbar, DriveSidebar, DriveMobileSidebar, DriveUploadWidgetComponent],
   templateUrl: './user-layout.html',
   styleUrl: './user-layout.css',
 })

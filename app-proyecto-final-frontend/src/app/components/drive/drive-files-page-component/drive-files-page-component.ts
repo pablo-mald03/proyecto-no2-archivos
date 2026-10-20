@@ -4,7 +4,6 @@ import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
-import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { ToastService } from '../../../core/services/toast.service';
 import { DriveItem, mapFileToDriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
@@ -20,6 +19,7 @@ import { FolderService } from '../../../features/folders/service/folder.service'
 import { TrashService } from '../../../features/trash/service/trash.service';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { FileUploadQueueService } from '../../../features/files/service/file-upload-queue.service';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -52,6 +52,7 @@ export class DriveFilesPageComponent implements OnInit {
   private readonly folderService = inject(FolderService);
   private readonly fileService = inject(FileService);
   private readonly trashService = inject(TrashService);
+  private readonly uploadQueueService = inject(FileUploadQueueService);
 
   // Filters State
   readonly filtersExpanded = signal(false);
@@ -129,6 +130,12 @@ export class DriveFilesPageComponent implements OnInit {
       this.currentFolderId.set(folderId);
       this.loadFolderContent(folderId);
     });
+
+    this.uploadQueueService.fileUploaded$.subscribe(uploaded => {
+      if (uploaded.folderId === this.currentFolderId()) {
+        this.loadFolderContent(this.currentFolderId());
+      }
+    });
   }
 
   // Fetch real items for the current folder from api
@@ -196,19 +203,11 @@ export class DriveFilesPageComponent implements OnInit {
     this.isUploadModalOpen.set(false);
   }
 
-  // Upload real file to the backend
-  handleFileUpload(file: File): void {
+  // Enqueue files for sequential background upload
+  handleFilesUpload(files: File[]): void {
     const parentId = this.currentFolderId();
-    this.fileService.uploadFiles([file], parentId).subscribe({
-      next: () => {
-        this.toastService.success(`Archivo '${file.name}' subido con éxito.`, 'Subida completada');
-        this.closeUploadModal();
-        this.loadFolderContent(parentId);
-      },
-      error: (err: ErrorResponse) => {
-        this.toastService.error(err.message || 'Error al subir el archivo.', 'Error');
-      }
-    });
+    this.uploadQueueService.enqueueFiles(files, parentId);
+    this.closeUploadModal();
   }
 
   // Drag and Drop move handler

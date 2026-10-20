@@ -1,7 +1,7 @@
 import { catchError, Observable, throwError } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { API_URL } from "../../../core/config/api.config";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse, HttpEvent, HttpParams } from "@angular/common/http";
 import { ErrorResponse } from "../../errors/models/error-response.model";
 import { FileResponse } from "../models/response/file-response.model";
 import { UpdateFileContentRequest } from "../models/request/update-file-content-request.model";
@@ -18,21 +18,29 @@ export class FileService {
 
     private readonly apiUrl = inject(API_URL);
 
-    //Method to upload one or multiple .txt and .md files
-    uploadFiles(files: File[], folderId?: string | null): Observable<FileResponse[]> {
+    //Method to upload one or multiple .txt and .md files with progress reporting
+    uploadFiles(
+        files: File[],
+        folderId?: string | null
+    ): Observable<HttpEvent<FileResponse[]>> {
         const formData = new FormData();
 
         files.forEach((file) => {
             formData.append('files', file);
         });
 
-        if (folderId) {
-            formData.append('folderId', folderId);
-        }
+        const params = (folderId && folderId.trim())
+            ? new HttpParams().set('folderId', folderId.trim())
+            : undefined;
 
         return this.http.post<FileResponse[]>(
             `${this.apiUrl}/files/upload`,
-            formData
+            formData,
+            {
+                params,
+                observe: 'events',
+                reportProgress: true,
+            }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))

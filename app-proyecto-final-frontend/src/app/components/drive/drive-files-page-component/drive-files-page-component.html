@@ -79,7 +79,7 @@
   }
 
   <app-upload-file-modal-component [isOpen]="isUploadModalOpen()" (closed)="closeUploadModal()"
-    (fileUploaded)="handleFileUpload($event)" />
+    (filesUploaded)="handleFilesUpload($event)" />
 
   <app-folder-modal-component [isOpen]="isFolderModalOpen()" [mode]="folderModalMode()" [itemType]="folderItemType()"
     [initialName]="folderInitialName()" (closed)="closeFolderModal()" (submitted)="handleFolderSubmit($event)" />
