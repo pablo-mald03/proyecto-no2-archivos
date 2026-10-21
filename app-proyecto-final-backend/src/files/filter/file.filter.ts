@@ -9,6 +9,7 @@ export interface FileFilter {
     search?: string;
     from?: Date;
     to?: Date;
+    dateField?: 'createdAt' | 'updatedAt';
     minSize?: number;
     maxSize?: number;
 }

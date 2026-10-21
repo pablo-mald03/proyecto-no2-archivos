@@ -20,6 +20,8 @@ import { RenameFileDto } from '../dto/request/rename-file.dto';
 import { FileNameConflictException } from '../exceptions/file-name-conflict.exception';
 import { MoveFileDto } from '../dto/request/move-file.dto';
 import { FileNotFoundException } from '../exceptions/file-not-found.exception';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { RecentFilesQueryDto } from '../dto/request/recent-files-query.dto';
 
 
 /*Principal files service class*/
@@ -115,10 +117,28 @@ export class FilesService {
     }
   }
 
-  /*Method to find recent files of the current user*/
-  async findRecent(actor: AuthUser, limit = 20): Promise<FileResponseDto[]> {
-    const files = await this.filesRepository.findRecent(actor.id, limit);
-    return files.map((file) => FileMapper.toResponse(file));
+  /*Method to find recent files of the current user with pagination and filters*/
+  async findRecent(actor: AuthUser, query: RecentFilesQueryDto): Promise<PageResponseDto<FileResponseDto>> {
+    const { content, total } = await this.filesRepository.findPage(
+      {
+        ownerId: actor.id,
+        isDeleted: false,
+        search: query.search,
+        extension: query.extension,
+        from: query.from,
+        to: query.to,
+        dateField: query.sortBy === 'updatedAt' ? 'updatedAt' : 'createdAt',
+      },
+      {
+        page: query.page,
+        size: query.size,
+        sortBy: query.sortBy,
+        direction: query.direction,
+      },
+    );
+
+    const items = content.map((file) => FileMapper.toResponse(file));
+    return PageResponseDto.of(items, total, query);
   }
 
   /*Principal method to find a file*/

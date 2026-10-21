@@ -155,9 +155,10 @@ export class FilesRepository {
       if (filter.maxSize !== undefined) q.sizeBytes.$lte = filter.maxSize;
     }
     if (filter.from || filter.to) {
-      q.createdAt = {};
-      if (filter.from) q.createdAt.$gte = filter.from;
-      if (filter.to) q.createdAt.$lte = filter.to;
+      const field = filter.dateField || 'createdAt';
+      q[field] = {};
+      if (filter.from) q[field].$gte = filter.from;
+      if (filter.to) q[field].$lte = filter.to;
     }
     return q;
   }

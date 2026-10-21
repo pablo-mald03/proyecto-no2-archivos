@@ -19,7 +19,8 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/users/models/auth-user.model';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
 import { FilesService } from '../service/files.service';
-import { FileResponseDto } from '../dto/response/file-response.dto';
+import { FileResponseDto, PaginatedFilesResponseDto } from '../dto/response/file-response.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
 import { UpdateFileContentDto } from '../dto/request/update-file-content.dto';
 import { RenameFileDto } from '../dto/request/rename-file.dto';
 import { MoveFileDto } from '../dto/request/move-file.dto';
@@ -48,13 +49,13 @@ export class FilesController {
 
   //Endpoint to get recent active files of the current user
   @Get('recent')
-  @ApiOperation({ summary: 'List recent active files of the current user' })
-  @ApiOkResponse({ type: [FileResponseDto] })
+  @ApiOperation({ summary: 'List recent active files of the current user with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedFilesResponseDto })
   findRecent(
     @CurrentUser() actor: AuthUser,
     @Query() query: RecentFilesQueryDto,
-  ): Promise<FileResponseDto[]> {
-    return this.filesService.findRecent(actor, query.limit);
+  ): Promise<PageResponseDto<FileResponseDto>> {
+    return this.filesService.findRecent(actor, query);
   }
 
   //Endpoint to get file metadata by ID
