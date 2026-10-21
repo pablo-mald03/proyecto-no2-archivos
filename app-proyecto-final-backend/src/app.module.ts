@@ -21,6 +21,7 @@ import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReportUsersModule } from './report-users/report-users.module';
 import { ReportSharesModule } from './report-shares/report-shares.module';
+import { ReportFoldersModule } from './report-folders/report-folders.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { ReportSharesModule } from './report-shares/report-shares.module';
     CommentsModule,
     ReportUsersModule,
     ReportSharesModule,
+    ReportFoldersModule,
   ],
   providers: [
     AppService,

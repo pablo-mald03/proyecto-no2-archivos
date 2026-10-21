@@ -1,0 +1,28 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" (click)="goBack()" aria-label="Volver"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-text">Reportes de Usuarios</h1>
+                <p class="mt-1 text-sm text-text-muted">Selecciona el reporte que deseas consultar.</p>
+            </div>
+        </div>
+    </div>
+
+    @if (sections().length === 0) {
+    <app-custom-alert type="info" title="Sin reportes disponibles"
+        message="Tu usuario no tiene permisos para consultar ningún reporte de inventario." />
+    } @else {
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        @for (section of sections(); track section.route) {
+        <app-report-card [title]="section.title" [description]="section.description" [icon]="section.icon"
+            [accentClass]="section.accentClass" [route]="section.route" [disabled]="section.disabled ?? false" />
+        }
+    </div>
+    }
+
+</div>

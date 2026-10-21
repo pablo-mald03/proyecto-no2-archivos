@@ -35,6 +35,9 @@ import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-p
 import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
 import { TrashPage } from './components/pages/trash-page/trash-page';
 import { SharedWithMePage } from './components/pages/shared-with-me-page/shared-with-me-page';
+import { ReportSharedPage } from './components/pages/report-shared-page/report-shared-page';
+import { ReportUsersPage } from './components/pages/report-users-page/report-users-page';
+import { ReportFilesPage } from './components/pages/report-files-page/report-files-page';
 
 export const routes: Routes = [
 
@@ -103,6 +106,99 @@ export const routes: Routes = [
         children: [
             { path: '', component: DashboardHome },
             { path: 'profile', component: ProfileComponent },
+
+             //REPORTS
+            {
+                path: 'reports',
+                canActivate: [
+                    permissionGuard
+                ],
+                data: {
+                    permission: 'REPORTS_VIEW'
+                },
+                children: [
+
+                    {
+                        path: 'users',
+                        component: ReportUsersPage,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_VIEW' }
+                    },
+                    // {
+                    //     path: 'users/lowest-stock',
+                    //     component: ReportLowestStockComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:productos_menor_existencia' }
+                    // },
+                    // {
+                    //     path: 'users/top-sold',
+                    //     component: ReportTopSoldComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:top_productos_vendidos' }
+                    // },
+                    // {
+                    //     path: 'users/product-movements',
+                    //     component: ReportProductMovementComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:productos_mayor_movimiento' }
+                    // },
+                    // {
+                    //     path: 'users/most-product-movements',
+                    //     component: ReportMostMovementComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:historial_movimientos_producto' }
+                    // },
+                    {
+                        path: 'sharing',
+                        component: ReportSharedPage,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_VIEW' }
+                    },
+                    // {
+                    //     path: 'sharing/top-providers',
+                    //     component: ReportTopProviderComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:top_proveedores' }
+                    // },
+                    // {
+                    //     path: 'sharing/most-purchased-products',
+                    //     component: ReportMostPurchasedProductsComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:productos_mas_adquiridos' }
+                    // },
+                    // {
+                    //     path: 'sharing/date-interval',
+                    //     component: ReportPurchaseDateIntervalComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:compras_rango_fechas' }
+                    // },
+                    {
+                        path: 'folders',
+                        component: ReportFilesPage,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_VIEW' }
+                    },
+                    // {
+                    //     path: 'files/top-customers',
+                    //     component: ReportCustomerComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:top_clientes' }
+                    // },
+                    // {
+                    //     path: 'files/top-products-by-revenue',
+                    //     component: ReportToProductByRevenueComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:top_productos_ingresos' }
+                    // },
+                    // {
+                    //     path: 'files/summary',
+                    //     component: ReportSalesSummaryByPeriodComponent,
+                    //     canActivate: [permissionGuard],
+                    //     data: { permission: 'reportes:resumen_ventas_periodo' }
+                    // },
+                ]
+
+            },
             {
                 path: 'activity',
                 canActivate: [
