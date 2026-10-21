@@ -3,6 +3,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ClientSession, Model, Types } from 'mongoose';
 import { FolderDocument, FolderEntity } from '../entities/folder.entity';
 
+import { PageRequest } from 'src/common/types/page-request';
+import { escapeRegex } from 'src/common/utils/escape-regex';
+import { FolderFilter } from '../filter/folder-filter';
+
 //Principal folders repository class
 @Injectable()
 export class FoldersRepository {
@@ -42,6 +46,34 @@ export class FoldersRepository {
       .sort({ name: 1 })
       .session(session || null)
       .exec();
+  }
+
+  //Method to find a page of folders with filter and pagination
+  async findPage(filter: FolderFilter, page: PageRequest): Promise<{ content: FolderDocument[]; total: number }> {
+    const mongoFilter: any = {
+      ownerId: new Types.ObjectId(filter.ownerId),
+      parentId: filter.parentId !== undefined ? (filter.parentId ? new Types.ObjectId(filter.parentId) : null) : undefined,
+      isDeleted: filter.isDeleted !== undefined ? filter.isDeleted : false,
+    };
+
+    if (filter.search) {
+      mongoFilter.name = { $regex: escapeRegex(filter.search), $options: 'i' };
+    }
+
+    const sortField = page.sortBy === 'sizeBytes' ? 'name' : page.sortBy;
+    const dir = page.direction === 'asc' ? 1 : -1;
+
+    const [content, total] = await Promise.all([
+      this.model
+        .find(mongoFilter)
+        .sort({ [sortField]: dir, _id: dir })
+        .skip(page.page * page.size)
+        .limit(page.size)
+        .exec(),
+      this.model.countDocuments(mongoFilter).exec(),
+    ]);
+
+    return { content, total };
   }
 
   //Method to check if there is an active sibling folder by name

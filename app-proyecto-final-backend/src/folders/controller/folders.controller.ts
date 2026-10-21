@@ -5,12 +5,14 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FoldersService } from '../service/folders.service';
 import { CreateFolderDto } from '../dto/request/create-folder.dto';
 import { RenameFolderDto } from '../dto/request/rename-folder.dto';
 import { MoveFolderDto } from '../dto/request/move-folder.dto';
+import { ListFolderContentQueryDto } from '../dto/request/list-folder-content-query.dto';
 import { FolderResponseDto } from '../dto/response/folder-response.dto';
 import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
@@ -37,23 +39,27 @@ export class FoldersController {
     return this.foldersService.create(dto, actor);
   }
 
-  /*Endpoint to list contents of the virtual root folder */
+  /*Endpoint to list contents of the virtual root folder with filters and pagination*/
   @Get('root')
-  @ApiOperation({ summary: 'List contents of the virtual root folder' })
+  @ApiOperation({ summary: 'List contents of the virtual root folder with filters and pagination' })
   @ApiOkResponse({ type: FolderContentResponseDto })
-  findRootContent(@CurrentUser() actor: AuthUser): Promise<FolderContentResponseDto> {
-    return this.foldersService.findContent(null, actor);
+  findRootContent(
+    @CurrentUser() actor: AuthUser,
+    @Query() query: ListFolderContentQueryDto,
+  ): Promise<FolderContentResponseDto> {
+    return this.foldersService.findContent(null, actor, query);
   }
 
-  /*Endpoint to list content of a folder*/
+  /*Endpoint to list content of a folder with filters and pagination*/
   @Get(':id/content')
-  @ApiOperation({ summary: 'List content of a folder' })
+  @ApiOperation({ summary: 'List content of a folder with filters and pagination' })
   @ApiOkResponse({ type: FolderContentResponseDto })
   findFolderContent(
     @Param('id', ParseObjectIdPipe) id: string,
     @CurrentUser() actor: AuthUser,
+    @Query() query: ListFolderContentQueryDto,
   ): Promise<FolderContentResponseDto> {
-    return this.foldersService.findContent(id, actor);
+    return this.foldersService.findContent(id, actor, query);
   }
 
   /*Endpoint to get folder details*/

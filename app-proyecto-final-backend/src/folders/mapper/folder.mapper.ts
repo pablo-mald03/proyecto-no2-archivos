@@ -3,6 +3,7 @@ import { FolderResponseDto } from '../dto/response/folder-response.dto';
 import { FolderBreadcrumbDto } from '../dto/response/folder-breadcrum-response.dto';
 import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
 import { FileResponseDto } from 'src/files/dto/response/file-response.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
 
 /*Principal folder mapper class*/
 export class FolderMapper {
@@ -20,17 +21,18 @@ export class FolderMapper {
     };
   }
 
-  /*Principal mapper for Entitys to domain DTOs*/
-  static toContentResponse(currentFolder: FolderDocument | null,
+  /*Principal mapper for paginated entities to domain content response DTO*/
+  static toPaginatedContentResponse(
+    currentFolder: FolderDocument | null,
     breadcrumbs: FolderBreadcrumbDto[],
-    folders: FolderDocument[],
-    files: FileResponseDto[] = []): FolderContentResponseDto {
-
+    foldersPage: PageResponseDto<FolderResponseDto>,
+    filesPage: PageResponseDto<FileResponseDto>,
+  ): FolderContentResponseDto {
     return {
       currentFolder: currentFolder ? FolderMapper.toResponse(currentFolder) : null,
       breadcrumbs,
-      folders: folders.map((f) => FolderMapper.toResponse(f)),
-      files,
+      folders: foldersPage,
+      files: filesPage,
     };
   }
 }

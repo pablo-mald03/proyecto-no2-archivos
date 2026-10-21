@@ -1,4 +1,4 @@
-<section class="space-y-8 pb-6">
+<section class="flex flex-col shrink-0 min-h-full space-y-8 pb-6">
 
     <header>
         <h1 class="text-2xl font-bold text-text">Hola, {{ firstName() }}</h1>
@@ -18,7 +18,7 @@
         }
     </div>
 
-    <div class="space-y-4 pt-4">
+    <div class="flex flex-1 flex-col space-y-4 pt-4">
         <div class="flex items-center justify-between">
             <h2 class="text-lg font-semibold text-text">Archivos recientes</h2>
 
@@ -30,15 +30,18 @@
         </div>
 
         @if (loadingRecent()) {
-        <app-empty-state-component [loading]="true" loadingText="Cargando tus archivos recientes..." />
+        <app-empty-state-component class="block flex-1" [loading]="true"
+            loadingText="Cargando tus archivos recientes..." />
         } @else if (recentItems().length > 0) {
-        <app-drive-item-list-component [items]="recentItems()" (shareClicked)="onShare($event)"
-            (previewClicked)="onPreview($event)" (downloadClicked)="onDownload($event)"
-            (deleteClicked)="onDelete($event)" (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)"
+        <app-drive-item-list-component class="block flex-1" [items]="recentItems()"
+            (shareClicked)="onShare($event)" (previewClicked)="onPreview($event)"
+            (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)"
+            (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)"
             (itemDoubleClicked)="onOpenItem($event)" (itemClicked)="onOpenItem($event)"
             (itemDropped)="handleItemDrop($event)" />
         } @else {
-        <app-empty-state-component [icon]="lucideHistoryIcon" title="Nada por aquí últimamente"
+        <app-empty-state-component class="block flex-1" [icon]="lucideHistoryIcon"
+            title="Nada por aquí últimamente"
             description="Los archivos que abras, edites o subas recientemente aparecerán en este espacio para un acceso rápido.">
 
             <a routerLink="/drive/files"

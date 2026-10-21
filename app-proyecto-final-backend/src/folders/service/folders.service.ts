@@ -8,6 +8,7 @@ import { AuthUser } from 'src/users/models/auth-user.model';
 import { CreateFolderDto } from '../dto/request/create-folder.dto';
 import { RenameFolderDto } from '../dto/request/rename-folder.dto';
 import { MoveFolderDto } from '../dto/request/move-folder.dto';
+import { ListFolderContentQueryDto } from '../dto/request/list-folder-content-query.dto';
 import { FolderResponseDto } from '../dto/response/folder-response.dto';
 import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
 import { FolderMapper } from '../mapper/folder.mapper';
@@ -18,6 +19,7 @@ import { ActivityAction } from 'src/common/constants/actions/activity-action';
 import { ResourceType } from 'src/common/constants/actions/resource-type';
 import { FilesRepository } from 'src/files/repository/files.repository';
 import { FileMapper } from 'src/files/mapper/file.mapper';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
 
 /* Principal folder service */
 @Injectable()
@@ -59,8 +61,12 @@ export class FoldersService {
     return FolderMapper.toResponse(created);
   }
 
-  /*Principal method to find the content of a folder*/
-  async findContent(folderId: string | null, actor: AuthUser): Promise<FolderContentResponseDto> {
+  /*Principal method to find the content of a folder with filters and pagination*/
+  async findContent(
+    folderId: string | null,
+    actor: AuthUser,
+    query: ListFolderContentQueryDto,
+  ): Promise<FolderContentResponseDto> {
     let currentFolder = null;
     let breadcrumbs: any[] = [];
     const ownerId = new Types.ObjectId(actor.id);
@@ -72,16 +78,63 @@ export class FoldersService {
     }
 
     const targetParentOid = folderId ? new Types.ObjectId(folderId) : null;
-    const [childrenFolders, childrenFiles] = await Promise.all([
-      this.foldersRepository.findActiveChildren(ownerId, targetParentOid),
-      this.filesRepository.findActiveByFolder(ownerId, targetParentOid),
-    ]);
+    const shouldFetchFolders = query.type === 'ALL' || query.type === 'FOLDERS_ONLY';
+    const shouldFetchFiles = query.type === 'ALL' || query.type === 'FILES_ONLY';
 
-    return FolderMapper.toContentResponse(
+    const foldersPromise = shouldFetchFolders
+      ? this.foldersRepository.findPage(
+        {
+          ownerId,
+          parentId: targetParentOid,
+          search: query.search,
+          isDeleted: false,
+        },
+        {
+          page: query.page,
+          size: query.size,
+          sortBy: query.sortBy,
+          direction: query.direction,
+        },
+      )
+      : Promise.resolve({ content: [], total: 0 });
+
+    const filesPromise = shouldFetchFiles
+      ? this.filesRepository.findPage(
+        {
+          ownerId,
+          folderId: targetParentOid,
+          search: query.search,
+          extension: query.extension,
+          isDeleted: false,
+        },
+        {
+          page: query.page,
+          size: query.size,
+          sortBy: query.sortBy,
+          direction: query.direction,
+        },
+      )
+      : Promise.resolve({ content: [], total: 0 });
+
+    const [foldersResult, filesResult] = await Promise.all([foldersPromise, filesPromise]);
+
+    const foldersPage = PageResponseDto.of(
+      foldersResult.content.map((f) => FolderMapper.toResponse(f)),
+      foldersResult.total,
+      query,
+    );
+
+    const filesPage = PageResponseDto.of(
+      filesResult.content.map((f) => FileMapper.toResponse(f)),
+      filesResult.total,
+      query,
+    );
+
+    return FolderMapper.toPaginatedContentResponse(
       currentFolder,
       breadcrumbs,
-      childrenFolders,
-      childrenFiles.map((f) => FileMapper.toResponse(f)),
+      foldersPage,
+      filesPage,
     );
   }
 
