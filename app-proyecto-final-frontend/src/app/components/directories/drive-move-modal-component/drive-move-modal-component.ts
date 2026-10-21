@@ -61,7 +61,8 @@ export class DriveMoveModalComponent {
 
     request$.subscribe({
       next: (response) => {
-        const folders: DriveItem[] = (response.folders || []).map(f => mapFolderToDriveItem(f));
+        const folderList = Array.isArray(response.folders) ? response.folders : (response.folders?.content || []);
+        const folders: DriveItem[] = folderList.map(f => mapFolderToDriveItem(f));
         const activeItem = this.itemToMove();
         // Prevent moving a folder inside itself
         const filtered = folders.filter(f => f.id !== activeItem?.id);

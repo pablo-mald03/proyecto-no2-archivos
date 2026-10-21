@@ -28,6 +28,9 @@ export class DriveItemRow {
   readonly isSelected = input(false);
   readonly mode = input<'default' | 'trash' | 'shared'>('default');
 
+  readonly dateFormat = 'dd MMM y, HH:mm';
+
+  
   // Computed access level label for shared items
   readonly accessLabel = computed(() => {
     const access = this.item().access;

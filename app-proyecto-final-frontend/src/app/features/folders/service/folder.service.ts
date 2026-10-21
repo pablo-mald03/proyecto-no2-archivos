@@ -1,13 +1,14 @@
 import { catchError, Observable, throwError } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { API_URL } from "../../../core/config/api.config";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { ErrorResponse } from "../../errors/models/error-response.model";
 import { CreateFolderRequest } from "../models/request/create-folder-request.model";
 import { RenameFolderRequest } from "../models/request/rename-folder-request.model";
 import { MoveFolderRequest } from "../models/request/move-folder-request.model";
 import { FolderResponse } from "../models/response/folder-response.model";
 import { FolderContentResponse } from "../models/response/folder-content-response.model";
+import { ListFolderContentQueryParams } from "../models/request/list-folder-content-query.model";
 
 @Injectable({
     providedIn: 'root'
@@ -32,10 +33,26 @@ export class FolderService {
         );
     }
 
-    //Method to list contents of the virtual root folder
-    findRootContent(): Observable<FolderContentResponse> {
+    //Build query params for folder content listing
+    private buildQueryParams(queryParams: ListFolderContentQueryParams = {}): HttpParams {
+        let params = new HttpParams()
+            .set('page', queryParams.page ?? 0)
+            .set('size', queryParams.size ?? 10)
+            .set('sortBy', queryParams.sortBy ?? 'name')
+            .set('direction', queryParams.direction ?? 'desc');
+
+        if (queryParams.search) params = params.set('search', queryParams.search);
+        if (queryParams.type && queryParams.type !== 'ALL') params = params.set('type', queryParams.type);
+        if (queryParams.extension) params = params.set('extension', queryParams.extension);
+
+        return params;
+    }
+
+    //Method to list contents of the virtual root folder with filters and pagination
+    findRootContent(queryParams: ListFolderContentQueryParams = {}): Observable<FolderContentResponse> {
         return this.http.get<FolderContentResponse>(
-            `${this.apiUrl}/folders/root`
+            `${this.apiUrl}/folders/root`,
+            { params: this.buildQueryParams(queryParams) }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))
@@ -43,15 +60,23 @@ export class FolderService {
         );
     }
 
-    //Method to list contents of a specific folder
-    findFolderContent(id: string): Observable<FolderContentResponse> {
+    //Method to list contents of a specific folder with filters and pagination
+    findFolderContent(id: string, queryParams: ListFolderContentQueryParams = {}): Observable<FolderContentResponse> {
         return this.http.get<FolderContentResponse>(
-            `${this.apiUrl}/folders/${id}/content`
+            `${this.apiUrl}/folders/${id}/content`,
+            { params: this.buildQueryParams(queryParams) }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))
             )
         );
+    }
+
+    //Unified helper method to get content whether root or specific folder
+    getFolderContent(folderId: string | null, queryParams: ListFolderContentQueryParams = {}): Observable<FolderContentResponse> {
+        return folderId
+            ? this.findFolderContent(folderId, queryParams)
+            : this.findRootContent(queryParams);
     }
 
     //Method to get folder details by id

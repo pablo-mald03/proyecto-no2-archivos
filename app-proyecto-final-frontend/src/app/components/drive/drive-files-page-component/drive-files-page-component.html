@@ -1,96 +1,141 @@
-<div class="flex h-full min-h-0 flex-col gap-6">
+<app-custom-infinite-scroll class="block h-full min-h-0" [loading]="loadingMore() || loading()"
+  [hasMore]="hasMore()" [threshold]="200" (loadMore)="loadMore()">
 
-  <div class="flex items-center justify-between">
-    <div>
-      <h2 class="text-xl font-bold text-text">
-        @if (isInsideFolder()) { Contenido } @else { Mis Documentos }
-      </h2>
-    </div>
-    <div class="flex items-center gap-3">
-      <app-custom-button label="Nueva carpeta" variant="secondary" size="md" [icon]="lucideFolderPlusIcon"
-        [bordered]="true" (clicked)="openCreateFolderModal()" />
-      <app-custom-button label="Subir archivo" size="md" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
-    </div>
-  </div>
+  <section class="flex flex-col min-h-full space-y-6 pb-6 pr-2">
 
-  <app-custom-card [hoverable]="false">
-    <button type="button" class="flex w-full items-center justify-between gap-3 text-left"
-      [attr.aria-expanded]="filtersExpanded()" (click)="filtersExpanded.set(!filtersExpanded())">
-
-      <div class="flex min-w-0 items-center gap-3">
-        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <ng-icon [svg]="lucideSlidersHorizontalIcon" size="16" />
-        </div>
-
-        <div class="min-w-0">
-          <h3 class="text-sm font-semibold text-text">
-            Filtros de búsqueda
-          </h3>
-        </div>
+    <!-- Header -->
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex items-baseline gap-3">
+        <h2 class="text-xl font-bold text-text">
+          @if (isInsideFolder()) { {{ currentFolderName() }} } @else { Mis Documentos }
+        </h2>
+        @if (!loading() && totalElements() > 0) {
+        <span class="text-xs text-text-muted">{{ totalElements() }} en total</span>
+        }
       </div>
 
-      <ng-icon [svg]="lucideChevronDownIcon" size="18"
-        class="shrink-0 text-text-muted transition-transform duration-200" [class.rotate-180]="filtersExpanded()" />
-    </button>
-
-    @if (filtersExpanded()) {
-    <div class="mt-4 border-t border-border pt-4">
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <app-custom-textfield label="Filtrar archivos" placeholder="Nombre del archivo..." [control]="searchControl"
-          [icon]="lucideSearchIcon" [clearable]="true" />
+      <div class="flex items-center gap-3">
+        <app-custom-button label="Nueva carpeta" variant="secondary" size="md" [icon]="lucideFolderPlusIcon"
+          [bordered]="true" (clicked)="openCreateFolderModal()" />
+        <app-custom-button label="Subir archivo" size="md" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
       </div>
     </div>
+
+    <!-- Collapsible Filters Card -->
+    <app-custom-card [hoverable]="false">
+      <button type="button" class="flex w-full items-center justify-between gap-3 text-left"
+        [attr.aria-expanded]="filtersExpanded()" (click)="filtersExpanded.set(!filtersExpanded())">
+
+        <div class="flex min-w-0 items-center gap-3">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <ng-icon [svg]="lucideSlidersHorizontalIcon" size="16" />
+          </div>
+
+          <div class="flex min-w-0 items-center gap-2">
+            <h3 class="text-sm font-semibold text-text">
+              Filtros y ordenamiento
+            </h3>
+            @if (hasActiveFilters()) {
+            <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+              Activos
+            </span>
+            }
+          </div>
+        </div>
+
+        <ng-icon [svg]="lucideChevronDownIcon" size="18"
+          class="shrink-0 text-text-muted transition-transform duration-200" [class.rotate-180]="filtersExpanded()" />
+      </button>
+
+      @if (filtersExpanded()) {
+      <div class="mt-4 border-t border-border pt-4">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <app-custom-textfield label="Buscar por nombre" placeholder="Nombre..." [control]="searchControl"
+            [icon]="lucideSearchIcon" [clearable]="true" />
+
+          <app-custom-dropdown label="Mostrar" [options]="typeOptions" optionKey="value" optionLabel="label"
+            [control]="typeControl" />
+
+          <app-custom-dropdown label="Extensión" placeholder="Todas" [options]="extensionOptions" optionKey="value"
+            optionLabel="label" [control]="extensionControl" [clearable]="true" />
+
+          <app-custom-dropdown label="Ordenar por" [options]="sortOptions" optionKey="value" optionLabel="label"
+            [control]="sortByControl" />
+
+          <app-custom-dropdown label="Dirección" [options]="directionOptions" optionKey="value" optionLabel="label"
+            [control]="directionControl" />
+        </div>
+
+        <div class="mt-4 flex justify-end">
+          <app-custom-button label="Limpiar filtros" variant="ghost" size="sm" [icon]="lucideRotateCcwIcon"
+            (clicked)="resetFilters()" />
+        </div>
+      </div>
+      }
+    </app-custom-card>
+
+    <!-- Content / Empty states -->
+    @switch (emptyStateType()) {
+      @case ('loading') {
+      <app-empty-state-component class="block flex-1" [loading]="true" loadingText="Cargando tus documentos..." />
+      }
+
+      @case ('folder-empty') {
+      <app-empty-state-component class="block flex-1" title="Esta carpeta está vacía"
+        description="No hay archivos ni carpetas en este directorio. ¡Sube tu primer archivo o crea una carpeta para comenzar!">
+        <div class="flex items-center gap-2">
+          <app-custom-button label="Nueva carpeta" variant="secondary" size="sm" [icon]="lucideFolderPlusIcon"
+            [bordered]="true" (clicked)="openCreateFolderModal()" />
+          <app-custom-button label="Subir archivo" size="sm" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
+        </div>
+      </app-empty-state-component>
+      }
+
+      @case ('search-empty') {
+      <app-empty-state-component class="block flex-1" title="Sin resultados"
+        description="No encontramos ningún archivo o carpeta que coincida con los filtros seleccionados.">
+        <app-custom-button label="Restablecer filtros" variant="secondary" size="sm" [icon]="lucideRotateCcwIcon"
+          [bordered]="true" (clicked)="resetFilters()" />
+      </app-empty-state-component>
+      }
+
+      @default {
+      <div class="flex flex-col gap-2 min-h-0 flex-1">
+        <div class="flex items-center justify-between px-6 py-2 text-xs font-semibold text-text-muted">
+          <div class="flex-1">Nombre</div>
+          <div class="hidden sm:block w-36">Última modificación</div>
+          <div class="hidden md:block w-24 text-right">Tamaño</div>
+          <div class="w-24 text-right">Acciones</div>
+        </div>
+
+        <app-drive-item-list-component [items]="items()" (shareClicked)="onShare($event)"
+          (previewClicked)="onPreview($event)" (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)"
+          (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)" (itemDoubleClicked)="onOpenItem($event)"
+          (itemClicked)="onOpenItem($event)" (itemDropped)="handleItemDrop($event)" />
+
+        @if (loadingMore()) {
+        <app-empty-state-component [loading]="true" loadingText="Cargando más elementos..." />
+        }
+      </div>
+      }
     }
-  </app-custom-card>
 
+    <!-- Modals -->
+    <app-upload-file-modal-component [isOpen]="isUploadModalOpen()" (closed)="closeUploadModal()"
+      (filesUploaded)="handleFilesUpload($event)" />
 
-  @switch (emptyStateType()) {
-  @case ('loading') {
-  <app-empty-state-component [loading]="true" loadingText="Cargando tus documentos..." />
-  }
+    <app-folder-modal-component [isOpen]="isFolderModalOpen()" [mode]="folderModalMode()" [itemType]="folderItemType()"
+      [initialName]="folderInitialName()" (closed)="closeFolderModal()" (submitted)="handleFolderSubmit($event)" />
 
-  @case ('folder-empty') {
-  <app-empty-state-component title="Esta carpeta está vacía"
-    description="No hay archivos ni carpetas en este directorio. ¡Sube tu primer archivo o crea una carpeta para comenzar!">
-    <div class="flex items-center gap-2">
-      <app-custom-button label="Nueva carpeta" variant="secondary" size="sm" [icon]="lucideFolderPlusIcon"
-        [bordered]="true" (clicked)="openCreateFolderModal()" />
-      <app-custom-button label="Subir archivo" size="sm" [icon]="lucidePlusIcon" (clicked)="openUploadModal()" />
-    </div>
-  </app-empty-state-component>
-  }
+    <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
+      (targetSelected)="handleMoveTargetSelected($event)" />
 
-  @case ('search-empty') {
-  <app-empty-state-component title="Sin resultados en la búsqueda"
-    description="No encontramos ningún archivo o carpeta que coincida con lo que estás buscando." />
-  }
+    @if (itemToShare(); as item) {
+    <app-share-modal-component [isOpen]="isShareModalOpen()" [resourceId]="item.id"
+      [resourceName]="item.name" [resourceType]="item.type === 'folder' ? 'folders' : 'files'"
+      (closed)="closeShareModal()" />
+    }
 
-  @default {
-  <app-custom-infinite-scroll class="min-h-0 flex-1 overflow-y-auto pr-2" [loading]="loading()" [hasMore]="hasMore()"
-    (loadMore)="loadMore()">
+  </section>
 
-    <app-drive-item-list-component [items]="items()" (shareClicked)="onShare($event)"
-      (previewClicked)="onPreview($event)" (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)"
-      (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)" (itemDoubleClicked)="onOpenItem($event)"
-      (itemClicked)="onOpenItem($event)" (itemDropped)="handleItemDrop($event)" />
-
-  </app-custom-infinite-scroll>
-  }
-  }
-
-  <app-upload-file-modal-component [isOpen]="isUploadModalOpen()" (closed)="closeUploadModal()"
-    (filesUploaded)="handleFilesUpload($event)" />
-
-  <app-folder-modal-component [isOpen]="isFolderModalOpen()" [mode]="folderModalMode()" [itemType]="folderItemType()"
-    [initialName]="folderInitialName()" (closed)="closeFolderModal()" (submitted)="handleFolderSubmit($event)" />
-
-  <app-drive-move-modal-component [isOpen]="isMoveModalOpen()" [itemToMove]="itemToMove()" (closed)="closeMoveModal()"
-    (targetSelected)="handleMoveTargetSelected($event)" />
-
-  @if (itemToShare(); as item) {
-  <app-share-modal-component [isOpen]="isShareModalOpen()" [resourceId]="item.id"
-    [resourceName]="item.name" [resourceType]="item.type === 'folder' ? 'folders' : 'files'"
-    (closed)="closeShareModal()" />
-  }
-
-</div>
+</app-custom-infinite-scroll>

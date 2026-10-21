@@ -7,15 +7,18 @@ import { FoldersController } from './controller/folders.controller';
 import { FolderHierarchyHelperService } from './service/folder-hierarchy-helper.service';
 import { ActivityModule } from 'src/activity/activity.module';
 import { FilesModule } from 'src/files/files.module';
+import { SharingModule } from 'src/sharing/sharing.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: FolderEntity.name, schema: FolderSchema }]),
     ActivityModule,
     forwardRef(() => FilesModule),
+    forwardRef(() => SharingModule),
   ],
   controllers: [FoldersController],
   providers: [FoldersRepository, FoldersService, FolderHierarchyHelperService],
   exports: [FoldersRepository, FoldersService],
 })
 export class FoldersModule {}
+

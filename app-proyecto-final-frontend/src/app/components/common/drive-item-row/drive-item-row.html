@@ -35,13 +35,13 @@
         }
       </div>
       <p class="text-[11px] text-text-muted sm:hidden">
-        {{ (item().deletedAt || item().updatedAt) | date:'mediumDate' }} • {{ formattedSize() }}
+        {{ (item().deletedAt || item().updatedAt) | date: dateFormat }} • {{ formattedSize() }}
       </p>
     </div>
   </div>
 
-  <div class="hidden sm:block w-36 text-xs text-text-muted truncate">
-    {{ (item().deletedAt || item().updatedAt) | date:'mediumDate' }}
+  <div class="hidden sm:block w-44 text-xs text-text-muted truncate">
+    {{ (item().deletedAt || item().updatedAt) | date: dateFormat }}
   </div>
 
   <div class="hidden md:block w-24 text-xs text-text-muted text-right truncate">

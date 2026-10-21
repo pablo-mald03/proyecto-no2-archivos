@@ -4,10 +4,18 @@ import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
+import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { ToastService } from '../../../core/services/toast.service';
 import { DriveItem, mapFileToDriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
-import { lucideChevronDown, lucideFolderPlus, lucidePlus, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
+import {
+  lucideChevronDown,
+  lucideFolderPlus,
+  lucidePlus,
+  lucideRotateCcw,
+  lucideSearch,
+  lucideSlidersHorizontal
+} from '@ng-icons/lucide';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
 import { DriveActionService } from '../../../core/services/drive-action.service';
@@ -21,6 +29,8 @@ import { EmptyStateComponent } from '../../common/empty-state-component/empty-st
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { FileUploadQueueService } from '../../../features/files/service/file-upload-queue.service';
 import { ShareModalComponent } from '../../sharing/share-modal-component/share-modal-component';
+import { ListFolderContentQueryParams } from '../../../features/folders/models/request/list-folder-content-query.model';
+import { debounceTime, merge } from 'rxjs';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -31,6 +41,7 @@ import { ShareModalComponent } from '../../sharing/share-modal-component/share-m
     CustomButton,
     CustomCard,
     CustomTextfield,
+    CustomDropdown,
     CustomInfiniteScroll,
     UploadFileModalComponent,
     FolderModalComponent,
@@ -41,9 +52,9 @@ import { ShareModalComponent } from '../../sharing/share-modal-component/share-m
   ],
   templateUrl: './drive-files-page-component.html',
   styleUrl: './drive-files-page-component.css',
-  host: { class: 'flex flex-col h-full min-h-0' }
+  host: { class: 'block h-full min-h-0' }
 })
-//Drive files page component model
+// Principal drive files page component with server-side pagination, filters, and infinite scroll
 export class DriveFilesPageComponent implements OnInit {
 
   // Services
@@ -56,16 +67,78 @@ export class DriveFilesPageComponent implements OnInit {
   private readonly trashService = inject(TrashService);
   private readonly uploadQueueService = inject(FileUploadQueueService);
 
+  // Pagination & Loading State
+  readonly pageSize = 15;
+  readonly currentPage = signal<number>(0);
+  readonly totalPages = signal<number>(0);
+  readonly totalElements = signal<number>(0);
+  readonly hasMore = computed(() => this.currentPage() + 1 < this.totalPages());
+
+  readonly items = signal<DriveItem[]>([]);
+  readonly loading = signal<boolean>(false);
+  readonly loadingMore = signal<boolean>(false);
+  readonly initialized = signal<boolean>(false);
+
+  // Current Directory State
+  readonly currentFolderId = signal<string | null>(null);
+  readonly currentFolderName = signal<string>('Contenido');
+  readonly isInsideFolder = computed(() => !!this.currentFolderId());
+
   // Filters State
   readonly filtersExpanded = signal(false);
-  readonly searchControl = new FormControl('', { nonNullable: true });
+  readonly searchControl = new FormControl<string | null>('');
+  readonly typeControl = new FormControl<'ALL' | 'FOLDERS_ONLY' | 'FILES_ONLY'>('ALL', { nonNullable: true });
+  readonly extensionControl = new FormControl<'txt' | 'md' | null>(null);
+  readonly sortByControl = new FormControl<'name' | 'createdAt' | 'updatedAt' | 'sizeBytes'>('name', { nonNullable: true });
+  readonly directionControl = new FormControl<'asc' | 'desc'>('desc', { nonNullable: true });
 
-  // Infinite Scroll & Data State
-  private readonly allRawItems = signal<DriveItem[]>([]);
-  readonly items = signal<DriveItem[]>([]);
-  readonly loading = signal(false);
-  readonly initialized = signal(false);
-  readonly hasMore = signal(false);
+  // Filter Options
+  readonly typeOptions = [
+    { value: 'ALL', label: 'Todos' },
+    { value: 'FOLDERS_ONLY', label: 'Solo carpetas' },
+    { value: 'FILES_ONLY', label: 'Solo archivos' }
+  ];
+
+  readonly extensionOptions = [
+    { value: 'txt', label: 'Texto (.txt)' },
+    { value: 'md', label: 'Markdown (.md)' }
+  ];
+
+  readonly sortOptions = [
+    { value: 'name', label: 'Nombre' },
+    { value: 'createdAt', label: 'Fecha de creación' },
+    { value: 'updatedAt', label: 'Fecha de modificación' },
+    { value: 'sizeBytes', label: 'Tamaño' }
+  ];
+
+  readonly directionOptions = [
+    { value: 'asc', label: 'Ascendente' },
+    { value: 'desc', label: 'Descendente' }
+  ];
+
+  // Active filters helper
+  readonly hasActiveFilters = computed(() => {
+    const hasSearch = !!this.searchControl.value?.trim();
+    const hasType = this.typeControl.value !== 'ALL';
+    const hasExt = !!this.extensionControl.value;
+    const hasSort = this.sortByControl.value !== 'name';
+    const hasDir = this.directionControl.value !== 'desc';
+    return hasSearch || hasType || hasExt || hasSort || hasDir;
+  });
+
+  // Empty state status
+  readonly emptyStateType = computed(() => {
+    if (!this.initialized() || (this.loading() && this.items().length === 0)) {
+      return 'loading';
+    }
+    if (this.items().length === 0 && this.hasActiveFilters()) {
+      return 'search-empty';
+    }
+    if (this.items().length === 0) {
+      return 'folder-empty';
+    }
+    return 'has-content';
+  });
 
   // Icons
   readonly lucideSlidersHorizontalIcon = lucideSlidersHorizontal;
@@ -73,6 +146,7 @@ export class DriveFilesPageComponent implements OnInit {
   readonly lucideSearchIcon = lucideSearch;
   readonly lucidePlusIcon = lucidePlus;
   readonly lucideFolderPlusIcon = lucideFolderPlus;
+  readonly lucideRotateCcwIcon = lucideRotateCcw;
 
   // Upload modal status
   readonly isUploadModalOpen = signal(false);
@@ -91,26 +165,6 @@ export class DriveFilesPageComponent implements OnInit {
   readonly isShareModalOpen = signal(false);
   readonly itemToShare = signal<DriveItem | null>(null);
 
-  // Current Directory State
-  readonly currentFolderId = signal<string | null>(null);
-  readonly isInsideFolder = computed(() => !!this.currentFolderId());
-
-  //Signal to know if there is a search filter active
-  readonly isSearching = computed(() => !!this.searchControl.value.trim());
-
-  readonly emptyStateType = computed(() => {
-    if (!this.initialized() || (this.loading() && this.allRawItems().length === 0)) {
-      return 'loading';
-    }
-    if (this.allRawItems().length === 0) {
-      return 'folder-empty';
-    }
-    if (this.items().length === 0 && this.isSearching()) {
-      return 'search-empty';
-    }
-    return 'has-content';
-  });
-
   constructor() {
     effect(() => {
       if (this.driveAction.uploadTriggered()) {
@@ -125,8 +179,15 @@ export class DriveFilesPageComponent implements OnInit {
       }
     });
 
-    this.searchControl.valueChanges.subscribe(searchTerm => {
-      this.applyFilter(searchTerm);
+    // Reactive filter triggers
+    merge(
+      this.searchControl.valueChanges.pipe(debounceTime(300)),
+      this.typeControl.valueChanges,
+      this.extensionControl.valueChanges,
+      this.sortByControl.valueChanges,
+      this.directionControl.valueChanges
+    ).subscribe(() => {
+      this.fetchContent({ reset: true });
     });
   }
 
@@ -134,62 +195,101 @@ export class DriveFilesPageComponent implements OnInit {
     this.route.paramMap.subscribe(params => {
       const folderId = params.get('id');
       this.currentFolderId.set(folderId);
-      this.loadFolderContent(folderId);
+      this.fetchContent({ reset: true });
     });
 
     this.uploadQueueService.fileUploaded$.subscribe(uploaded => {
       if (uploaded.folderId === this.currentFolderId()) {
-        this.loadFolderContent(this.currentFolderId());
+        this.fetchContent({ reset: true });
       }
     });
   }
 
-  // Fetch real items for the current folder from api
-  loadFolderContent(folderId: string | null): void {
-    this.loading.set(true);
-    this.initialized.set(false);
+  // Fetch folder or root content using server-side pagination and filters
+  private fetchContent({ reset = false }: { reset?: boolean } = {}): void {
+    const folderId = this.currentFolderId();
+    const targetPage = reset ? 0 : this.currentPage() + 1;
 
-    const request$ = folderId
-      ? this.folderService.findFolderContent(folderId)
-      : this.folderService.findRootContent();
-
-    request$.subscribe({
-      next: (response) => {
-        const folders: DriveItem[] = (response.folders || []).map(f => mapFolderToDriveItem(f));
-        const files: DriveItem[] = (response.files || []).map(f => mapFileToDriveItem(f));
-        const combined = [...folders, ...files];
-
-        this.allRawItems.set(combined);
-        this.applyFilter(this.searchControl.value);
-        this.loading.set(false);
-        this.initialized.set(true);
-        this.hasMore.set(false);
-      },
-      error: (err: ErrorResponse) => {
-        this.allRawItems.set([]);
-        this.items.set([]);
-        this.loading.set(false);
-        this.initialized.set(true);
-        this.hasMore.set(false);
-        this.toastService.error(err.message || 'Error al cargar el contenido de la carpeta.', 'Error');
-      }
-    });
-  }
-
-  // Filter items in memory by search query
-  private applyFilter(query: string): void {
-    const raw = this.allRawItems();
-    const trimmed = (query || '').trim().toLowerCase();
-
-    if (!trimmed) {
-      this.items.set(raw);
-      return;
+    if (reset) {
+      this.loading.set(true);
+      this.initialized.set(false);
+    } else {
+      this.loadingMore.set(true);
     }
 
-    const filtered = raw.filter(item =>
-      item.name.toLowerCase().includes(trimmed)
-    );
-    this.items.set(filtered);
+    const queryParams: ListFolderContentQueryParams = {
+      page: targetPage,
+      size: this.pageSize,
+      sortBy: this.sortByControl.value,
+      direction: this.directionControl.value,
+      search: this.searchControl.value?.trim() || undefined,
+      type: this.typeControl.value,
+      extension: this.extensionControl.value || undefined
+    };
+
+    this.folderService.getFolderContent(folderId, queryParams).subscribe({
+      next: (response) => {
+        if (response.currentFolder) {
+          this.currentFolderName.set(response.currentFolder.name);
+        } else {
+          this.currentFolderName.set('Mis Documentos');
+        }
+
+        const newFolders = (response.folders?.content || []).map(f => mapFolderToDriveItem(f));
+        const newFiles = (response.files?.content || []).map(f => mapFileToDriveItem(f));
+        const combined = [...newFolders, ...newFiles];
+
+        const totalFoldersPages = response.folders?.totalPages || 0;
+        const totalFilesPages = response.files?.totalPages || 0;
+        const maxPages = Math.max(totalFoldersPages, totalFilesPages);
+
+        const totalFoldersElements = response.folders?.totalElements || 0;
+        const totalFilesElements = response.files?.totalElements || 0;
+        const totalElements = totalFoldersElements + totalFilesElements;
+
+        this.totalPages.set(maxPages);
+        this.totalElements.set(totalElements);
+        this.currentPage.set(targetPage);
+
+        if (reset) {
+          this.items.set(combined);
+          this.loading.set(false);
+          this.initialized.set(true);
+        } else {
+          this.items.update(prev => [...prev, ...combined]);
+          this.loadingMore.set(false);
+        }
+      },
+      error: (err: ErrorResponse) => {
+        if (reset) {
+          this.items.set([]);
+          this.totalPages.set(0);
+          this.totalElements.set(0);
+          this.loading.set(false);
+          this.initialized.set(true);
+        } else {
+          this.loadingMore.set(false);
+        }
+        this.toastService.error(err.message || 'Error al cargar los documentos.', 'Error');
+      }
+    });
+  }
+
+  // Load next page on scroll bottom reached
+  loadMore(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) {
+      return;
+    }
+    this.fetchContent({ reset: false });
+  }
+
+  // Reset filters
+  resetFilters(): void {
+    this.searchControl.setValue('');
+    this.typeControl.setValue('ALL');
+    this.extensionControl.setValue(null);
+    this.sortByControl.setValue('name');
+    this.directionControl.setValue('desc');
   }
 
   // Folder modal handlers
@@ -245,7 +345,7 @@ export class DriveFilesPageComponent implements OnInit {
       `Movido '${draggedItem.name}' a '${targetFolder.name}'`,
       'Elemento movido'
     );
-    this.loadFolderContent(this.currentFolderId());
+    this.fetchContent({ reset: true });
   }
 
   // Folder Modal submit handler (create or rename)
@@ -255,7 +355,7 @@ export class DriveFilesPageComponent implements OnInit {
 
     if (mode === 'create') {
       this.folderService.createFolder({ name: folderName, parentId }).subscribe({
-        next: (created) => this.handleCreateSuccess(created.name, parentId),
+        next: (created) => this.handleCreateSuccess(created.name),
         error: (err: ErrorResponse) => this.handleCreateError(err)
       });
 
@@ -269,7 +369,7 @@ export class DriveFilesPageComponent implements OnInit {
 
     if (type === 'folder') {
       this.folderService.renameFolder(targetId, { name: folderName }).subscribe({
-        next: () => this.handleRenameSuccess(folderName, parentId),
+        next: () => this.handleRenameSuccess(folderName),
         error: (err: ErrorResponse) => this.handleRenameError(err)
       });
 
@@ -277,17 +377,17 @@ export class DriveFilesPageComponent implements OnInit {
     }
 
     this.fileService.renameFile(targetId, { name: folderName }).subscribe({
-      next: () => this.handleRenameSuccess(folderName, parentId),
+      next: () => this.handleRenameSuccess(folderName),
       error: (err: ErrorResponse) => this.handleRenameError(err)
     });
   }
 
   // Handle a successful folder creation
-  private handleCreateSuccess(name: string, parentId: string | null): void {
+  private handleCreateSuccess(name: string): void {
     this.toastService.success(`Carpeta '${name}' creada con éxito.`, 'Carpeta creada');
     this.isFolderModalOpen.set(false);
     this.driveAction.closeFolderModal();
-    this.loadFolderContent(parentId);
+    this.fetchContent({ reset: true });
   }
 
   // Handle a folder creation error
@@ -296,11 +396,11 @@ export class DriveFilesPageComponent implements OnInit {
   }
 
   // Handle a successful rename
-  private handleRenameSuccess(newName: string, parentId: string | null): void {
+  private handleRenameSuccess(newName: string): void {
     this.toastService.success(`Actualizado a '${newName}'.`, 'Actualizado');
     this.isFolderModalOpen.set(false);
     this.driveAction.closeFolderModal();
-    this.loadFolderContent(parentId);
+    this.fetchContent({ reset: true });
   }
 
   // Handle a rename error
@@ -348,7 +448,7 @@ export class DriveFilesPageComponent implements OnInit {
     const targetLabel = targetFolderId ? 'la carpeta destino' : 'Raíz (Mis Documentos)';
     this.toastService.success(`'${itemName}' movido a ${targetLabel}.`, 'Elemento movido');
     this.closeMoveModal();
-    this.loadFolderContent(this.currentFolderId());
+    this.fetchContent({ reset: true });
   }
 
   // Handle a move error
@@ -401,7 +501,7 @@ export class DriveFilesPageComponent implements OnInit {
     this.trashService.moveToTrash(type, item.id).subscribe({
       next: () => {
         this.toastService.success(`Se envió '${item.name}' a la papelera.`, 'Papelera');
-        this.loadFolderContent(this.currentFolderId());
+        this.fetchContent({ reset: true });
       },
       error: (err: ErrorResponse) => {
         this.toastService.error(err.message || 'Error al mover a la papelera.', 'Error');
@@ -426,6 +526,4 @@ export class DriveFilesPageComponent implements OnInit {
     this.isFolderModalOpen.set(false);
     this.driveAction.closeFolderModal();
   }
-
-  loadMore(): void { }
 }

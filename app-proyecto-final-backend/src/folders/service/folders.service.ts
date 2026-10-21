@@ -20,6 +20,8 @@ import { ResourceType } from 'src/common/constants/actions/resource-type';
 import { FilesRepository } from 'src/files/repository/files.repository';
 import { FileMapper } from 'src/files/mapper/file.mapper';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { AccessResolverService } from 'src/sharing/service/access-resolver.service';
+import { AccessLevel } from 'src/common/constants/permissions/access-level';
 
 /* Principal folder service */
 @Injectable()
@@ -29,6 +31,7 @@ export class FoldersService {
     private readonly hierarchyHelper: FolderHierarchyHelperService,
     private readonly filesRepository: FilesRepository,
     private readonly activity: ActivityRecorderService,
+    private readonly accessResolver: AccessResolverService,
     @InjectConnection() private readonly connection: Connection,
   ) { }
 
@@ -69,13 +72,30 @@ export class FoldersService {
   ): Promise<FolderContentResponseDto> {
     let currentFolder = null;
     let breadcrumbs: any[] = [];
-    const ownerId = new Types.ObjectId(actor.id);
 
     if (folderId) {
       currentFolder = await this.getOrFail(folderId);
-      this.assertOwnership(currentFolder.ownerId, actor.id);
+
+      if (currentFolder.ownerId.toString() !== actor.id) {
+        await this.accessResolver.assertAccess(
+          {
+            type: 'FOLDER',
+            id: currentFolder._id,
+            ownerId: currentFolder.ownerId,
+            ancestors: currentFolder.ancestors,
+          },
+          actor.id,
+          AccessLevel.VIEWER,
+          'No tienes permisos para ver el contenido de esta carpeta',
+        );
+      }
+
       breadcrumbs = await this.hierarchyHelper.buildBreadcrumbs(currentFolder);
     }
+
+    const contentOwnerId = folderId && currentFolder
+      ? currentFolder.ownerId
+      : new Types.ObjectId(actor.id);
 
     const targetParentOid = folderId ? new Types.ObjectId(folderId) : null;
     const shouldFetchFolders = query.type === 'ALL' || query.type === 'FOLDERS_ONLY';
@@ -84,7 +104,7 @@ export class FoldersService {
     const foldersPromise = shouldFetchFolders
       ? this.foldersRepository.findPage(
         {
-          ownerId,
+          ownerId: contentOwnerId,
           parentId: targetParentOid,
           search: query.search,
           isDeleted: false,
@@ -101,7 +121,7 @@ export class FoldersService {
     const filesPromise = shouldFetchFiles
       ? this.filesRepository.findPage(
         {
-          ownerId,
+          ownerId: contentOwnerId,
           folderId: targetParentOid,
           search: query.search,
           extension: query.extension,
@@ -141,7 +161,21 @@ export class FoldersService {
   /*Principal method to find a folder by ID*/
   async findById(id: string, actor: AuthUser): Promise<FolderResponseDto> {
     const folder = await this.getOrFail(id);
-    this.assertOwnership(folder.ownerId, actor.id);
+
+    if (folder.ownerId.toString() !== actor.id) {
+      await this.accessResolver.assertAccess(
+        {
+          type: 'FOLDER',
+          id: folder._id,
+          ownerId: folder.ownerId,
+          ancestors: folder.ancestors,
+        },
+        actor.id,
+        AccessLevel.VIEWER,
+        'No tienes permisos para ver esta carpeta',
+      );
+    }
+
     return FolderMapper.toResponse(folder);
   }
 
