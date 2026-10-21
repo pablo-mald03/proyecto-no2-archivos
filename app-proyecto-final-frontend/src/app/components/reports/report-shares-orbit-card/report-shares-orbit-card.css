@@ -1,0 +1,12 @@
+/* The dots orbit around the file */
+.orbit-ring {
+  animation: orbit-spin linear infinite;
+}
+
+@keyframes orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit-ring { animation: none; }
+}

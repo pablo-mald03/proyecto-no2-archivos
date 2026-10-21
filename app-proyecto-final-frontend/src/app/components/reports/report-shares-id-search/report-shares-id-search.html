@@ -1,0 +1,19 @@
+<form class="flex flex-col gap-3 sm:flex-row sm:items-end" (submit)="$event.preventDefault(); submit()">
+
+    <label class="flex flex-1 flex-col gap-1.5">
+        <span class="text-xs font-medium text-text-muted">{{ label() }}</span>
+        <div class="relative">
+            <ng-icon [svg]="lucideSearchIcon" size="16"
+                class="pointer-events-none absolute left-3 top-1/2 inline-flex -translate-y-1/2 text-text-muted" />
+            <input type="text" [formControl]="control" [placeholder]="placeholder()" autocomplete="off"
+                class="w-full rounded-lg border border-border bg-surface py-2 pl-9 pr-3 font-mono text-sm text-text outline-none transition-colors placeholder:font-sans placeholder:text-text-muted focus:border-primary/60" />
+        </div>
+    </label>
+
+    <button type="submit" [disabled]="loading() || !control.value.trim()"
+        class="flex h-[38px] items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">
+        <ng-icon [svg]="lucideArrowRightIcon" size="16" />
+        {{ buttonLabel() }}
+    </button>
+
+</form>

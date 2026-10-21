@@ -15,6 +15,10 @@ import { MoveFolderDto } from '../dto/request/move-folder.dto';
 import { ListFolderContentQueryDto } from '../dto/request/list-folder-content-query.dto';
 import { FolderResponseDto } from '../dto/response/folder-response.dto';
 import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
+import { ListUserFoldersQueryDto } from '../dto/request/list-user-folders-query.dto';
+import { UserFolderItemDto } from '../dto/response/user-folder-item.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { ApiPaginatedResponse } from 'src/common/decorators/api-paginated-response.decorator';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
 import { Permission } from 'src/common/constants/permissions/permissions';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -60,6 +64,17 @@ export class FoldersController {
     @Query() query: ListFolderContentQueryDto,
   ): Promise<FolderContentResponseDto> {
     return this.foldersService.findContent(id, actor, query);
+  }
+
+  /*Endpoint to list folders of a user with query param userId*/
+  @Get('by-user')
+  @ApiOperation({ summary: 'List folders of a user with query param userId' })
+  @ApiPaginatedResponse(UserFolderItemDto, 'Paginated list of user folders')
+  findFoldersByUserQuery(
+    @Query('userId', ParseObjectIdPipe) userId: string,
+    @Query() query: ListUserFoldersQueryDto,
+  ): Promise<PageResponseDto<UserFolderItemDto>> {
+    return this.foldersService.findFoldersByUser(userId, query);
   }
 
   /*Endpoint to get folder details*/
