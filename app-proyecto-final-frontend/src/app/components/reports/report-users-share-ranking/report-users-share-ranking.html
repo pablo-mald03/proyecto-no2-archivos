@@ -1,0 +1,36 @@
+<div class="flex flex-col gap-2">
+
+    @for (user of users(); track user.userId; let i = $index) {
+
+    <div
+        class="flex items-center gap-4 rounded-lg border border-border bg-surface px-4 py-3 transition-colors hover:border-primary/40 hover:bg-surface-raised">
+
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+            [class]="rankClass(rankFor(i))">
+            {{ rankFor(i) }}
+        </span>
+
+        <app-report-users-avatar [name]="user.fullName" [size]="36" />
+
+        <div class="min-w-0 flex-1">
+            <p class="truncate font-medium text-text">{{ user.fullName }}</p>
+            <p class="truncate text-xs text-text-muted">{{ user.email }}</p>
+        </div>
+
+        <div class="hidden shrink-0 items-center gap-1 sm:flex" [title]="user.shareCount + ' recursos compartidos'">
+            @for (segment of segments; track segment) {
+            <span class="h-2.5 w-2 rounded-sm transition-colors duration-500"
+                [class.bg-primary]="segment < filledSegments(user)"
+                [class.bg-surface-raised]="segment >= filledSegments(user)"></span>
+            }
+        </div>
+
+        <span class="w-14 shrink-0 text-right text-sm font-bold text-text tabular-nums">
+            {{ user.shareCount }}
+        </span>
+
+    </div>
+
+    }
+
+</div>

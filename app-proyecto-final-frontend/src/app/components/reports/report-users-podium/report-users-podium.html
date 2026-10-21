@@ -1,0 +1,137 @@
+<div class="flex flex-col gap-6">
+
+    @if (podiumOrder().length > 0) {
+
+    <div class="grid min-h-[400px] grid-cols-3 items-end gap-3 sm:gap-4">
+
+        @for (entry of podiumOrder(); track entry.id) {
+
+        <div class="flex h-full flex-col items-center justify-end">
+
+            <div class="mb-3 w-full text-center">
+
+                <div class="relative mx-auto mb-3 h-[72px] w-[72px] rounded-full"
+                    [class.podium-champion]="podiumPosition(entry) === 1">
+
+                    @if (podiumPosition(entry) === 1) {
+                    <div class="absolute -top-6 left-1/2 -translate-x-1/2">
+                        <ng-icon [svg]="lucideCrownIcon" size="22" class="podium-crown inline-flex text-yellow-400" />
+                    </div>
+                    }
+
+                    <svg viewBox="0 0 72 72" class="absolute inset-0 h-full w-full">
+                        <circle cx="36" cy="36" [attr.r]="ringRadius" fill="none" stroke-width="3.5"
+                            class="stroke-surface-raised" />
+                        <circle cx="36" cy="36" [attr.r]="ringRadius" fill="none" stroke-width="3.5"
+                            stroke-linecap="round" transform="rotate(-90 36 36)" class="transition-all duration-700"
+                            [class]="ringStrokeClass(entry)" [attr.stroke-dasharray]="ringDash(entry)" />
+                    </svg>
+
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <app-report-users-avatar [name]="entry.name" [size]="54" />
+                    </div>
+
+                    <span
+                        class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface"
+                        [class]="medalBadgeClass(podiumPosition(entry))">
+                        <ng-icon [svg]="podiumIcon(podiumPosition(entry))" size="12" />
+                    </span>
+
+                </div>
+
+                <p class="truncate text-sm font-semibold text-text" [title]="entry.name">
+                    {{ entry.name }}
+                </p>
+
+                @if (showUsername()) {
+                <span
+                    class="mt-1 inline-block max-w-full truncate rounded-md bg-surface-raised px-2 py-0.5 font-mono text-[10px] text-text-muted">
+                    &#64;{{ entry.username }}
+                </span>
+                }
+
+                <p class="mt-2 text-lg font-bold text-text tabular-nums">
+                    {{ entry.valueLabel }}
+                    @if (unitLabel()) {
+                    <span class="text-xs font-normal text-text-muted">{{ unitLabel() }}</span>
+                    }
+                </p>
+
+                @if (entry.secondaryLabel) {
+                <p class="text-xs text-text-muted tabular-nums">{{ entry.secondaryLabel }}</p>
+                }
+
+                @if (entry.progress !== undefined) {
+                <p class="mt-0.5 text-[11px] font-semibold tabular-nums" [class]="ringTextClass(entry)">
+                    {{ entry.progress.toFixed(1) }}% de la cuota
+                </p>
+                }
+
+            </div>
+
+            <div class="podium-step w-full rounded-t-lg border-t-2 bg-gradient-to-b"
+                [class]="podiumHeight(podiumPosition(entry)) + ' ' + podiumAccent(podiumPosition(entry))"
+                [style.animation-delay.ms]="stepDelay(podiumPosition(entry))">
+
+                <div class="flex h-full items-center justify-center">
+                    <span class="text-3xl font-black opacity-30" [class]="podiumTextClass(podiumPosition(entry))">
+                        {{ podiumPosition(entry) }}
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+
+        }
+
+    </div>
+
+    }
+
+    @if (rest().length > 0) {
+
+    <div class="flex flex-col gap-2 border-t border-border pt-4">
+
+        @for (entry of rest(); track entry.id; let i = $index) {
+
+        <div
+            class="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2 transition-colors hover:border-primary/40 hover:bg-surface-raised">
+
+            <span
+                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-raised text-xs font-bold text-text-muted">
+                {{ i + 4 }}
+            </span>
+
+            <app-report-users-avatar [name]="entry.name" [size]="32" />
+
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-text">{{ entry.name }}</p>
+                @if (showUsername()) {
+                <span class="mt-0.5 inline-block rounded-md bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-text-muted">
+                    &#64;{{ entry.username }}
+                </span>
+                }
+            </div>
+
+            <div class="hidden w-32 shrink-0 sm:block">
+                <div class="relative h-1.5 overflow-hidden rounded-full bg-surface-raised">
+                    <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r transition-all duration-700"
+                        [class]="restBarClass(entry)" [style.width.%]="restBarWidth(entry)">
+                    </div>
+                </div>
+            </div>
+
+            <span class="w-20 shrink-0 text-right text-sm font-semibold text-text tabular-nums">
+                {{ entry.valueLabel }}
+            </span>
+
+        </div>
+
+        }
+
+    </div>
+
+    }
+
+</div>

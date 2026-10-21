@@ -1,0 +1,24 @@
+<div class="flex flex-col gap-3">
+
+    <div class="flex h-3 w-full overflow-hidden rounded-full bg-surface-raised">
+        @for (segment of segments(); track segment.level) {
+        @if (segment.count > 0) {
+        <div class="h-full transition-all duration-700" [class]="segment.bgClass" [style.width.%]="segment.width"
+            [title]="segment.label + ': ' + segment.count">
+        </div>
+        }
+        }
+    </div>
+
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-1">
+        @for (segment of segments(); track segment.level) {
+        <div class="flex items-center gap-2 text-xs text-text-muted">
+            <span class="h-2.5 w-2.5 rounded-full" [class]="segment.bgClass"></span>
+            <span>{{ segment.label }}</span>
+            <span class="font-semibold text-text tabular-nums">{{ segment.count }}</span>
+            <span class="text-[10px]">({{ segment.range }})</span>
+        </div>
+        }
+    </div>
+
+</div>

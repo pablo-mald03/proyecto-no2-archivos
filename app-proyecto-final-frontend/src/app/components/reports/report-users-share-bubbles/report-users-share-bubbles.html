@@ -1,0 +1,22 @@
+<div class="flex flex-wrap items-center justify-center gap-4 py-4">
+
+    @for (bubble of bubbles(); track bubble.user.userId) {
+
+    <div class="share-bubble flex cursor-default flex-col items-center justify-center rounded-full border bg-gradient-to-br text-center transition-transform duration-300 hover:scale-110"
+        [class]="bubble.tierClass" [style.width.px]="bubble.size" [style.height.px]="bubble.size"
+        [style.animation-delay.ms]="bubble.delay"
+        [title]="bubble.user.fullName + ' · ' + bubble.user.shareCount + ' recursos compartidos'">
+
+        <span class="font-bold leading-none tabular-nums" [style.font-size.px]="bubble.size * 0.28">
+            {{ bubble.user.shareCount }}
+        </span>
+
+        @if (bubble.size >= 92) {
+        <span class="mt-1 max-w-[80%] truncate text-[10px] opacity-80">&#64;{{ bubble.user.username }}</span>
+        }
+
+    </div>
+
+    }
+
+</div>

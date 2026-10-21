@@ -1,0 +1,25 @@
+<div class="relative" [style.width.px]="size()" [style.height.px]="size()">
+
+    <svg viewBox="0 0 100 100" class="h-full w-full">
+
+        <circle cx="50" cy="50" [attr.r]="radius" fill="none" stroke-width="8" class="stroke-surface-raised" />
+
+        <circle cx="50" cy="50" [attr.r]="radius" fill="none" stroke-width="8" transform="rotate(-90 50 50)"
+            class="transition-all duration-700 ease-out" [class]="styles().stroke"
+            [attr.stroke-linecap]="clamped() > 0 ? 'round' : 'butt'" [attr.stroke-dasharray]="dashArray()" />
+            
+        @for (tick of ticks; track tick.percent) {
+        <line x1="50" y1="1" x2="50" y2="4.5" stroke-width="1.5" class="stroke-text-muted"
+            [attr.transform]="'rotate(' + tick.angle + ' 50 50)'" />
+        }
+
+    </svg>
+
+    <div class="absolute inset-0 flex flex-col items-center justify-center">
+        <span class="font-bold tabular-nums" [class]="styles().text" [style.font-size.px]="size() * 0.2">
+            {{ percent() | number:'1.0-0' }}%
+        </span>
+        <span class="text-[10px] uppercase tracking-wide text-text-muted">usado</span>
+    </div>
+
+</div>
