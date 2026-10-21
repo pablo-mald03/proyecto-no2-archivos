@@ -10,6 +10,7 @@ import { NeverSharedFileResponse } from "../models/response/never-shared-file-re
 import { PaginationParams } from "../../report-shared/models/request/pagination-params.model";
 import { PaginatedResponse } from "../../report-shared/models/response/paginated-response.model";
 import { withPaginationParams } from "../../report-shared/utils/pagination-http-params.util";
+import { ReportSharesQueryParams } from "../models/query/report-share-query-param.model";
 
 @Injectable({
     providedIn: 'root'
@@ -22,10 +23,10 @@ export class ReportSharesService {
     private readonly apiUrl = inject(API_URL);
 
     //Method to get files shared with the most users
-    getMostSharedFiles(pagination?: PaginationParams): Observable<PaginatedResponse<MostSharedFileResponse>> {
+    getMostSharedFiles(queryParams?: ReportSharesQueryParams): Observable<PaginatedResponse<MostSharedFileResponse>> {
         return this.http.get<PaginatedResponse<MostSharedFileResponse>>(
             `${this.apiUrl}/reports/shares/most-shared-files`,
-            { params: withPaginationParams(pagination) }
+            { params: this.buildSharesQueryParams(queryParams) }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))
@@ -80,5 +81,20 @@ export class ReportSharesService {
             message: 'Ha ocurrido un error inesperado.',
             errors: {}
         };
+    }
+
+    //Helper params builder
+    private buildSharesQueryParams(queryParams: ReportSharesQueryParams = {}): HttpParams {
+        let params = new HttpParams()
+            .set('page', queryParams.page ?? 0)
+            .set('size', queryParams.size ?? 10)
+            .set('direction', queryParams.direction ?? 'desc');
+
+        if (queryParams.search?.trim()) params = params.set('search', queryParams.search.trim());
+        if (queryParams.dateFrom) params = params.set('dateFrom', queryParams.dateFrom);
+        if (queryParams.dateTo) params = params.set('dateTo', queryParams.dateTo);
+        if (queryParams.resourceType) params = params.set('resourceType', queryParams.resourceType);
+
+        return params;
     }
 }

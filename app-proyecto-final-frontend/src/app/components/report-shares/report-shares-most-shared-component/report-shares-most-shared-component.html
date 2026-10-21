@@ -15,6 +15,8 @@
         </div>
     </div>
 
+    <app-report-shares-filter-bar-component (filterChange)="onFilterChange($event)" />
+
     @if (files().length > 0) {
     <app-report-shares-kpi-strip [items]="kpis()" />
     }
@@ -26,18 +28,19 @@
             Cargando reporte...
         </div>
         } @else if (files().length === 0) {
-        <app-custom-alert type="info" title="Sin datos" message="Aún no hay archivos compartidos." />
+        <app-custom-alert type="info" title="Sin datos"
+            message="No se encontraron archivos compartidos con los filtros seleccionados." />
         } @else {
 
-        <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto sm:grid-cols-2 xl:grid-cols-4">
+        <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-4">
             @for (file of files(); track file.fileId; let i = $index) {
             <app-report-shares-orbit-card [file]="file" [rank]="page() * size + i + 1" [maxShares]="maxShares()" />
             }
         </div>
 
-        <div class="mt-4 shrink-0">
-            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
-                [loading]="loading()" (pageChange)="onPageChange($event)" />
+        <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+            <app-custom-pagination-slide [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [size]="size" [loading]="loading()" (pageChange)="onPageChange($event)" />
         </div>
 
         }
