@@ -45,6 +45,10 @@ import { ReportUsersTopFileCountComponent } from './components/report-users/repo
 import { ReportFoldersMostFilesComponent } from './components/report-folders/report-folders-most-files-component/report-folders-most-files-component';
 import { ReportFoldersUserSpaceComponent } from './components/report-folders/report-folders-user-space-component/report-folders-user-space-component';
 import { ReportFoldersContentsComponent } from './components/report-folders/report-folders-contents-component/report-folders-contents-component';
+import { ReportSharesMostSharedComponent } from './components/report-shares/report-shares-most-shared-component/report-shares-most-shared-component';
+import { ReportSharesSharedByUserComponent } from './components/report-shares/report-shares-shared-by-user-component/report-shares-shared-by-user-component';
+import { ReportSharesNeverSharedComponent } from './components/report-shares/report-shares-never-shared-component/report-shares-never-shared-component';
+import { ReportSharesReceivedByUserComponent } from './components/report-shares/report-shares-received-by-user-component/report-shares-received-by-user-component';
 
 export const routes: Routes = [
 
@@ -161,24 +165,30 @@ export const routes: Routes = [
                         canActivate: [permissionGuard],
                         data: { permission: 'REPORTS_SHARING_VIEW' }
                     },
-                    // {
-                    //     path: 'sharing/top-providers',
-                    //     component: ReportTopProviderComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:top_proveedores' }
-                    // },
-                    // {
-                    //     path: 'sharing/most-purchased-products',
-                    //     component: ReportMostPurchasedProductsComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:productos_mas_adquiridos' }
-                    // },
-                    // {
-                    //     path: 'sharing/date-interval',
-                    //     component: ReportPurchaseDateIntervalComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:compras_rango_fechas' }
-                    // },
+                    {
+                        path: 'sharing/most-shared-files',
+                        component: ReportSharesMostSharedComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_MOST_SHARED' }
+                    },
+                    {
+                        path: 'sharing/received-by-user',
+                        component: ReportSharesReceivedByUserComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_RECEIVED_BY_USER' }
+                    },
+                    {
+                        path: 'sharing/shared-by-user',
+                        component: ReportSharesSharedByUserComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_BY_USER' }
+                    },
+                    {
+                        path: 'sharing/never-shared-files',
+                        component: ReportSharesNeverSharedComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_NEVER_SHARED' }
+                    },
                     {
                         path: 'folders',
                         component: ReportFilesPage,
