@@ -1,0 +1,64 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" (click)="goBack()" aria-label="Volver"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-text">Espacio por carpeta raíz</h1>
+                <p class="mt-1 text-sm text-text-muted">
+                    Qué carpetas principales de un usuario ocupan más espacio, en un gráfico de dona.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <app-custom-card [hoverable]="false">
+        <app-report-folders-id-search label="ID del usuario" placeholder="Pega el ID del usuario a consultar"
+            buttonLabel="Consultar espacio" [loading]="loading()" (submitted)="onUserSubmitted($event)" />
+    </app-custom-card>
+
+    @if (!userId()) {
+
+    <app-custom-alert type="info" title="Selecciona un usuario"
+        message="Ingresa el ID de un usuario para ver el espacio que ocupa cada una de sus carpetas principales." />
+
+    } @else {
+
+    @if (folders().length > 0) {
+    <app-report-folders-kpi-strip [items]="kpis()" />
+    }
+
+    <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
+
+        @if (loading() && folders().length === 0) {
+        <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
+            Cargando reporte...
+        </div>
+        } @else if (folders().length === 0) {
+        <app-custom-alert type="info" title="Sin datos" message="Este usuario no tiene carpetas principales con archivos." />
+        } @else {
+
+        <p class="mb-4 text-xs font-medium uppercase tracking-wide text-text-muted">
+            Distribución del espacio (carpetas de la página actual)
+        </p>
+
+        <div class="grid min-h-0 flex-1 items-center gap-8 overflow-y-auto lg:grid-cols-[280px_1fr]">
+            <app-report-folders-space-donut [slices]="slices()" [size]="240" />
+            <app-report-folders-space-legend [slices]="slices()" />
+        </div>
+
+        <div class="mt-4 shrink-0">
+            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [loading]="loading()" (pageChange)="onPageChange($event)" />
+        </div>
+
+        }
+
+    </app-custom-card>
+
+    }
+
+</div>

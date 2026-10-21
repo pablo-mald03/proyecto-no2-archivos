@@ -1,0 +1,51 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" (click)="goBack()" aria-label="Volver"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-text">Carpetas con más archivos</h1>
+                <p class="mt-1 text-sm text-text-muted">
+                    Mosaico donde las carpetas más pobladas ocupan más espacio, con su ranking detallado.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    @if (folders().length > 0) {
+    <app-report-folders-kpi-strip [items]="kpis()" />
+    }
+
+    @if (folders().length > 0) {
+    <app-custom-card [hoverable]="true">
+        <app-report-folders-mosaic [folders]="folders()" [rankOffset]="page() * size" />
+    </app-custom-card>
+    }
+
+    <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
+
+        @if (loading() && folders().length === 0) {
+        <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
+            Cargando reporte...
+        </div>
+        } @else if (folders().length === 0) {
+        <app-custom-alert type="info" title="Sin datos" message="Aún no hay carpetas con archivos registradas." />
+        } @else {
+
+        <div class="min-h-0 flex-1 overflow-y-auto">
+            <app-report-folders-ranking [folders]="folders()" [rankOffset]="page() * size" />
+        </div>
+
+        <div class="mt-4 shrink-0">
+            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [loading]="loading()" (pageChange)="onPageChange($event)" />
+        </div>
+
+        }
+
+    </app-custom-card>
+
+</div>

@@ -1,0 +1,74 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" (click)="goBack()" aria-label="Volver"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-text">Contenido de una carpeta</h1>
+                <p class="mt-1 text-sm text-text-muted">
+                    Explorador con el contenido de una carpeta y sus subcarpetas, y el desglose de archivos por
+                    extensión.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <app-custom-card [hoverable]="false">
+        <app-report-folders-id-search label="ID de la carpeta" placeholder="Pega el ID de la carpeta a explorar"
+            buttonLabel="Explorar carpeta" [loading]="loading()" (submitted)="onFolderSubmitted($event)" />
+    </app-custom-card>
+
+    @if (!folderId()) {
+
+    <app-custom-alert type="info" title="Selecciona una carpeta"
+        message="Ingresa el ID de una carpeta para explorar su contenido y el de sus subcarpetas." />
+
+    } @else {
+
+    @if (items().length > 0) {
+    <app-report-folders-kpi-strip [items]="kpis()" />
+    }
+
+    <div class="grid min-h-0 flex-1 gap-6 lg:grid-cols-[1fr_320px]">
+
+        <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
+
+            @if (loading() && items().length === 0) {
+            <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
+                Cargando reporte...
+            </div>
+            } @else if (items().length === 0) {
+            <app-custom-alert type="info" title="Sin datos" message="La carpeta no tiene contenido registrado." />
+            } @else {
+
+            <div class="min-h-0 flex-1 overflow-y-auto pr-1">
+                <app-report-folders-content-tree [items]="items()" />
+            </div>
+
+            <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+                <app-custom-pagination-slide [page]="page()" [totalPages]="totalPages()"
+                    [totalElements]="totalElements()" [size]="size" [loading]="loading()"
+                    (pageChange)="onPageChange($event)" />
+            </div>
+
+            }
+
+        </app-custom-card>
+
+        @if (items().length > 0) {
+        <app-custom-card [hoverable]="false">
+            <p class="mb-4 text-xs font-medium uppercase tracking-wide text-text-muted">
+                Archivos por extensión (página actual)
+            </p>
+            <app-report-folders-extension-breakdown [items]="items()" />
+        </app-custom-card>
+        }
+
+    </div>
+
+    }
+
+</div>

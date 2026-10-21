@@ -42,6 +42,9 @@ import { ReportUsersShareCountComponent } from './components/report-users/report
 import { ReportUsersStoragePercentageComponent } from './components/report-users/report-users-storage-percentage-component/report-users-storage-percentage-component';
 import { ReportUsersTopStorageComponent } from './components/report-users/report-users-top-storage-component/report-users-top-storage-component';
 import { ReportUsersTopFileCountComponent } from './components/report-users/report-users-top-file-count-component/report-users-top-file-count-component';
+import { ReportFoldersMostFilesComponent } from './components/report-folders/report-folders-most-files-component/report-folders-most-files-component';
+import { ReportFoldersUserSpaceComponent } from './components/report-folders/report-folders-user-space-component/report-folders-user-space-component';
+import { ReportFoldersContentsComponent } from './components/report-folders/report-folders-contents-component/report-folders-contents-component';
 
 export const routes: Routes = [
 
@@ -111,7 +114,7 @@ export const routes: Routes = [
             { path: '', component: DashboardHome },
             { path: 'profile', component: ProfileComponent },
 
-             //REPORTS
+            //REPORTS
             {
                 path: 'reports',
                 canActivate: [
@@ -182,24 +185,24 @@ export const routes: Routes = [
                         canActivate: [permissionGuard],
                         data: { permission: 'REPORTS_FOLDERS_VIEW' }
                     },
-                    // {
-                    //     path: 'files/top-customers',
-                    //     component: ReportCustomerComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:top_clientes' }
-                    // },
-                    // {
-                    //     path: 'files/top-products-by-revenue',
-                    //     component: ReportToProductByRevenueComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:top_productos_ingresos' }
-                    // },
-                    // {
-                    //     path: 'files/summary',
-                    //     component: ReportSalesSummaryByPeriodComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:resumen_ventas_periodo' }
-                    // },
+                    {
+                        path: 'folders/top-files-per-folder',
+                        component: ReportFoldersMostFilesComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_TOP_FILES' }
+                    },
+                    {
+                        path: 'folders/root-folders-storage',
+                        component: ReportFoldersUserSpaceComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_ROOT_STORAGE' }
+                    },
+                    {
+                        path: 'folders/folder-content-tree',
+                        component: ReportFoldersContentsComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_CONTENT_TREE' }
+                    },
                 ]
 
             },
