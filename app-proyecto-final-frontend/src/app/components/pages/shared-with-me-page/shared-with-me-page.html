@@ -76,11 +76,11 @@
           <app-custom-dropdown label="Dirección" [options]="directionOptions" optionKey="value" optionLabel="label"
             [control]="directionControl" />
 
-          <app-custom-textfield label="Compartido desde" placeholder="AAAA-MM-DD" [control]="fromControl"
-            [icon]="lucideCalendarIcon" [clearable]="true" />
+          <app-custom-datepicker label="Compartido desde" placeholder="Seleccionar fecha" [control]="fromControl"
+            [max]="toDate()" [clearable]="true" />
 
-          <app-custom-textfield label="Compartido hasta" placeholder="AAAA-MM-DD" [control]="toControl"
-            [icon]="lucideCalendarIcon" [clearable]="true" />
+          <app-custom-datepicker label="Compartido hasta" placeholder="Seleccionar fecha" [control]="toControl"
+            [min]="fromDate()" [clearable]="true" />
         </div>
 
         <div class="mt-4 flex justify-end">
@@ -120,7 +120,7 @@
     <div class="flex flex-col gap-2 min-h-0 flex-1">
       <div class="flex items-center justify-between px-6 py-2 text-xs font-semibold text-text-muted">
         <div class="flex-1">Nombre</div>
-        <div class="hidden sm:block w-36">Última modificación</div>
+        <div class="hidden sm:block w-44">Última modificación</div>
         <div class="hidden md:block w-24 text-right">Tamaño</div>
         <div class="w-16 text-right">Acciones</div>
       </div>
@@ -130,13 +130,8 @@
         (downloadClicked)="onDownload($event)" />
 
       @if (loadingMore()) {
-      <div class="flex items-center justify-center py-4 text-xs text-text-muted gap-2">
-        <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
-        Cargando más elementos...
-      </div>
+      <app-empty-state-component [loading]="true" loadingText="Cargando más elementos..." />
       }
-
-    
     </div>
     }
     }

@@ -5,7 +5,7 @@ import {
   lucideCalendar, lucideChevronDown, lucideInfo, lucideRotateCcw,
   lucideSearch, lucideSlidersHorizontal, lucideTrash2
 } from '@ng-icons/lucide';
-import { debounceTime, merge } from 'rxjs';
+import { debounceTime, map, merge } from 'rxjs';
 
 import { TrashService } from '../../../features/trash/service/trash.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -24,6 +24,8 @@ import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom
 import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { CustomDatepicker } from '../../common/custom-datepicker/custom-datepicker';
 
 @Component({
   selector: 'app-trash-page',
@@ -39,13 +41,14 @@ import { CustomAlert } from '../../common/custom-alert/custom-alert';
     CustomInfiniteScroll,
     DriveItemListComponent,
     EmptyStateComponent,
-    CustomAlert
-  ],
+    CustomAlert,
+    CustomDatepicker
+],
   templateUrl: './trash-page.html',
   styleUrl: './trash-page.css',
   host: { class: 'block h-full min-h-0' }
 })
-// Principal Trash Page component with server-side pagination, filters, and infinite scroll
+// Principal Trash Page component
 export class TrashPage implements OnInit {
   // Dependencies
   private readonly trashService = inject(TrashService);
@@ -72,6 +75,9 @@ export class TrashPage implements OnInit {
   readonly extensionControl = new FormControl<string>('', { nonNullable: true });
   readonly fromControl = new FormControl<string>('', { nonNullable: true });
   readonly toControl = new FormControl<string>('', { nonNullable: true });
+
+  readonly fromDate = toSignal(this.fromControl.valueChanges.pipe(map(v => v ?? '')), { initialValue: '' });
+  readonly toDate = toSignal(this.toControl.valueChanges.pipe(map(v => v ?? '')), { initialValue: '' });
 
   // Confirm dialog state
   readonly confirmModalOpen = signal<boolean>(false);
@@ -106,8 +112,10 @@ export class TrashPage implements OnInit {
     { value: 'jpg', label: 'Imagen (.jpg)' }
   ];
 
-  // Active filters helper
-  readonly hasActiveFilters = computed(() => {
+  // Active filters flag (updated on every fetch, since FormControls are not signals)
+  readonly hasActiveFilters = signal<boolean>(false);
+
+  private computeHasActiveFilters(): boolean {
     return !!(
       this.searchControl.value.trim() ||
       this.typeFilterControl.value ||
@@ -117,7 +125,15 @@ export class TrashPage implements OnInit {
       this.sortByControl.value !== 'deletedAt' ||
       this.directionControl.value !== 'desc'
     );
-  });
+  }
+
+  // The trash is really empty only when there are 0 items AND no filter is hiding anything
+  readonly isTrashEmpty = computed(() =>
+    this.initialized() && this.totalElements() === 0 && !this.hasActiveFilters()
+  );
+
+  // "Empty trash" button is usable only while loaded and there is something to delete
+  readonly canEmptyTrash = computed(() => !this.loading() && !this.isTrashEmpty());
 
   // Empty state condition
   readonly emptyStateType = computed<'loading' | 'trash-empty' | 'search-empty' | 'none'>(() => {
@@ -167,7 +183,6 @@ export class TrashPage implements OnInit {
   readonly lucideSlidersHorizontalIcon = lucideSlidersHorizontal;
   readonly lucideChevronDownIcon = lucideChevronDown;
   readonly lucideInfoIcon = lucideInfo;
-  readonly lucideCalendarIcon = lucideCalendar;
 
   constructor() {
     // Reactive filter triggers — debounce search only
@@ -179,9 +194,11 @@ export class TrashPage implements OnInit {
       this.directionControl.valueChanges,
       this.fromControl.valueChanges.pipe(debounceTime(300)),
       this.toControl.valueChanges.pipe(debounceTime(300))
-    ).subscribe(() => {
-      this.fetchItems({ reset: true });
-    });
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.fetchItems({ reset: true });
+      });
   }
 
   ngOnInit(): void {
@@ -193,6 +210,8 @@ export class TrashPage implements OnInit {
 
   // Fetch trash items with server-side pagination and filters
   fetchItems({ reset = false }: { reset?: boolean } = {}): void {
+    this.hasActiveFilters.set(this.computeHasActiveFilters());
+
     const targetPage = reset ? 0 : this.currentPage() + 1;
 
     if (reset) {
@@ -277,8 +296,10 @@ export class TrashPage implements OnInit {
     this.confirmModalOpen.set(true);
   }
 
-  // Empty trash trigger
+  // Empty trash trigger (guarded: nothing to empty -> do nothing)
   onEmptyTrash(): void {
+    if (!this.canEmptyTrash()) return;
+
     this.targetItem.set(null);
     this.confirmAction.set('empty');
     this.confirmModalOpen.set(true);

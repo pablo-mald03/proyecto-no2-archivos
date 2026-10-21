@@ -1,106 +1,57 @@
 <div class="w-full">
-
-    @if (label()) {
-
-    <label class="
-                mb-2
-                block
-                text-sm
-                font-medium
-                text-text
-            ">
-        {{ label() }}
+  @if (label()) {
+    <label class="block font-medium text-text {{ sizeConfig().label }}">
+      {{ label() }}
     </label>
+  }
 
+  <div class="relative flex items-center">
+    @if (icon()) {
+      <div [class]="'pointer-events-none absolute top-1/2 -translate-y-1/2 text-text-muted ' + sizeConfig().leftIconPos">
+        <ng-icon [svg]="icon()!" [size]="sizeConfig().leftIconSize" />
+      </div>
     }
 
+    <input
+      type="date"
+      [formControl]="control()"
+      [min]="min()"
+      [max]="max()"
+      [disabled]="disabled()"
+      [placeholder]="placeholder()"
+      (click)="openPicker($event)"
+      class="w-full border bg-surface text-text transition outline-none disabled:cursor-not-allowed disabled:opacity-50 {{ sizeConfig().input }}"
+      [class.pl-10]="icon() && size() === 'md'"
+      [class.pl-8]="icon() && size() === 'sm'"
+      [class.pl-11]="icon() && size() === 'lg'"
+      [class.pr-9]="clearable() && hasValue() && size() === 'md'"
+      [class.pr-7]="clearable() && hasValue() && size() === 'sm'"
+      [class.pr-11]="clearable() && hasValue() && size() === 'lg'"
+      [class.border-border]="!hasError"
+      [class.border-red-500]="hasError"
+      [class.focus:border-primary]="!hasError"
+      [class.focus:border-red-500]="hasError"
+    />
 
-    <div class="relative">
-
-        @if (icon()) {
-
-        <div class="
-                    pointer-events-none
-                    absolute
-                    left-3
-                    top-1/2
-                    -translate-y-1/2
-                    text-text-muted
-                ">
-            <ng-icon [svg]="icon()!" size="18" />
-        </div>
-
-        }
-
-
-        <input type="date" [formControl]="control()" [min]="min()" [max]="max()" [disabled]="disabled()"
-            [placeholder]="placeholder()" (click)="openPicker($event)" class="
-                w-full
-                rounded-xl
-                border
-                bg-surface
-                px-4
-                py-3
-                text-text
-                transition
-                outline-none
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-            " [class.pl-10]="icon()" [class.pr-11]="
-                clearable()
-                && hasValue()
-            " [class.border-border]="!hasError" [class.border-red-500]="hasError"
-            [class.focus:border-primary]="!hasError" [class.focus:border-red-500]="hasError" />
-
-
-        @if (
-        clearable()
-        && hasValue()
-        && !disabled()
-        ) {
-
-        <button type="button" (click)="clear()" class="
-                    absolute
-                    right-3
-                    top-1/2
-                    -translate-y-1/2
-                    rounded-md
-                    p-1
-                    text-text-muted
-                    transition-colors
-                    hover:bg-surface-raised
-                    hover:text-text
-                " aria-label="Limpiar fecha">
-
-            <ng-icon [svg]="lucideXIcon" size="18" />
-
-        </button>
-
-        }
-
-    </div>
-
-
-    @if (hasError) {
-
-    <p class="
-                mt-1
-                text-sm
-                text-red-500
-            ">
-        {{ errorMessage }}
-    </p>
-
-    } @else if (hint()) {
-
-    <p class="
-                mt-1
-                text-sm
-                text-text-muted
-            ">
-        {{ hint() }}
-    </p>
-
+    @if (clearable() && hasValue() && !disabled()) {
+      <button
+        type="button"
+        (click)="clear()"
+        [class]="'absolute top-1/2 -translate-y-1/2 rounded-md text-text-muted transition-colors hover:bg-surface-raised hover:text-text ' + sizeConfig().clearBtnPos"
+        aria-label="Limpiar fecha"
+      >
+        <ng-icon [svg]="lucideXIcon" [size]="sizeConfig().clearIconSize" />
+      </button>
     }
+  </div>
 
+  @if (hasError) {
+    <p class="text-red-500 {{ sizeConfig().helperText }}">
+      {{ errorMessage }}
+    </p>
+  } @else if (hint()) {
+    <p class="text-text-muted {{ sizeConfig().helperText }}">
+      {{ hint() }}
+    </p>
+  }
 </div>
