@@ -20,6 +20,7 @@ import { PermissionsGuard } from './common/guards/permissions.guard';
 import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
 import { CommentsModule } from './comments/comments.module';
 import { ReportUsersModule } from './report-users/report-users.module';
+import { ReportSharesModule } from './report-shares/report-shares.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { ReportUsersModule } from './report-users/report-users.module';
     RefreshTokensModule,
     CommentsModule,
     ReportUsersModule,
+    ReportSharesModule,
   ],
   providers: [
     AppService,

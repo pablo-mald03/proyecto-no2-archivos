@@ -3,12 +3,10 @@ import { ReportUsersRepository } from '../repository/report-users.repository';
 import { ReportUsersFilterDto } from '../dto/request/report-users-filter.dto';
 import { ReportUsersPaginatedQueryDto } from '../dto/request/report-users-paginated-query.dto';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
-import {
-  TopUserByFileCountDto,
-  TopUserByStorageDto,
-  UserStoragePercentageDto,
-  UserShareCountDto,
-} from '../dto/response/report-users-response.dto';
+import { TopUserByFileCountDto } from '../dto/response/top-user-by-file-count.dto';
+import { TopUserByStorageDto } from '../dto/response/top-user-by-storage.dto';
+import { UserStoragePercentageDto } from '../dto/response/user-storage-percentage.dto';
+import { UserShareCountDto } from '../dto/response/user-share-count.dto';
 
 /* Principal service for user reports */
 @Injectable()
