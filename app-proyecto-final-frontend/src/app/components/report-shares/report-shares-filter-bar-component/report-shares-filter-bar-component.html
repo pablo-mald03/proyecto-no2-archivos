@@ -7,16 +7,16 @@
         </div>
 
         @if (hasActiveFilters) {
-        <app-custom-button label="Reiniciar filtros" [bordered]="true" [icon]="lucideRotateCcwIcon" variant="secondary"
-            size="md" (clicked)="resetFilters()" />
+        <app-custom-button label="Reiniciar filtros" icon="lucideRotateCcw" variant="secondary" size="sm"
+            (clicked)="resetFilters()" />
         }
     </div>
 
     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
 
         <div class="lg:col-span-4">
-            <app-custom-textfield label="Búsqueda" placeholder="Nombre del archivo..." [control]="searchCtrl"
-                [clearable]="true" icon="lucideSearch" size="md" />
+            <app-custom-textfield label="Búsqueda" [placeholder]="searchPlaceholder()" [control]="searchCtrl"
+                [clearable]="true" [icon]="lucideSearchIcon" size="md" />
         </div>
 
         <div class="lg:col-span-3">
@@ -26,7 +26,7 @@
 
         <div class="lg:col-span-2">
             <app-custom-dropdown label="Orden" placeholder="Ordenamiento" [control]="directionCtrl"
-                [options]="directionOptions" optionKey="key" optionLabel="label" size="md" />
+                [options]="directionOptions()" optionKey="key" optionLabel="label" size="md" />
         </div>
 
         <div class="sm:col-span-2 lg:col-span-3">

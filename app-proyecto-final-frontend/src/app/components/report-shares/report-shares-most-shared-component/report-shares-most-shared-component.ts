@@ -16,6 +16,7 @@ import { ErrorResponse } from '../../../features/errors/models/error-response.mo
 import { ReportSharesQueryParams } from '../../../features/report-shares/models/query/report-share-query-param.model';
 import { ReportSharesFilterBarComponent } from '../report-shares-filter-bar-component/report-shares-filter-bar-component';
 import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
+import { FilterDirectionOption } from '../report-shares-filter-bar-component/constants/filter-direction.constant';
 
 
 @Component({
@@ -58,6 +59,11 @@ export class ReportSharesMostSharedComponent implements OnInit {
 
   // Data
   readonly files = signal<MostSharedFileResponse[]>([]);
+
+  readonly sortOptions: FilterDirectionOption[] = [
+    { key: 'desc', label: 'Más compartidos primero' },
+    { key: 'asc', label: 'Menos compartidos primero' }
+  ];
 
   // Max value for scaling the orbits
   readonly maxShares = computed(() =>

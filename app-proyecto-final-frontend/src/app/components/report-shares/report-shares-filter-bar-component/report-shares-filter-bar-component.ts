@@ -1,4 +1,4 @@
-import { Component, OnInit, output } from '@angular/core';
+import { Component, input, OnInit, output } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIconComponent, provideIcons } from '@ng-icons/core';
 import { lucideArrowUpDown, lucideFilter, lucideRotateCcw, lucideSearch, lucideX } from '@ng-icons/lucide';
@@ -8,6 +8,7 @@ import { CustomTextfield } from '../../common/custom-textfield/custom-textfield'
 import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
 import { CustomDatepicker } from '../../common/custom-datepicker/custom-datepicker';
 import { CustomButton } from '../../common/custom-button/custom-button';
+import { FilterDirectionOption } from './constants/filter-direction.constant';
 
 @Component({
   selector: 'app-report-shares-filter-bar-component',
@@ -20,11 +21,20 @@ import { CustomButton } from '../../common/custom-button/custom-button';
     CustomDatepicker,
     CustomButton
   ],
-  providers: [provideIcons({ lucideSearch, lucideFilter, lucideArrowUpDown, lucideX })], templateUrl: './report-shares-filter-bar-component.html',
-  styleUrl: './report-shares-filter-bar-component.css',
+  providers: [provideIcons({ lucideFilter })],
+  templateUrl: './report-shares-filter-bar-component.html',
+  styleUrl: './report-shares-filter-bar-component.css'
 })
-/* Filter bar for shares reports using custom UI components */
+/* Filter bar for shares reports with customizable semantic options */
 export class ReportSharesFilterBarComponent implements OnInit {
+
+  // INPUTS
+  searchPlaceholder = input<string>('Nombre del archivo...');
+  defaultDirection = input<'asc' | 'desc'>('desc');
+  directionOptions = input<FilterDirectionOption[]>([
+    { key: 'desc', label: 'Más recientes primero' },
+    { key: 'asc', label: 'Más antiguos primero' }
+  ]);
 
   // OUTPUTS
   readonly filterChange = output<ReportSharesQueryParams>();
@@ -36,7 +46,7 @@ export class ReportSharesFilterBarComponent implements OnInit {
   readonly dateFromCtrl = new FormControl('');
   readonly dateToCtrl = new FormControl('');
 
-  readonly lucideRotateCcwIcon = lucideRotateCcw;
+  readonly lucideSearchIcon = lucideSearch;
 
   // DROPDOWN OPTIONS
   readonly resourceTypeOptions = [
@@ -45,14 +55,12 @@ export class ReportSharesFilterBarComponent implements OnInit {
     { key: 'FOLDER', label: 'Solo Carpetas' }
   ];
 
-  readonly directionOptions = [
-    { key: 'desc', label: 'Más compartidos primero' },
-    { key: 'asc', label: 'Menos compartidos primero' }
-  ];
-
   readonly lucideFilterIcon = lucideFilter;
 
   ngOnInit(): void {
+    // Set initial direction from input
+    this.directionCtrl.setValue(this.defaultDirection(), { emitEvent: false });
+
     // Search control with debounce
     this.searchCtrl.valueChanges.pipe(
       debounceTime(300),
@@ -71,7 +79,7 @@ export class ReportSharesFilterBarComponent implements OnInit {
     return !!(
       this.searchCtrl.value ||
       this.resourceTypeCtrl.value ||
-      this.directionCtrl.value !== 'desc' ||
+      this.directionCtrl.value !== this.defaultDirection() ||
       this.dateFromCtrl.value ||
       this.dateToCtrl.value
     );
@@ -81,7 +89,7 @@ export class ReportSharesFilterBarComponent implements OnInit {
   resetFilters(): void {
     this.searchCtrl.setValue('', { emitEvent: false });
     this.resourceTypeCtrl.setValue('', { emitEvent: false });
-    this.directionCtrl.setValue('desc', { emitEvent: false });
+    this.directionCtrl.setValue(this.defaultDirection(), { emitEvent: false });
     this.dateFromCtrl.setValue('', { emitEvent: false });
     this.dateToCtrl.setValue('', { emitEvent: false });
     this.emitFilters();
@@ -92,7 +100,7 @@ export class ReportSharesFilterBarComponent implements OnInit {
     this.filterChange.emit({
       search: this.searchCtrl.value || undefined,
       resourceType: (this.resourceTypeCtrl.value as 'FILE' | 'FOLDER') || undefined,
-      direction: this.directionCtrl.value || 'desc',
+      direction: this.directionCtrl.value || this.defaultDirection(),
       dateFrom: this.dateFromCtrl.value || undefined,
       dateTo: this.dateToCtrl.value || undefined
     });

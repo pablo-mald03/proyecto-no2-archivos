@@ -15,7 +15,8 @@
         </div>
     </div>
 
-    <app-report-shares-filter-bar-component (filterChange)="onFilterChange($event)" />
+    <app-report-shares-filter-bar-component searchPlaceholder="Buscar por nombre de archivo..."
+        [directionOptions]="sortOptions" (filterChange)="onFilterChange($event)" />
 
     @if (files().length > 0) {
     <app-report-shares-kpi-strip [items]="kpis()" />

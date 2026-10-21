@@ -58,11 +58,11 @@ export class ReportSharesService {
         );
     }
 
-    //Method to get files that have never been shared
-    getNeverSharedFiles(pagination?: PaginationParams): Observable<PaginatedResponse<NeverSharedFileResponse>> {
+    // Method to get files that have never been shared
+    getNeverSharedFiles(queryParams?: ReportSharesQueryParams): Observable<PaginatedResponse<NeverSharedFileResponse>> {
         return this.http.get<PaginatedResponse<NeverSharedFileResponse>>(
             `${this.apiUrl}/reports/shares/never-shared-files`,
-            { params: withPaginationParams(pagination) }
+            { params: this.buildSharesQueryParams(queryParams) }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))
