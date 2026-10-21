@@ -38,6 +38,10 @@ import { SharedWithMePage } from './components/pages/shared-with-me-page/shared-
 import { ReportSharedPage } from './components/pages/report-shared-page/report-shared-page';
 import { ReportUsersPage } from './components/pages/report-users-page/report-users-page';
 import { ReportFilesPage } from './components/pages/report-files-page/report-files-page';
+import { ReportUsersShareCountComponent } from './components/report-users/report-users-share-count-component/report-users-share-count-component';
+import { ReportUsersStoragePercentageComponent } from './components/report-users/report-users-storage-percentage-component/report-users-storage-percentage-component';
+import { ReportUsersTopStorageComponent } from './components/report-users/report-users-top-storage-component/report-users-top-storage-component';
+import { ReportUsersTopFileCountComponent } from './components/report-users/report-users-top-file-count-component/report-users-top-file-count-component';
 
 export const routes: Routes = [
 
@@ -124,30 +128,30 @@ export const routes: Routes = [
                         canActivate: [permissionGuard],
                         data: { permission: 'REPORTS_USERS_VIEW' }
                     },
-                    // {
-                    //     path: 'users/lowest-stock',
-                    //     component: ReportLowestStockComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:productos_menor_existencia' }
-                    // },
-                    // {
-                    //     path: 'users/top-sold',
-                    //     component: ReportTopSoldComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:top_productos_vendidos' }
-                    // },
-                    // {
-                    //     path: 'users/product-movements',
-                    //     component: ReportProductMovementComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:productos_mayor_movimiento' }
-                    // },
-                    // {
-                    //     path: 'users/most-product-movements',
-                    //     component: ReportMostMovementComponent,
-                    //     canActivate: [permissionGuard],
-                    //     data: { permission: 'reportes:historial_movimientos_producto' }
-                    // },
+                    {
+                        path: 'users/top-file-count',
+                        component: ReportUsersTopFileCountComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_TOP_FILES' }
+                    },
+                    {
+                        path: 'users/top-storage-used',
+                        component: ReportUsersTopStorageComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_TOP_STORAGE' }
+                    },
+                    {
+                        path: 'users/storage-percentage',
+                        component: ReportUsersStoragePercentageComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_STORAGE_PERCENTAGE' }
+                    },
+                    {
+                        path: 'users/share-count',
+                        component: ReportUsersShareCountComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_SHARE_COUNT' }
+                    },
                     {
                         path: 'sharing',
                         component: ReportSharedPage,
