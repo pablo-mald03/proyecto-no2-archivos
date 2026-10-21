@@ -121,4 +121,15 @@ export class SharesRepository {
       .session(session || null)
       .then((res) => res.deletedCount);
   }
+
+  //Method to delete shares by multiple resource ids
+  deleteByResourceIds(resourceType: 'FILE' | 'FOLDER', resourceIds: (string | Types.ObjectId)[], session?: ClientSession): Promise<number> {
+    return this.model
+      .deleteMany({
+        resourceType,
+        resourceId: { $in: resourceIds.map((id) => new Types.ObjectId(id)) },
+      })
+      .session(session || null)
+      .then((res) => res.deletedCount);
+  }
 }

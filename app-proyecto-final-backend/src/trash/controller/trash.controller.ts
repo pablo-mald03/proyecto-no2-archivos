@@ -1,12 +1,14 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TrashService } from '../service/trash.service';
-import { TrashItemDto } from '../dto/response/trash-item.dto';
+import { EmptyTrashResponseDto, PaginatedTrashResponseDto, TrashItemDto } from '../dto/response/trash-item.dto';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
 import { Permission } from 'src/common/constants/permissions/permissions';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/users/models/auth-user.model';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
+import { ListTrashQueryDto } from '../dto/request/list-trash-query.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
 
 /*Principal trash controller class*/
 @ApiTags('Trash')
@@ -17,10 +19,29 @@ export class TrashController {
 
   //Endpoint to list all root deleted items in trash for current user
   @Get()
-  @ApiOperation({ summary: 'List all root deleted items in trash for current user' })
-  @ApiOkResponse({ type: [TrashItemDto] })
-  listTrash(@CurrentUser() actor: AuthUser): Promise<TrashItemDto[]> {
-    return this.trashService.listTrash(actor);
+  @ApiOperation({ summary: 'List all root deleted items in trash for current user with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedTrashResponseDto })
+  listTrash(
+    @CurrentUser() actor: AuthUser,
+    @Query() query: ListTrashQueryDto,
+  ): Promise<PageResponseDto<TrashItemDto>> {
+    return this.trashService.listTrash(actor, query);
+  }
+
+  //Endpoint to permanently delete all items in trash for current user (empty trash)
+  @Delete()
+  @ApiOperation({ summary: 'Empty trash: permanently delete all items in trash for current user' })
+  @ApiOkResponse({ type: EmptyTrashResponseDto })
+  emptyTrash(@CurrentUser() actor: AuthUser): Promise<EmptyTrashResponseDto> {
+    return this.trashService.emptyTrash(actor);
+  }
+
+  //Endpoint alias to empty trash
+  @Delete('empty')
+  @ApiOperation({ summary: 'Empty trash (alias): permanently delete all items in trash for current user' })
+  @ApiOkResponse({ type: EmptyTrashResponseDto })
+  emptyTrashAlias(@CurrentUser() actor: AuthUser): Promise<EmptyTrashResponseDto> {
+    return this.trashService.emptyTrash(actor);
   }
 
   //Endpoint to send a file or folder to trash
@@ -55,3 +76,4 @@ export class TrashController {
     return this.trashService.deletePermanently(trashBatchId, actor);
   }
 }
+

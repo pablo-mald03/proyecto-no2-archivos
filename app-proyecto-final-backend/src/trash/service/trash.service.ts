@@ -8,12 +8,14 @@ import { UsersRepository } from 'src/users/repository/users.repository';
 import { SharesRepository } from 'src/sharing/repository/shares.repository';
 import { ActivityRecorderService } from 'src/activity/service/activity-recorder.service';
 import { AuthUser } from 'src/users/models/auth-user.model';
-import { TrashItemDto } from '../dto/response/trash-item.dto';
+import { EmptyTrashResponseDto, TrashItemDto } from '../dto/response/trash-item.dto';
 import { FileNotFoundException } from 'src/files/exceptions/file-not-found.exception';
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception';
 import { AccessDeniedException } from 'src/common/exceptions/access-deniend.exception';
 import { ActivityAction } from 'src/common/constants/actions/activity-action';
 import { ResourceType } from 'src/common/constants/actions/resource-type';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { ListTrashQueryDto } from '../dto/request/list-trash-query.dto';
 
 /*Principal trash service class*/
 @Injectable()
@@ -29,34 +31,75 @@ export class TrashService {
   ) { }
 
   /**
-   * Method to list all root deleted items for the user's trash view
+   * Method to list all root deleted items for the user's trash view with pagination and filters
    */
-  async listTrash(actor: AuthUser): Promise<TrashItemDto[]> {
+  async listTrash(actor: AuthUser, query: ListTrashQueryDto): Promise<PageResponseDto<TrashItemDto>> {
+    const shouldFetchFolders = query.type === 'ALL' || query.type === 'FOLDERS_ONLY';
+    const shouldFetchFiles = query.type === 'ALL' || query.type === 'FILES_ONLY';
+
     const [trashFolders, trashFiles] = await Promise.all([
-      this.foldersRepository.findTrashRoots(actor.id),
-      this.filesRepository.findTrashRoots(actor.id),
+      shouldFetchFolders && !query.extension ? this.foldersRepository.findTrashRoots(actor.id) : Promise.resolve([]),
+      shouldFetchFiles ? this.filesRepository.findTrashRoots(actor.id) : Promise.resolve([]),
     ]);
 
-    const items: TrashItemDto[] = [
-      ...trashFolders.map((f) => ({
+    const matchingItems: TrashItemDto[] = [];
+
+    for (const f of trashFolders) {
+      if (query.search && !f.name.toLowerCase().includes(query.search.toLowerCase())) continue;
+      const deletedAt = f.deletedAt || f.updatedAt;
+      if (query.from && deletedAt < query.from) continue;
+      if (query.to && deletedAt > query.to) continue;
+
+      matchingItems.push({
         id: f._id.toString(),
         name: f.name,
-        type: 'FOLDER' as const,
+        type: 'FOLDER',
         trashBatchId: f.trashBatchId ? f.trashBatchId.toString() : f._id.toString(),
-        deletedAt: f.deletedAt ? f.deletedAt.toISOString() : f.updatedAt.toISOString(),
-      })),
-      ...trashFiles.map((f) => ({
+        deletedAt: deletedAt ? deletedAt.toISOString() : new Date().toISOString(),
+      });
+    }
+
+    for (const f of trashFiles) {
+      if (query.extension && f.extension !== query.extension) continue;
+      if (query.search && !f.name.toLowerCase().includes(query.search.toLowerCase())) continue;
+      const deletedAt = f.deletedAt || f.updatedAt;
+      if (query.from && deletedAt < query.from) continue;
+      if (query.to && deletedAt > query.to) continue;
+
+      matchingItems.push({
         id: f._id.toString(),
         name: f.name,
-        type: 'FILE' as const,
+        type: 'FILE',
         trashBatchId: f.trashBatchId ? f.trashBatchId.toString() : f._id.toString(),
-        deletedAt: f.deletedAt ? f.deletedAt.toISOString() : f.updatedAt.toISOString(),
+        deletedAt: deletedAt ? deletedAt.toISOString() : new Date().toISOString(),
         sizeBytes: f.sizeBytes,
         extension: f.extension,
-      })),
-    ];
+      });
+    }
 
-    return items.sort((a, b) => (a.deletedAt > b.deletedAt ? -1 : 1));
+    // Sort items
+    matchingItems.sort((a, b) => {
+      let comparison = 0;
+      switch (query.sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'sizeBytes':
+          comparison = (a.sizeBytes || 0) - (b.sizeBytes || 0);
+          break;
+        case 'deletedAt':
+        default:
+          comparison = new Date(a.deletedAt).getTime() - new Date(b.deletedAt).getTime();
+          break;
+      }
+      return query.direction === 'asc' ? comparison : -comparison;
+    });
+
+    const total = matchingItems.length;
+    const start = query.page * query.size;
+    const content = matchingItems.slice(start, start + query.size);
+
+    return PageResponseDto.of(content, total, query);
   }
 
   /**
@@ -238,5 +281,67 @@ export class TrashService {
     for (const gridFsId of gridFsIdsToDelete) {
       await this.gridFsStorage.deleteFile(gridFsId).catch(() => { });
     }
+  }
+
+  /**
+   * Method to permanently delete ALL trashed items for current user (empty trash)
+   */
+  async emptyTrash(actor: AuthUser): Promise<EmptyTrashResponseDto> {
+    const ownerOid = new Types.ObjectId(actor.id);
+
+    const [deletedFolders, deletedFiles] = await Promise.all([
+      this.foldersRepository.findAllDeletedByOwner(ownerOid),
+      this.filesRepository.findAllDeletedByOwner(ownerOid),
+    ]);
+
+    if (!deletedFolders.length && !deletedFiles.length) {
+      return { deletedFoldersCount: 0, deletedFilesCount: 0, bytesReleased: 0 };
+    }
+
+    const folderIds = deletedFolders.map((f) => f._id);
+    const fileIds = deletedFiles.map((f) => f._id);
+    const totalBytesToRelease = deletedFiles.reduce((sum, f) => sum + (f.sizeBytes || 0), 0);
+    const gridFsIdsToDelete = deletedFiles.map((f) => f.gridFsId);
+
+    await this.connection.transaction(async (session) => {
+      if (folderIds.length > 0) {
+        await this.sharesRepository.deleteByResourceIds('FOLDER', folderIds, session);
+      }
+      if (fileIds.length > 0) {
+        await this.sharesRepository.deleteByResourceIds('FILE', fileIds, session);
+      }
+
+      await this.foldersRepository.deleteAllPermanentlyByOwner(ownerOid, session);
+      await this.filesRepository.deleteAllPermanentlyByOwner(ownerOid, session);
+
+      if (totalBytesToRelease > 0) {
+        await this.usersRepository.releaseStorageQuota(ownerOid, totalBytesToRelease, session);
+      }
+
+      await this.activity.recordAndWait(
+        {
+          actor: { id: actor.id, username: actor.username, email: actor.email },
+          action: ActivityAction.FILE_DELETED_PERMANENTLY,
+          description: `Vació la papelera (${deletedFolders.length} carpetas y ${deletedFiles.length} archivos eliminados, ${totalBytesToRelease} bytes liberados)`,
+          resource: {
+            type: ResourceType.FILE,
+            id: actor.id,
+            name: 'Papelera',
+          },
+          metadata: totalBytesToRelease > 0 ? { sizeBytes: totalBytesToRelease } : undefined,
+        },
+        session,
+      );
+    });
+
+    for (const gridFsId of gridFsIdsToDelete) {
+      await this.gridFsStorage.deleteFile(gridFsId).catch(() => { });
+    }
+
+    return {
+      deletedFoldersCount: deletedFolders.length,
+      deletedFilesCount: deletedFiles.length,
+      bytesReleased: totalBytesToRelease,
+    };
   }
 }

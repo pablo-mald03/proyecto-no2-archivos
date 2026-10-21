@@ -7,6 +7,8 @@ import { FileResponse } from "../models/response/file-response.model";
 import { UpdateFileContentRequest } from "../models/request/update-file-content-request.model";
 import { RenameFileRequest } from "../models/request/rename-file-request.model";
 import { MoveFileRequest } from "../models/request/move-file-request.model";
+import { RecentFilesParams } from "../models/request/recent-files-params.model";
+import { PaginatedFilesResponse } from "../models/response/paginated-files-response.model";
 
 @Injectable({
     providedIn: 'root'
@@ -48,11 +50,23 @@ export class FileService {
         );
     }
 
-    getRecentFiles(limit: number = 20): Observable<FileResponse[]> {
-        return this.http.get<FileResponse[]>(`${this.apiUrl}/files/recent`, {
-            params: { limit }
+    getRecentFiles(params: RecentFilesParams): Observable<PaginatedFilesResponse> {
+        let httpParams = new HttpParams()
+            .set('page', params.page)
+            .set('size', params.size)
+            .set('direction', params.direction);
+
+        if (params.sortBy) httpParams = httpParams.set('sortBy', params.sortBy);
+        if (params.search) httpParams = httpParams.set('search', params.search);
+        if (params.extension) httpParams = httpParams.set('extension', params.extension);
+        if (params.from) httpParams = httpParams.set('from', params.from);
+        if (params.to) httpParams = httpParams.set('to', params.to);
+
+        return this.http.get<PaginatedFilesResponse>(`${this.apiUrl}/files/recent`, {
+            params: httpParams
         });
     }
+
 
 
     //Method to upload files using custom FormData

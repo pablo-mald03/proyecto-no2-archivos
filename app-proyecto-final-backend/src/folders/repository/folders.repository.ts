@@ -231,4 +231,27 @@ export class FoldersRepository {
     const res = await this.model.deleteMany({ trashBatchId }, { session });
     return res.deletedCount;
   }
+
+  //Method to find all deleted folders for owner
+  findAllDeletedByOwner(ownerId: string | Types.ObjectId, session?: ClientSession): Promise<FolderDocument[]> {
+    return this.model
+      .find({
+        ownerId: new Types.ObjectId(ownerId),
+        isDeleted: true,
+      })
+      .session(session || null)
+      .exec();
+  }
+
+  //Method to permanently delete all trashed folders for owner
+  async deleteAllPermanentlyByOwner(ownerId: string | Types.ObjectId, session?: ClientSession): Promise<number> {
+    const res = await this.model.deleteMany(
+      {
+        ownerId: new Types.ObjectId(ownerId),
+        isDeleted: true,
+      },
+      { session },
+    );
+    return res.deletedCount;
+  }
 }

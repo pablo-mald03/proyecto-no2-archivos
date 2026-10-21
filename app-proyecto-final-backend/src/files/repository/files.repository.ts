@@ -244,4 +244,27 @@ export class FilesRepository {
     const res = await this.model.deleteMany({ trashBatchId }, { session });
     return res.deletedCount;
   }
+
+  //Method to find all deleted files for owner
+  findAllDeletedByOwner(ownerId: string | Types.ObjectId, session?: ClientSession): Promise<FileDocument[]> {
+    return this.model
+      .find({
+        ownerId: new Types.ObjectId(ownerId),
+        isDeleted: true,
+      })
+      .session(session || null)
+      .exec();
+  }
+
+  //Method to permanently delete all trashed files for owner
+  async deleteAllPermanentlyByOwner(ownerId: string | Types.ObjectId, session?: ClientSession): Promise<number> {
+    const res = await this.model.deleteMany(
+      {
+        ownerId: new Types.ObjectId(ownerId),
+        isDeleted: true,
+      },
+      { session },
+    );
+    return res.deletedCount;
+  }
 }

@@ -17,6 +17,9 @@ import { ErrorResponse } from '../../../features/errors/models/error-response.mo
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { lucideHistory } from '@ng-icons/lucide';
 import { ShareModalComponent } from '../../sharing/share-modal-component/share-modal-component';
+import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
+import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
+import { CustomButton } from '../../common/custom-button/custom-button';
 
 @Component({
   selector: 'app-drive-home',
@@ -29,8 +32,11 @@ import { ShareModalComponent } from '../../sharing/share-modal-component/share-m
     DriveItemListComponent,
     DriveMoveModalComponent,
     EmptyStateComponent,
-    ShareModalComponent
-  ],
+    ShareModalComponent,
+    CustomDropdown,
+    CustomTextfield,
+    CustomButton
+],
   templateUrl: './drive-home.html',
   styleUrl: './drive-home.css',
   host: { class: 'flex flex-col h-full min-h-0 overflow-y-auto pr-2' }
