@@ -21,6 +21,7 @@ import { CommentResponse } from '../../../features/comments/models/response/comm
 import { ShareAccessLevel } from '../../../features/shares/constants/share.constants';
 import { ShareResponse } from '../../../features/shares/models/response/share-response.model';
 import { AuthUser } from '../../../features/auth/models/aut-user.model';
+import { PaginatedSharedWithMeResponse } from '../../../features/shares/models/response/paginated-shared-with-me-response.model';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -192,10 +193,11 @@ export class FilePreviewLayoutComponent implements OnInit {
   // Fallback method to checking shared-with-me items
   private checkSharedWithMe(fileId: string): void {
     this.shareService.getSharedWithMe().subscribe({
-      next: (items) => {
-        const match = items.find(
+      next: (response: PaginatedSharedWithMeResponse) => {
+        const match = response.content?.find(
           item => item.resource?.id === fileId || item.share?.resourceId === fileId
         );
+
         if (match?.share?.access) {
           this.applyAccessLevel(match.share.access);
         } else {

@@ -1,13 +1,15 @@
 import { catchError, Observable, throwError } from "rxjs";
 import { inject, Injectable } from "@angular/core";
 import { API_URL } from "../../../core/config/api.config";
-import { HttpClient, HttpErrorResponse } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse, HttpParams } from "@angular/common/http";
 import { ErrorResponse } from "../../errors/models/error-response.model";
 import { ShareTargetType } from "../constants/share.constants";
 import { ShareResponse } from "../models/response/share-response.model";
 import { SharedWithMeItem } from "../models/response/shared-with-me-item.model";
 import { ShareResourceRequest } from "../models/request/share-resource-request.model";
 import { RevokeShareRequest } from "../models/request/revoke-share-request.model";
+import { SharedWithMeQueryParams } from "../models/request/shared-with-me-query.model";
+import { PaginatedSharedWithMeResponse } from "../models/response/paginated-shared-with-me-response.model";
 
 @Injectable({
     providedIn: 'root'
@@ -19,10 +21,24 @@ export class ShareService {
 
     private readonly apiUrl = inject(API_URL);
 
-    //Method to list files and folders directly shared with current user
-    getSharedWithMe(): Observable<SharedWithMeItem[]> {
-        return this.http.get<SharedWithMeItem[]>(
-            `${this.apiUrl}/shares/shared-with-me`
+    //Method to list files and folders directly shared with current user (paginated)
+    getSharedWithMe(query: SharedWithMeQueryParams = {}): Observable<PaginatedSharedWithMeResponse> {
+        let params = new HttpParams()
+            .set('page', String(query.page ?? 0))
+            .set('size', String(query.size ?? 15))
+            .set('direction', query.direction ?? 'desc');
+
+        if (query.sortBy) params = params.set('sortBy', query.sortBy);
+        if (query.search?.trim()) params = params.set('search', query.search.trim());
+        if (query.type) params = params.set('type', query.type);
+        if (query.extension) params = params.set('extension', query.extension);
+        if (query.access) params = params.set('access', query.access);
+        if (query.from) params = params.set('from', query.from);
+        if (query.to) params = params.set('to', query.to);
+
+        return this.http.get<PaginatedSharedWithMeResponse>(
+            `${this.apiUrl}/shares/shared-with-me`,
+            { params }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))

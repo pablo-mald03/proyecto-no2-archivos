@@ -2,7 +2,11 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { NgIconComponent } from '@ng-icons/core';
-import { lucideChevronDown, lucideInfo, lucideRotateCcw, lucideSearch, lucideSlidersHorizontal, lucideUsers } from '@ng-icons/lucide';
+import {
+  lucideCalendar, lucideChevronDown, lucideInfo, lucideRotateCcw,
+  lucideSearch, lucideSlidersHorizontal, lucideUsers
+} from '@ng-icons/lucide';
+import { debounceTime, merge } from 'rxjs';
 
 import { ShareService } from '../../../features/shares/service/share.service';
 import { FileService } from '../../../features/files/service/file.service';
@@ -10,11 +14,13 @@ import { ToastService } from '../../../core/services/toast.service';
 import { SharedWithMeItem } from '../../../features/shares/models/response/shared-with-me-item.model';
 import { DriveItem, mapSharedWithMeToDriveItem } from '../../../features/drive/drive-item.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { SharedWithMeQueryParams } from '../../../features/shares/models/request/shared-with-me-query.model';
 
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
 import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
+import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
@@ -29,15 +35,16 @@ import { CustomAlert } from '../../common/custom-alert/custom-alert';
     CustomButton,
     CustomTextfield,
     CustomDropdown,
+    CustomInfiniteScroll,
     DriveItemListComponent,
     EmptyStateComponent,
     CustomAlert
   ],
   templateUrl: './shared-with-me-page.html',
   styleUrl: './shared-with-me-page.css',
-  host: { class: 'flex flex-col h-full min-h-0 overflow-y-auto pr-2' }
+  host: { class: 'block h-full min-h-0' }
 })
-// Principal Shared With Me Page component to view and interact with shared files/folders
+// Principal Shared With Me Page
 export class SharedWithMePage implements OnInit {
   // Dependencies
   private readonly shareService = inject(ShareService);
@@ -45,39 +52,85 @@ export class SharedWithMePage implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
 
-  // Data signals
-  readonly rawItems = signal<SharedWithMeItem[]>([]);
-  readonly loading = signal<boolean>(false);
+  // Pagination & Loading State
+  readonly pageSize = 15;
+  readonly currentPage = signal<number>(0);
+  readonly totalPages = signal<number>(0);
+  readonly totalElements = signal<number>(0);
+  readonly hasMore = computed(() => this.currentPage() + 1 < this.totalPages());
 
-  // Filters state using FormControls for CustomDropdown compatibility
+  readonly items = signal<DriveItem[]>([]);
+  readonly loading = signal<boolean>(false);
+  readonly loadingMore = signal<boolean>(false);
+  readonly initialized = signal<boolean>(false);
+
+  // Filters state
   readonly filtersExpanded = signal<boolean>(false);
   readonly searchControl = new FormControl('', { nonNullable: true });
-  readonly typeFilterControl = new FormControl<string>('ALL', { nonNullable: true });
-  readonly accessFilterControl = new FormControl<string>('ALL', { nonNullable: true });
-  readonly sortOptionControl = new FormControl<string>('updatedAt_desc', { nonNullable: true });
+  readonly typeFilterControl = new FormControl<'FILE' | 'FOLDER' | ''>('', { nonNullable: true });
+  readonly accessFilterControl = new FormControl<'VIEWER' | 'COMMENTER' | 'EDITOR' | ''>('', { nonNullable: true });
+  readonly sortByControl = new FormControl<string>('updatedAt', { nonNullable: true });
+  readonly directionControl = new FormControl<'asc' | 'desc'>('desc', { nonNullable: true });
+  readonly extensionControl = new FormControl<string>('', { nonNullable: true });
+  readonly fromControl = new FormControl<string>('', { nonNullable: true });
+  readonly toControl = new FormControl<string>('', { nonNullable: true });
 
   // Filter options
   readonly typeOptions = [
-    { value: 'ALL', label: 'Todos los tipos' },
+    { value: '', label: 'Todos los tipos' },
     { value: 'FOLDER', label: 'Carpetas' },
     { value: 'FILE', label: 'Archivos' }
   ];
 
   readonly accessOptions = [
-    { value: 'ALL', label: 'Todos los permisos' },
+    { value: '', label: 'Todos los permisos' },
     { value: 'VIEWER', label: 'Solo lectura (Lector)' },
     { value: 'COMMENTER', label: 'Comentarios (Comentador)' },
     { value: 'EDITOR', label: 'Edición (Editor)' }
   ];
 
-  readonly sortOptions = [
-    { value: 'updatedAt_desc', label: 'Modificado (más reciente)' },
-    { value: 'updatedAt_asc', label: 'Modificado (más antiguo)' },
-    { value: 'name_asc', label: 'Nombre (A - Z)' },
-    { value: 'name_desc', label: 'Nombre (Z - A)' },
-    { value: 'size_desc', label: 'Tamaño (mayor a menor)' },
-    { value: 'size_asc', label: 'Tamaño (menor a mayor)' }
+  readonly sortByOptions = [
+    { value: 'updatedAt', label: 'Última modificación' },
+    { value: 'name', label: 'Nombre' },
+    { value: 'sizeBytes', label: 'Tamaño' },
+    { value: 'createdAt', label: 'Fecha de compartición' }
   ];
+
+  readonly directionOptions = [
+    { value: 'desc', label: 'Descendente' },
+    { value: 'asc', label: 'Ascendente' }
+  ];
+
+  readonly extensionOptions = [
+    { value: '', label: 'Todas las extensiones' },
+    { value: 'txt', label: 'Texto (.txt)' },
+    { value: 'md', label: 'Markdown (.md)' },
+    { value: 'pdf', label: 'PDF (.pdf)' },
+    { value: 'png', label: 'Imagen (.png)' },
+    { value: 'jpg', label: 'Imagen (.jpg)' }
+  ];
+
+  // Active filters helper
+  readonly hasActiveFilters = computed(() => {
+    return !!(
+      this.searchControl.value.trim() ||
+      this.typeFilterControl.value ||
+      this.accessFilterControl.value ||
+      this.extensionControl.value ||
+      this.fromControl.value ||
+      this.toControl.value ||
+      this.sortByControl.value !== 'updatedAt' ||
+      this.directionControl.value !== 'desc'
+    );
+  });
+
+  // Empty state condition
+  readonly emptyStateType = computed<'loading' | 'shared-empty' | 'search-empty' | 'none'>(() => {
+    if (!this.initialized() || (this.loading() && this.items().length === 0)) return 'loading';
+    if (this.items().length === 0 && this.hasActiveFilters()) return 'search-empty';
+    if (this.items().length === 0) return 'shared-empty';
+    return 'none';
+  });
 
   // Icons
   readonly lucideUsersIcon = lucideUsers;
@@ -86,94 +139,102 @@ export class SharedWithMePage implements OnInit {
   readonly lucideSlidersHorizontalIcon = lucideSlidersHorizontal;
   readonly lucideChevronDownIcon = lucideChevronDown;
   readonly lucideInfoIcon = lucideInfo;
+  readonly lucideCalendarIcon = lucideCalendar;
+
+  constructor() {
+    merge(
+      this.searchControl.valueChanges.pipe(debounceTime(350)),
+      this.typeFilterControl.valueChanges,
+      this.accessFilterControl.valueChanges,
+      this.extensionControl.valueChanges,
+      this.sortByControl.valueChanges,
+      this.directionControl.valueChanges,
+      this.fromControl.valueChanges.pipe(debounceTime(300)),
+      this.toControl.valueChanges.pipe(debounceTime(300))
+    ).subscribe(() => {
+      this.fetchItems({ reset: true });
+    });
+  }
 
   ngOnInit(): void {
-    this.loadSharedItems();
+    this.fetchItems({ reset: true });
   }
 
-  // Method to load items shared with current user
-  loadSharedItems(): void {
-    this.loading.set(true);
-    this.shareService.getSharedWithMe().subscribe({
-      next: (items) => {
-        this.rawItems.set(items || []);
-        this.loading.set(false);
+  // Public refresh shortcut for template
+  refresh(): void { this.fetchItems({ reset: true }); }
+
+  // Method to fetch shared-with-me items with server-side pagination and filters
+  fetchItems({ reset = false }: { reset?: boolean } = {}): void {
+    const targetPage = reset ? 0 : this.currentPage() + 1;
+
+    if (reset) {
+      this.loading.set(true);
+      this.initialized.set(false);
+    } else {
+      this.loadingMore.set(true);
+    }
+
+    const query: SharedWithMeQueryParams = {
+      page: targetPage,
+      size: this.pageSize,
+      direction: this.directionControl.value,
+      sortBy: this.sortByControl.value || undefined,
+      search: this.searchControl.value.trim() || undefined,
+      type: (this.typeFilterControl.value as 'FILE' | 'FOLDER') || undefined,
+      extension: this.extensionControl.value || undefined,
+      access: (this.accessFilterControl.value as 'VIEWER' | 'COMMENTER' | 'EDITOR') || undefined,
+      from: this.fromControl.value || undefined,
+      to: this.toControl.value || undefined
+    };
+
+    this.shareService.getSharedWithMe(query).subscribe({
+      next: (response) => {
+        const mapped = (response.content || []).map(item => mapSharedWithMeToDriveItem(item));
+
+        this.totalPages.set(response.totalPages ?? 0);
+        this.totalElements.set(response.totalElements ?? 0);
+        this.currentPage.set(targetPage);
+
+        if (reset) {
+          this.items.set(mapped);
+          this.loading.set(false);
+          this.initialized.set(true);
+        } else {
+          this.items.update(prev => [...prev, ...mapped]);
+          this.loadingMore.set(false);
+        }
       },
       error: (err: ErrorResponse) => {
-        this.rawItems.set([]);
-        this.loading.set(false);
-        this.toastService.error(
-          err.message || 'Error al cargar los elementos compartidos.',
-          'Error'
-        );
+        if (reset) {
+          this.items.set([]);
+          this.totalPages.set(0);
+          this.totalElements.set(0);
+          this.loading.set(false);
+          this.initialized.set(true);
+        } else {
+          this.loadingMore.set(false);
+        }
+        this.toastService.error(err.message || 'Error al cargar los elementos compartidos.', 'Error');
       }
     });
   }
 
-  // Computed property for filtered and sorted representation
-  readonly displayedItems = computed<DriveItem[]>(() => {
-    let list = this.rawItems().map(item => mapSharedWithMeToDriveItem(item));
-
-    const search = this.searchControl.value.trim().toLowerCase();
-    if (search) {
-      list = list.filter(item => item.name.toLowerCase().includes(search));
-    }
-
-    const type = this.typeFilterControl.value;
-    if (type === 'FOLDER') {
-      list = list.filter(item => item.type === 'folder');
-    } else if (type === 'FILE') {
-      list = list.filter(item => item.type === 'file');
-    }
-
-    const access = this.accessFilterControl.value;
-    if (access !== 'ALL') {
-      list = list.filter(item => item.access === access);
-    }
-
-    const sort = this.sortOptionControl.value;
-    list = [...list].sort((a, b) => {
-      switch (sort) {
-        case 'updatedAt_desc': {
-          const tA = new Date(a.updatedAt).getTime();
-          const tB = new Date(b.updatedAt).getTime();
-          return tB - tA;
-        }
-        case 'updatedAt_asc': {
-          const tA = new Date(a.updatedAt).getTime();
-          const tB = new Date(b.updatedAt).getTime();
-          return tA - tB;
-        }
-        case 'name_asc':
-          return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-        case 'name_desc':
-          return b.name.localeCompare(a.name, undefined, { sensitivity: 'base' });
-        case 'size_desc':
-          return (b.sizeBytes || 0) - (a.sizeBytes || 0);
-        case 'size_asc':
-          return (a.sizeBytes || 0) - (b.sizeBytes || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return list;
-  });
-
-  // Method for empty state condition
-  readonly emptyStateType = computed<'loading' | 'shared-empty' | 'search-empty' | 'none'>(() => {
-    if (this.loading()) return 'loading';
-    if (this.rawItems().length === 0) return 'shared-empty';
-    if (this.displayedItems().length === 0) return 'search-empty';
-    return 'none';
-  });
+  // Load next page on scroll bottom reached
+  loadMore(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) return;
+    this.fetchItems({ reset: false });
+  }
 
   // Reset all filters
   resetFilters(): void {
     this.searchControl.setValue('');
-    this.typeFilterControl.setValue('ALL');
-    this.accessFilterControl.setValue('ALL');
-    this.sortOptionControl.setValue('updatedAt_desc');
+    this.typeFilterControl.setValue('');
+    this.accessFilterControl.setValue('');
+    this.extensionControl.setValue('');
+    this.sortByControl.setValue('updatedAt');
+    this.directionControl.setValue('desc');
+    this.fromControl.setValue('');
+    this.toControl.setValue('');
   }
 
   // Open item when clicked or double clicked
@@ -191,7 +252,6 @@ export class SharedWithMePage implements OnInit {
       this.router.navigate(['/drive/files/folder', item.id]);
       return;
     }
-
     this.router.navigate(['/drive/files/preview', item.id]);
   }
 

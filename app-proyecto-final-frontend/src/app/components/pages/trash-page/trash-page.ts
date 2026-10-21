@@ -2,8 +2,10 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIconComponent } from '@ng-icons/core';
 import {
-  lucideChevronDown, lucideInfo, lucideRotateCcw, lucideSearch, lucideSlidersHorizontal, lucideTrash2
+  lucideCalendar, lucideChevronDown, lucideInfo, lucideRotateCcw,
+  lucideSearch, lucideSlidersHorizontal, lucideTrash2
 } from '@ng-icons/lucide';
+import { debounceTime, merge } from 'rxjs';
 
 import { TrashService } from '../../../features/trash/service/trash.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -11,12 +13,14 @@ import { TrashItem } from '../../../features/trash/models/trash-item.model';
 import { DriveItem, mapTrashItemToDriveItem } from '../../../features/drive/drive-item.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { ConfirmDialogType } from '../../common/custom-confirm-dialog/types/confirm-dialog.types';
+import { TrashQueryParams } from '../../../features/trash/models/request/trash-query.model';
 
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
 import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
 import { CustomConfirmDialog } from '../../common/custom-confirm-dialog/custom-confirm-dialog';
+import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
@@ -32,54 +36,129 @@ import { CustomAlert } from '../../common/custom-alert/custom-alert';
     CustomTextfield,
     CustomDropdown,
     CustomConfirmDialog,
+    CustomInfiniteScroll,
     DriveItemListComponent,
     EmptyStateComponent,
     CustomAlert
   ],
   templateUrl: './trash-page.html',
   styleUrl: './trash-page.css',
-  host: { class: 'flex flex-col h-full min-h-0 overflow-y-auto pr-2' }
+  host: { class: 'block h-full min-h-0' }
 })
-// Principal Trash Page component to view, filter, restore and permanently delete items
+// Principal Trash Page component with server-side pagination, filters, and infinite scroll
 export class TrashPage implements OnInit {
   // Dependencies
   private readonly trashService = inject(TrashService);
   private readonly toastService = inject(ToastService);
 
-  // Data signals
-  readonly trashItems = signal<TrashItem[]>([]);
+  // Pagination & Loading State
+  readonly pageSize = 15;
+  readonly currentPage = signal<number>(0);
+  readonly totalPages = signal<number>(0);
+  readonly totalElements = signal<number>(0);
+  readonly hasMore = computed(() => this.currentPage() + 1 < this.totalPages());
+
+  readonly items = signal<DriveItem[]>([]);
   readonly loading = signal<boolean>(false);
+  readonly loadingMore = signal<boolean>(false);
+  readonly initialized = signal<boolean>(false);
 
   // Filters state
   readonly filtersExpanded = signal<boolean>(false);
+  readonly searchControl = new FormControl('', { nonNullable: true });
+  readonly typeFilterControl = new FormControl<'FILE' | 'FOLDER' | ''>('', { nonNullable: true });
+  readonly sortByControl = new FormControl<string>('deletedAt', { nonNullable: true });
+  readonly directionControl = new FormControl<'asc' | 'desc'>('desc', { nonNullable: true });
+  readonly extensionControl = new FormControl<string>('', { nonNullable: true });
+  readonly fromControl = new FormControl<string>('', { nonNullable: true });
+  readonly toControl = new FormControl<string>('', { nonNullable: true });
 
   // Confirm dialog state
   readonly confirmModalOpen = signal<boolean>(false);
   readonly confirmModalLoading = signal<boolean>(false);
-  readonly confirmAction = signal<'restore' | 'delete'>('restore');
+  readonly confirmAction = signal<'restore' | 'delete' | 'empty'>('restore');
   readonly targetItem = signal<DriveItem | null>(null);
-
-
-  // Filters state using FormControls to fit CustomDropdown
-  readonly searchControl = new FormControl('', { nonNullable: true });
-  readonly typeFilterControl = new FormControl<string>('ALL', { nonNullable: true });
-  readonly sortOptionControl = new FormControl<string>('deletedAt_desc', { nonNullable: true });
 
   // Filter options
   readonly typeOptions = [
-    { value: 'ALL', label: 'Todos los tipos' },
+    { value: '', label: 'Todos los tipos' },
     { value: 'FOLDER', label: 'Carpetas' },
     { value: 'FILE', label: 'Archivos' }
   ];
 
-  readonly sortOptions = [
-    { value: 'deletedAt_desc', label: 'Eliminado (más reciente)' },
-    { value: 'deletedAt_asc', label: 'Eliminado (más antiguo)' },
-    { value: 'name_asc', label: 'Nombre (A - Z)' },
-    { value: 'name_desc', label: 'Nombre (Z - A)' },
-    { value: 'size_desc', label: 'Tamaño (mayor a menor)' },
-    { value: 'size_asc', label: 'Tamaño (menor a mayor)' }
+  readonly sortByOptions = [
+    { value: 'deletedAt', label: 'Fecha de eliminación' },
+    { value: 'name', label: 'Nombre' },
+    { value: 'sizeBytes', label: 'Tamaño' }
   ];
+
+  readonly directionOptions = [
+    { value: 'desc', label: 'Descendente' },
+    { value: 'asc', label: 'Ascendente' }
+  ];
+
+  readonly extensionOptions = [
+    { value: '', label: 'Todas las extensiones' },
+    { value: 'txt', label: 'Texto (.txt)' },
+    { value: 'md', label: 'Markdown (.md)' },
+    { value: 'pdf', label: 'PDF (.pdf)' },
+    { value: 'png', label: 'Imagen (.png)' },
+    { value: 'jpg', label: 'Imagen (.jpg)' }
+  ];
+
+  // Active filters helper
+  readonly hasActiveFilters = computed(() => {
+    return !!(
+      this.searchControl.value.trim() ||
+      this.typeFilterControl.value ||
+      this.extensionControl.value ||
+      this.fromControl.value ||
+      this.toControl.value ||
+      this.sortByControl.value !== 'deletedAt' ||
+      this.directionControl.value !== 'desc'
+    );
+  });
+
+  // Empty state condition
+  readonly emptyStateType = computed<'loading' | 'trash-empty' | 'search-empty' | 'none'>(() => {
+    if (!this.initialized() || (this.loading() && this.items().length === 0)) return 'loading';
+    if (this.items().length === 0 && this.hasActiveFilters()) return 'search-empty';
+    if (this.items().length === 0) return 'trash-empty';
+    return 'none';
+  });
+
+  // Computed dialog details
+  readonly dialogType = computed<ConfirmDialogType>(() =>
+    this.confirmAction() === 'restore' ? 'warning' : 'danger'
+  );
+
+  readonly dialogTitle = computed(() => {
+    switch (this.confirmAction()) {
+      case 'delete': return 'Eliminar definitivamente';
+      case 'empty': return 'Vaciar papelera';
+      default: return 'Restaurar elemento';
+    }
+  });
+
+  readonly dialogMessage = computed(() => {
+    const item = this.targetItem();
+    if (this.confirmAction() === 'empty') {
+      return '¿Deseas eliminar permanentemente todos los elementos de la papelera? Esta acción no se puede revertir.';
+    }
+    if (!item) return '';
+    if (this.confirmAction() === 'delete') {
+      return `¿Deseas eliminar permanentemente '${item.name}'? Esta acción no se puede revertir.`;
+    }
+    return `¿Deseas restaurar '${item.name}' a su ubicación original?`;
+  });
+
+  readonly dialogConfirmLabel = computed(() => {
+    switch (this.confirmAction()) {
+      case 'delete': return 'Eliminar definitivamente';
+      case 'empty': return 'Vaciar papelera';
+      default: return 'Restaurar';
+    }
+  });
 
   // Icons
   readonly lucideTrash2Icon = lucideTrash2;
@@ -88,110 +167,100 @@ export class TrashPage implements OnInit {
   readonly lucideSlidersHorizontalIcon = lucideSlidersHorizontal;
   readonly lucideChevronDownIcon = lucideChevronDown;
   readonly lucideInfoIcon = lucideInfo;
+  readonly lucideCalendarIcon = lucideCalendar;
+
+  constructor() {
+    // Reactive filter triggers — debounce search only
+    merge(
+      this.searchControl.valueChanges.pipe(debounceTime(350)),
+      this.typeFilterControl.valueChanges,
+      this.extensionControl.valueChanges,
+      this.sortByControl.valueChanges,
+      this.directionControl.valueChanges,
+      this.fromControl.valueChanges.pipe(debounceTime(300)),
+      this.toControl.valueChanges.pipe(debounceTime(300))
+    ).subscribe(() => {
+      this.fetchItems({ reset: true });
+    });
+  }
 
   ngOnInit(): void {
-    this.loadTrashItems();
+    this.fetchItems({ reset: true });
   }
 
-  // Load items from trash service
-  loadTrashItems(): void {
-    this.loading.set(true);
-    this.trashService.getTrashItems().subscribe({
-      next: (items) => {
-        this.trashItems.set(items || []);
-        this.loading.set(false);
+  // Public refresh shortcut for template
+  refresh(): void { this.fetchItems({ reset: true }); }
+
+  // Fetch trash items with server-side pagination and filters
+  fetchItems({ reset = false }: { reset?: boolean } = {}): void {
+    const targetPage = reset ? 0 : this.currentPage() + 1;
+
+    if (reset) {
+      this.loading.set(true);
+      this.initialized.set(false);
+    } else {
+      this.loadingMore.set(true);
+    }
+
+    const query: TrashQueryParams = {
+      page: targetPage,
+      size: this.pageSize,
+      direction: this.directionControl.value,
+      sortBy: this.sortByControl.value || undefined,
+      search: this.searchControl.value.trim() || undefined,
+      type: (this.typeFilterControl.value as 'FILE' | 'FOLDER') || undefined,
+      extension: this.extensionControl.value || undefined,
+      from: this.fromControl.value || undefined,
+      to: this.toControl.value || undefined
+    };
+
+    this.trashService.getTrashItems(query).subscribe({
+      next: (response) => {
+        const mapped = (response.content || []).map(item => mapTrashItemToDriveItem(item));
+
+        this.totalPages.set(response.totalPages ?? 0);
+        this.totalElements.set(response.totalElements ?? 0);
+        this.currentPage.set(targetPage);
+
+        if (reset) {
+          this.items.set(mapped);
+          this.loading.set(false);
+          this.initialized.set(true);
+        } else {
+          this.items.update(prev => [...prev, ...mapped]);
+          this.loadingMore.set(false);
+        }
       },
       error: (err: ErrorResponse) => {
-        this.trashItems.set([]);
-        this.loading.set(false);
-        this.toastService.error(
-          err.message || 'Error al cargar los elementos de la papelera.',
-          'Error'
-        );
+        if (reset) {
+          this.items.set([]);
+          this.totalPages.set(0);
+          this.totalElements.set(0);
+          this.loading.set(false);
+          this.initialized.set(true);
+        } else {
+          this.loadingMore.set(false);
+        }
+        this.toastService.error(err.message || 'Error al cargar la papelera.', 'Error');
       }
     });
   }
 
-  // Filtered and sorted items representation
-  readonly displayedItems = computed<DriveItem[]>(() => {
-    let list = this.trashItems().map(item => mapTrashItemToDriveItem(item));
+  // Load next page on scroll bottom reached
+  loadMore(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) return;
+    this.fetchItems({ reset: false });
+  }
 
-    const search = this.searchControl.value.trim().toLowerCase();
-    if (search) {
-      list = list.filter(item => item.name.toLowerCase().includes(search));
-    }
-
-    const type = this.typeFilterControl.value;
-    if (type === 'FOLDER') {
-      list = list.filter(item => item.type === 'folder');
-    } else if (type === 'FILE') {
-      list = list.filter(item => item.type === 'file');
-    }
-
-    const sort = this.sortOptionControl.value;
-    list = [...list].sort((a, b) => {
-      switch (sort) {
-        case 'deletedAt_desc': {
-          const tA = new Date(a.deletedAt || a.updatedAt).getTime();
-          const tB = new Date(b.deletedAt || b.updatedAt).getTime();
-          return tB - tA;
-        }
-        case 'deletedAt_asc': {
-          const tA = new Date(a.deletedAt || a.updatedAt).getTime();
-          const tB = new Date(b.deletedAt || b.updatedAt).getTime();
-          return tA - tB;
-        }
-        case 'name_asc':
-          return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
-        case 'name_desc':
-          return b.name.localeCompare(a.name, undefined, { sensitivity: 'base' });
-        case 'size_desc':
-          return (b.sizeBytes || 0) - (a.sizeBytes || 0);
-        case 'size_asc':
-          return (a.sizeBytes || 0) - (b.sizeBytes || 0);
-        default:
-          return 0;
-      }
-    });
-
-    return list;
-  });
-
-  // Empty state condition
-  readonly emptyStateType = computed<'loading' | 'trash-empty' | 'search-empty' | 'none'>(() => {
-    if (this.loading()) return 'loading';
-    if (this.trashItems().length === 0) return 'trash-empty';
-    if (this.displayedItems().length === 0) return 'search-empty';
-    return 'none';
-  });
-
-  // Computed dialog details
-  readonly dialogType = computed<ConfirmDialogType>(() =>
-    this.confirmAction() === 'delete' ? 'danger' : 'warning'
-  );
-
-  readonly dialogTitle = computed(() =>
-    this.confirmAction() === 'delete' ? 'Eliminar definitivamente' : 'Restaurar elemento'
-  );
-
-  readonly dialogMessage = computed(() => {
-    const item = this.targetItem();
-    if (!item) return '';
-    if (this.confirmAction() === 'delete') {
-      return `¿Deseas eliminar permanentemente '${item.name}'? Esta acción no se puede revertir.`;
-    }
-    return `¿Deseas restaurar '${item.name}' a su ubicación original?`;
-  });
-
-  readonly dialogConfirmLabel = computed(() =>
-    this.confirmAction() === 'delete' ? 'Eliminar definitivamente' : 'Restaurar'
-  );
-
-  // Filters actions
+  // Reset all filters
   resetFilters(): void {
     this.searchControl.setValue('');
-    this.typeFilterControl.setValue('ALL');
-    this.sortOptionControl.setValue('deletedAt_desc');
+    this.typeFilterControl.setValue('');
+    this.extensionControl.setValue('');
+    this.sortByControl.setValue('deletedAt');
+    this.directionControl.setValue('desc');
+    this.fromControl.setValue('');
+    this.toControl.setValue('');
   }
 
   // Restore action trigger
@@ -208,8 +277,32 @@ export class TrashPage implements OnInit {
     this.confirmModalOpen.set(true);
   }
 
+  // Empty trash trigger
+  onEmptyTrash(): void {
+    this.targetItem.set(null);
+    this.confirmAction.set('empty');
+    this.confirmModalOpen.set(true);
+  }
+
   // Handle confirm execution
   handleConfirm(): void {
+    this.confirmModalLoading.set(true);
+
+    if (this.confirmAction() === 'empty') {
+      this.trashService.emptyTrash().subscribe({
+        next: () => {
+          this.toastService.success('La papelera ha sido vaciada.', 'Papelera vaciada');
+          this.closeConfirmDialog();
+          this.fetchItems({ reset: true });
+        },
+        error: (err: ErrorResponse) => {
+          this.toastService.error(err.message || 'Error al vaciar la papelera.', 'Error');
+          this.confirmModalLoading.set(false);
+        }
+      });
+      return;
+    }
+
     const item = this.targetItem();
     if (!item || !item.trashBatchId) {
       this.toastService.error('No se encontró el identificador del elemento.', 'Error');
@@ -217,14 +310,12 @@ export class TrashPage implements OnInit {
       return;
     }
 
-    this.confirmModalLoading.set(true);
-
     if (this.confirmAction() === 'restore') {
       this.trashService.restoreFromTrash(item.trashBatchId).subscribe({
         next: () => {
           this.toastService.success(`'${item.name}' ha sido restaurado con éxito.`, 'Restaurado');
           this.closeConfirmDialog();
-          this.loadTrashItems();
+          this.fetchItems({ reset: true });
         },
         error: (err: ErrorResponse) => {
           this.toastService.error(err.message || 'Error al restaurar el elemento.', 'Error');
@@ -239,7 +330,7 @@ export class TrashPage implements OnInit {
             'Eliminado'
           );
           this.closeConfirmDialog();
-          this.loadTrashItems();
+          this.fetchItems({ reset: true });
         },
         error: (err: ErrorResponse) => {
           this.toastService.error(err.message || 'Error al eliminar definitivamente.', 'Error');
