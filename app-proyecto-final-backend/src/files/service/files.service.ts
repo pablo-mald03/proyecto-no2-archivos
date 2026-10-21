@@ -115,6 +115,12 @@ export class FilesService {
     }
   }
 
+  /*Method to find recent files of the current user*/
+  async findRecent(actor: AuthUser, limit = 20): Promise<FileResponseDto[]> {
+    const files = await this.filesRepository.findRecent(actor.id, limit);
+    return files.map((file) => FileMapper.toResponse(file));
+  }
+
   /*Principal method to find a file*/
   async findById(id: string, actor: AuthUser): Promise<FileResponseDto> {
     const file = await this.getOrFail(id);

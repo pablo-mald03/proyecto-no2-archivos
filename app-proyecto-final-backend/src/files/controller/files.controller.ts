@@ -23,6 +23,7 @@ import { FileResponseDto } from '../dto/response/file-response.dto';
 import { UpdateFileContentDto } from '../dto/request/update-file-content.dto';
 import { RenameFileDto } from '../dto/request/rename-file.dto';
 import { MoveFileDto } from '../dto/request/move-file.dto';
+import { RecentFilesQueryDto } from '../dto/request/recent-files-query.dto';
 
 //Principal files controller class
 @ApiTags('Files')
@@ -43,6 +44,17 @@ export class FilesController {
     @CurrentUser() actor: AuthUser,
   ): Promise<FileResponseDto[]> {
     return this.filesService.uploadFiles(files, folderId || null, actor);
+  }
+
+  //Endpoint to get recent active files of the current user
+  @Get('recent')
+  @ApiOperation({ summary: 'List recent active files of the current user' })
+  @ApiOkResponse({ type: [FileResponseDto] })
+  findRecent(
+    @CurrentUser() actor: AuthUser,
+    @Query() query: RecentFilesQueryDto,
+  ): Promise<FileResponseDto[]> {
+    return this.filesService.findRecent(actor, query.limit);
   }
 
   //Endpoint to get file metadata by ID

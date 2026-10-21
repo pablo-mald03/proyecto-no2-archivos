@@ -38,6 +38,19 @@ export class FilesRepository {
       .exec();
   }
 
+  //Method to find recent active files for owner
+  findRecent(ownerId: string | Types.ObjectId, limit = 20, session?: ClientSession): Promise<FileDocument[]> {
+    return this.model
+      .find({
+        ownerId: new Types.ObjectId(ownerId),
+        isDeleted: false,
+      })
+      .sort({ updatedAt: -1, _id: -1 })
+      .limit(limit)
+      .session(session || null)
+      .exec();
+  }
+
   //Method to check if a file with the same name exists in the same folder
   existsActiveSiblingByName(ownerId: string | Types.ObjectId, folderId: string | Types.ObjectId | null, name: string, excludeId?: string | Types.ObjectId, session?: ClientSession,
   ): Promise<boolean> {
