@@ -1,0 +1,135 @@
+<div
+    class="flex flex-col gap-4 rounded-xl border border-border/80 bg-surface p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+
+    <div class="relative flex-1">
+        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
+            1. Usuario
+        </label>
+
+        <div class="relative">
+            <button type="button" (click)="toggleUserDropdown()"
+                class="flex h-10 w-full items-center justify-between rounded-lg border border-border bg-surface-raised px-3 text-sm transition-all hover:border-primary/50 focus:outline-none"
+                [class.border-primary]="selectedUser()">
+                <div class="flex items-center gap-2 truncate">
+                    <ng-icon name="lucideUser" class="text-text-muted" size="16" />
+                    @if (selectedUser()) {
+                    <span class="font-medium text-text">{{ selectedUser()?.firstName || selectedUser()?.username
+                        }}</span>
+                    <span class="text-xs text-text-muted">({{ selectedUser()?.email }})</span>
+                    } @else {
+                    <span class="text-text-muted">Buscar y seleccionar usuario...</span>
+                    }
+                </div>
+
+                <div class="flex items-center gap-1">
+                    @if (selectedUser()) {
+                    <span (click)="clearUser($event)" class="p-1 text-text-muted hover:text-text">
+                        <ng-icon name="lucideX" size="14" />
+                    </span>
+                    }
+                    <ng-icon name="lucideChevronDown" class="text-text-muted" size="16" />
+                </div>
+            </button>
+
+            @if (isUserOpen()) {
+            <div class="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface p-2 shadow-xl">
+                <div class="relative mb-2">
+                    <ng-icon name="lucideSearch" class="absolute left-3 top-2.5 text-text-muted" size="16" />
+                    <input type="text" [formControl]="userSearchCtrl" placeholder="Escribe nombre o email..."
+                        class="w-full rounded-lg border border-border bg-surface-raised py-1.5 pl-9 pr-3 text-xs text-text focus:border-primary focus:outline-none" />
+                </div>
+
+                <div class="max-h-48 overflow-y-auto">
+                    @if (loadingUsers()) {
+                    <div class="flex items-center justify-center py-4 text-xs text-text-muted gap-2">
+                        <ng-icon name="lucideLoader2" class="animate-spin" size="14" /> Cargando usuarios...
+                    </div>
+                    } @else if (usersList().length === 0) {
+                    <div class="py-4 text-center text-xs text-text-muted">No se encontraron usuarios</div>
+                    } @else {
+                    @for (usr of usersList(); track usr.id) {
+                    <button type="button" (click)="selectUser(usr)"
+                        class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-primary/10 hover:text-primary"
+                        [class.bg-primary/10]="selectedUser()?.id === usr.id"
+                        [class.text-primary]="selectedUser()?.id === usr.id">
+                        <div>
+                            <p class="font-medium">{{ usr.firstName }} {{ usr.lastName }} ({{ usr.username }})</p>
+                            <p class="text-[10px] text-text-muted">{{ usr.email }}</p>
+                        </div>
+                        @if (selectedUser()?.id === usr.id) {
+                        <ng-icon name="lucideCheck" size="14" />
+                        }
+                    </button>
+                    }
+                    }
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+
+    <div class="relative flex-1">
+        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
+            2. Carpeta del Usuario
+        </label>
+
+        <div class="relative">
+            <button type="button" (click)="toggleFolderDropdown()" [disabled]="!selectedUser()"
+                class="flex h-10 w-full items-center justify-between rounded-lg border border-border bg-surface-raised px-3 text-sm transition-all hover:border-primary/50 disabled:opacity-50 disabled:pointer-events-none"
+                [class.border-primary]="selectedFolder()">
+                <div class="flex items-center gap-2 truncate">
+                    <ng-icon name="lucideFolder" class="text-text-muted" size="16" />
+                    @if (selectedFolder()) {
+                    <span class="font-medium text-text">{{ selectedFolder()?.name }}</span>
+                    } @else {
+                    <span class="text-text-muted">
+                        {{ selectedUser() ? 'Seleccionar carpeta...' : 'Primero elige un usuario' }}
+                    </span>
+                    }
+                </div>
+
+                <div class="flex items-center gap-1">
+                    @if (selectedFolder()) {
+                    <span (click)="clearFolder($event)" class="p-1 text-text-muted hover:text-text">
+                        <ng-icon name="lucideX" size="14" />
+                    </span>
+                    }
+                    <ng-icon name="lucideChevronDown" class="text-text-muted" size="16" />
+                </div>
+            </button>
+
+            @if (isFolderOpen()) {
+            <div class="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface p-2 shadow-xl">
+                <div class="relative mb-2">
+                    <ng-icon name="lucideSearch" class="absolute left-3 top-2.5 text-text-muted" size="16" />
+                    <input type="text" [formControl]="folderSearchCtrl" placeholder="Filtrar carpetas..."
+                        class="w-full rounded-lg border border-border bg-surface-raised py-1.5 pl-9 pr-3 text-xs text-text focus:border-primary focus:outline-none" />
+                </div>
+
+                <div class="max-h-48 overflow-y-auto">
+                    @if (loadingFolders()) {
+                    <div class="flex items-center justify-center py-4 text-xs text-text-muted gap-2">
+                        <ng-icon name="lucideLoader2" class="animate-spin" size="14" /> Cargando carpetas...
+                    </div>
+                    } @else if (foldersList().length === 0) {
+                    <div class="py-4 text-center text-xs text-text-muted">El usuario no tiene carpetas</div>
+                    } @else {
+                    @for (fld of foldersList(); track fld.id) {
+                    <button type="button" (click)="selectFolder(fld)"
+                        class="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs transition-colors hover:bg-primary/10 hover:text-primary"
+                        [class.bg-primary/10]="selectedFolder()?.id === fld.id"
+                        [class.text-primary]="selectedFolder()?.id === fld.id">
+                        <span class="font-medium truncate">{{ fld.name }}</span>
+                        @if (selectedFolder()?.id === fld.id) {
+                        <ng-icon name="lucideCheck" size="14" />
+                        }
+                    </button>
+                    }
+                    }
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+
+</div>

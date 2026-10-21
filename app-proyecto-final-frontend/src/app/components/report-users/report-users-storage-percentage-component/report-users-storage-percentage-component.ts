@@ -51,10 +51,9 @@ export class ReportUsersStoragePercentageComponent implements OnInit {
 
   readonly size = 8;
 
-  // Formateador de porcentajes con precisión significativa (3 a 4 decimales)
+  // Percentage formatter
   static formatPercentage(val: number): string {
     if (!val || val === 0) return '0%';
-    // Si es menor al 0.01%, mostramos hasta 4 decimales para no perder visibilidad
     const decimals = val < 0.01 ? 4 : 3;
     return `${val.toFixed(decimals)}%`;
   }
@@ -83,14 +82,10 @@ export class ReportUsersStoragePercentageComponent implements OnInit {
 
   // Load the report for the current page
   loadReport(): void {
-    // 1. Cancelamos la petición previa si aún no finalizaba
     this.request?.unsubscribe();
     this.loading.set(true);
 
-    // 2. AJUSTE DE PÁGINA: 
-    // Si en Swagger la página 1 devuelve los primeros datos, usa `this.page() + 1`.
-    // Si en Swagger la página 0 devuelve los primeros datos, usa `this.page()`.
-    const targetPage = this.page(); // Cambiar a this.page() + 1 si la API es 1-indexed
+    const targetPage = this.page();
 
     this.request = this.reportService
       .getStoragePercentage({ page: targetPage, size: this.size })

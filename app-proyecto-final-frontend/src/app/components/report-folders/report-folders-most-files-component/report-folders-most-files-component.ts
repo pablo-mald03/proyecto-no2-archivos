@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { lucideArrowLeft } from '@ng-icons/lucide';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomPagination } from '../../common/custom-pagination/custom-pagination';
@@ -15,6 +15,12 @@ import { FolderWithMostFilesResponse } from '../../../features/report-folders/mo
 import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
 import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { FolderContentReportItemResponse } from '../../../features/report-folders/models/response/folder-content-report-item-response.model';
+import { User } from '../../../features/users/models/user.model';
+import { FolderResponse } from '../../../features/folders/models/response/folder-response.model';
+import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
+import { ReportFoldersContentTree } from '../../reports/report-folders-content-tree/report-folders-content-tree';
+import { ReportUserFolderFilterBarComponent } from '../report-user-folder-filter-bar-component/report-user-folder-filter-bar-component';
 
 
 @Component({
@@ -25,81 +31,80 @@ import { ErrorResponse } from '../../../features/errors/models/error-response.mo
     NgIcon,
     CustomCard,
     CustomAlert,
-    CustomPagination,
-    ReportFoldersKpiStrip,
-    ReportFoldersMosaic,
-    ReportFoldersRanking
+    CustomPaginationSlide,
+    ReportFoldersContentTree,
+    ReportUserFolderFilterBarComponent
   ],
   templateUrl: './report-folders-most-files-component.html',
   styleUrl: './report-folders-most-files-component.css',
 })
 /*Folders with the most files report */
-export class ReportFoldersMostFilesComponent implements OnInit {
+export class ReportFoldersMostFilesComponent {
 
   private readonly location = inject(Location);
   private readonly reportService = inject(ReportFoldersService);
   private readonly toastService = inject(ToastService);
 
-  //Data signals
-  readonly folders = signal<FolderWithMostFilesResponse[]>([]);
+  private requestSub?: Subscription;
+
+  // Estado de Selección
+  readonly selectedUser = signal<User | null>(null);
+  readonly selectedFolder = signal<FolderResponse | null>(null);
+
+  // Datos Paginados
+  readonly items = signal<FolderContentReportItemResponse[]>([]);
   readonly loading = signal(false);
-  readonly page = signal(0);
+  readonly page = signal(0); // Base 0
   readonly totalPages = signal(0);
   readonly totalElements = signal(0);
 
-  readonly size = 10;
+  readonly size = 15;
 
-  //Summary of the current page
-  readonly kpis = computed<KpiItem[]>(() => {
-    const folders = this.folders();
-    const total = folders.reduce((acc, folder) => acc + folder.fileCount, 0);
-    const top = folders.reduce<FolderWithMostFilesResponse | null>(
-      (best, folder) => (!best || folder.fileCount > best.fileCount ? folder : best),
-      null
-    );
-
-    return [
-      { label: 'Carpetas', value: String(this.totalElements()), hint: 'con archivos' },
-      { label: 'Archivos en la página', value: String(total) },
-      { label: 'Carpeta líder', value: String(top?.fileCount ?? 0), hint: top?.folderName }
-    ];
-  });
-
-  //Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
-  ngOnInit(): void {
-    this.loadReport();
+  // Captura el cambio secuencial
+  onFilterSelectionChange(selection: { user: User | null; folder: FolderResponse | null }): void {
+    this.selectedUser.set(selection.user);
+    this.selectedFolder.set(selection.folder);
+    this.page.set(0);
+    this.items.set([]);
+
+    if (selection.folder) {
+      this.loadReport();
+    }
   }
 
-  //Method to load the report for the current page
   loadReport(): void {
+    const folder = this.selectedFolder();
+    if (!folder) return;
+
+    this.requestSub?.unsubscribe();
     this.loading.set(true);
 
-    this.reportService.getFoldersWithMostFiles({ page: this.page() + 1, size: this.size })
+    this.requestSub = this.reportService
+      .getFolderContents(folder.id, { page: this.page(), size: this.size })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (response: PaginatedResponse<FolderWithMostFilesResponse>) => {
-          this.folders.set(response.content);
-          this.totalPages.set(response.totalPages);
-          this.totalElements.set(response.totalElements);
+        next: (response: PaginatedResponse<FolderContentReportItemResponse>) => {
+          this.items.set(response.content ?? []);
+          this.totalPages.set(response.totalPages ?? 0);
+          this.totalElements.set(response.totalElements ?? 0);
         },
         error: (error: ErrorResponse) => {
+          this.items.set([]);
           this.toastService.error(
-            error.message || 'No fue posible cargar el reporte.',
-            'Error al cargar reporte'
+            error.message || 'No se pudo cargar el reporte de la carpeta.',
+            'Error al cargar'
           );
         }
       });
   }
 
-  //Method to handle page change from the pagination
-  onPageChange(page: number): void {
-    this.page.set(page);
+  onPageChange(newPage: number): void {
+    this.page.set(newPage);
     this.loadReport();
   }
 
-  //Method to go back to the previous page
   goBack(): void {
     this.location.back();
   }

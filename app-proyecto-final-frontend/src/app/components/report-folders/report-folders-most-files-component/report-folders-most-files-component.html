@@ -1,51 +1,48 @@
 <div class="flex h-full min-h-0 flex-col gap-6">
 
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3">
-            <button type="button" (click)="goBack()" aria-label="Volver"
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
-                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
-            </button>
-            <div>
-                <h1 class="text-2xl font-bold text-text">Carpetas con más archivos</h1>
-                <p class="mt-1 text-sm text-text-muted">
-                    Mosaico donde las carpetas más pobladas ocupan más espacio, con su ranking detallado.
-                </p>
-            </div>
+    <div class="flex items-center gap-3">
+        <button type="button" (click)="goBack()"
+            class="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-text-muted hover:border-primary/50 hover:text-primary">
+            <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+        </button>
+        <div>
+            <h1 class="text-2xl font-bold text-text">Contenido de Carpeta por Usuario</h1>
+            <p class="text-sm text-text-muted">Selecciona un usuario y explora el contenido de sus carpetas.</p>
         </div>
     </div>
 
-    @if (folders().length > 0) {
-    <app-report-folders-kpi-strip [items]="kpis()" />
-    }
+    <app-report-user-folder-filter-bar-component (selectionChange)="onFilterSelectionChange($event)" />
 
-    @if (folders().length > 0) {
-    <app-custom-card [hoverable]="true">
-        <app-report-folders-mosaic [folders]="folders()" [rankOffset]="page() * size" />
-    </app-custom-card>
-    }
+    @if (!selectedUser()) {
+    <app-custom-alert type="info" title="Selecciona un Usuario"
+        message="Empieza buscando y seleccionando un usuario arriba para listar sus carpetas." />
+    } @else if (!selectedFolder()) {
+    <app-custom-alert type="info" title="Selecciona una Carpeta"
+        message="Elige la carpeta del usuario para visualizar el desglose del reporte." />
+    } @else {
 
     <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
-
-        @if (loading() && folders().length === 0) {
+        @if (loading() && items().length === 0) {
         <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
-            Cargando reporte...
+            Cargando contenido de la carpeta...
         </div>
-        } @else if (folders().length === 0) {
-        <app-custom-alert type="info" title="Sin datos" message="Aún no hay carpetas con archivos registradas." />
+        } @else if (items().length === 0) {
+        <app-custom-alert type="info" title="Carpeta Vacía"
+            message="Esta carpeta no contiene archivos o subcarpetas registradas." />
         } @else {
 
         <div class="min-h-0 flex-1 overflow-y-auto">
-            <app-report-folders-ranking [folders]="folders()" [rankOffset]="page() * size" />
+            <app-report-folders-content-tree [items]="items()" />
         </div>
 
-        <div class="mt-4 shrink-0">
-            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
-                [loading]="loading()" (pageChange)="onPageChange($event)" />
+        <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+            <app-custom-pagination-slide [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [size]="size" [loading]="loading()" (pageChange)="onPageChange($event)" />
         </div>
 
         }
-
     </app-custom-card>
+
+    }
 
 </div>
