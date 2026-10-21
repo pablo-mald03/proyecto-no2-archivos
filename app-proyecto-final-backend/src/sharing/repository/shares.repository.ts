@@ -28,6 +28,18 @@ export class SharesRepository {
       .exec();
   }
 
+  //Method to find shares directly granted to user
+  findDirectSharesForUser(granteeUserId: string | Types.ObjectId, session?: ClientSession): Promise<ShareDocument[]> {
+    return this.model
+      .find({
+        granteeType: GranteeType.USER,
+        granteeId: new Types.ObjectId(granteeUserId),
+      })
+      .sort({ createdAt: -1 })
+      .session(session || null)
+      .exec();
+  }
+
   //Method to find effective shares for resource or ancestors
   findEffectiveSharesForResourceOrAncestors(items: { resourceType: 'FILE' | 'FOLDER'; resourceId: Types.ObjectId }[], granteeUserId: string | Types.ObjectId, session?: ClientSession): Promise<ShareDocument[]> {
     const userOid = new Types.ObjectId(granteeUserId);

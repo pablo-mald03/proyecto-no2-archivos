@@ -48,6 +48,13 @@ export class FileService {
         );
     }
 
+    getRecentFiles(limit: number = 20): Observable<FileResponse[]> {
+        return this.http.get<FileResponse[]>(`${this.apiUrl}/files/recent`, {
+            params: { limit }
+        });
+    }
+
+
     //Method to upload files using custom FormData
     uploadFormData(formData: FormData): Observable<FileResponse[]> {
         return this.http.post<FileResponse[]>(

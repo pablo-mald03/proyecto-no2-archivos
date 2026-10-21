@@ -18,6 +18,8 @@ import { RevokeShareDto } from '../dto/request/revoke-share.dto';
 import { SharedWithMeItemDto } from '../dto/response/shared-with-me-item.dto';
 import { FileNotFoundException } from 'src/files/exceptions/file-not-found.exception';
 import { GranteeType } from 'src/common/constants/permissions/grantee-type';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { ListSharedWithMeQueryDto } from '../dto/request/list-shared-with-me-query.dto';
 
 /*Principal sharing service class*/
 @Injectable()
@@ -169,54 +171,113 @@ export class SharingService {
   }
 
   /**
-   * Method to list items directly shared with the authenticated user
+   * Method to list items directly shared with the authenticated user with pagination and filters
    */
-  async getSharedWithMe(actor: AuthUser): Promise<SharedWithMeItemDto[]> {
+  async getSharedWithMe(actor: AuthUser, query: ListSharedWithMeQueryDto): Promise<PageResponseDto<SharedWithMeItemDto>> {
     const userOid = new Types.ObjectId(actor.id);
-    const shares = await (this.sharesRepository as any).model
-      .find({ granteeType: GranteeType.USER, granteeId: userOid })
-      .exec();
+    const shares = await this.sharesRepository.findDirectSharesForUser(userOid);
 
-    const results: SharedWithMeItemDto[] = [];
+    // Apply access and resourceType filters to shares
+    const filteredShares = shares.filter((s) => {
+      if (query.access && s.access !== query.access) return false;
+      if (query.type === 'FILES_ONLY' && s.resourceType !== 'FILE') return false;
+      if (query.type === 'FOLDERS_ONLY' && s.resourceType !== 'FOLDER') return false;
+      if (query.extension && s.resourceType !== 'FILE') return false;
+      return true;
+    });
 
-    for (const share of shares) {
+    const fileShares = filteredShares.filter((s) => s.resourceType === 'FILE');
+    const folderShares = filteredShares.filter((s) => s.resourceType === 'FOLDER');
+
+    const fileIds = fileShares.map((s) => s.resourceId);
+    const folderIds = folderShares.map((s) => s.resourceId);
+
+    const [files, folders] = await Promise.all([
+      fileIds.length > 0 ? this.filesRepository.findByIds(fileIds) : Promise.resolve([]),
+      folderIds.length > 0 ? this.foldersRepository.findByIds(folderIds) : Promise.resolve([]),
+    ]);
+
+    const fileMap = new Map(files.map((f) => [f._id.toString(), f]));
+    const folderMap = new Map(folders.map((f) => [f._id.toString(), f]));
+
+    const matchingItems: SharedWithMeItemDto[] = [];
+
+    for (const share of filteredShares) {
       if (share.resourceType === 'FILE') {
-        const file = await this.filesRepository.findActiveById(share.resourceId);
-        if (file) {
-          results.push({
-            share: ShareMapper.toResponse(share),
-            resource: {
-              id: file._id.toString(),
-              type: 'FILE',
-              name: file.name,
-              extension: file.extension,
-              mimeType: file.mimeType,
-              sizeBytes: file.sizeBytes,
-              ownerId: file.ownerId.toString(),
-              createdAt: file.createdAt.toISOString(),
-              updatedAt: file.updatedAt.toISOString(),
-            },
-          });
-        }
+        const file = fileMap.get(share.resourceId.toString());
+        if (!file) continue;
+
+        if (query.extension && file.extension !== query.extension) continue;
+        if (query.search && !file.name.toLowerCase().includes(query.search.toLowerCase())) continue;
+
+        const shareDate = (share as any).createdAt || new Date();
+        if (query.from && shareDate < query.from) continue;
+        if (query.to && shareDate > query.to) continue;
+
+        matchingItems.push({
+          share: ShareMapper.toResponse(share),
+          resource: {
+            id: file._id.toString(),
+            type: 'FILE',
+            name: file.name,
+            extension: file.extension,
+            mimeType: file.mimeType,
+            sizeBytes: file.sizeBytes,
+            ownerId: file.ownerId.toString(),
+            createdAt: file.createdAt.toISOString(),
+            updatedAt: file.updatedAt.toISOString(),
+          },
+        });
       } else {
-        const folder = await this.foldersRepository.findActiveById(share.resourceId);
-        if (folder) {
-          results.push({
-            share: ShareMapper.toResponse(share),
-            resource: {
-              id: folder._id.toString(),
-              type: 'FOLDER',
-              name: folder.name,
-              ownerId: folder.ownerId.toString(),
-              createdAt: folder.createdAt.toISOString(),
-              updatedAt: folder.updatedAt.toISOString(),
-            },
-          });
-        }
+        const folder = folderMap.get(share.resourceId.toString());
+        if (!folder) continue;
+
+        if (query.search && !folder.name.toLowerCase().includes(query.search.toLowerCase())) continue;
+
+        const shareDate = (share as any).createdAt || new Date();
+        if (query.from && shareDate < query.from) continue;
+        if (query.to && shareDate > query.to) continue;
+
+        matchingItems.push({
+          share: ShareMapper.toResponse(share),
+          resource: {
+            id: folder._id.toString(),
+            type: 'FOLDER',
+            name: folder.name,
+            ownerId: folder.ownerId.toString(),
+            createdAt: folder.createdAt.toISOString(),
+            updatedAt: folder.updatedAt.toISOString(),
+          },
+        });
       }
     }
 
-    return results;
+    // Sort items
+    matchingItems.sort((a, b) => {
+      let comparison = 0;
+      switch (query.sortBy) {
+        case 'name':
+          comparison = a.resource.name.localeCompare(b.resource.name);
+          break;
+        case 'updatedAt':
+          comparison = new Date(a.resource.updatedAt).getTime() - new Date(b.resource.updatedAt).getTime();
+          break;
+        case 'sizeBytes':
+          comparison = (a.resource.sizeBytes || 0) - (b.resource.sizeBytes || 0);
+          break;
+        case 'sharedAt':
+        default:
+          comparison = new Date(a.share.createdAt).getTime() - new Date(b.share.createdAt).getTime();
+          break;
+      }
+      return query.direction === 'asc' ? comparison : -comparison;
+    });
+
+    const total = matchingItems.length;
+    const start = query.page * query.size;
+    const content = matchingItems.slice(start, start + query.size);
+
+    return PageResponseDto.of(content, total, query);
   }
 
   //Method to get resource 

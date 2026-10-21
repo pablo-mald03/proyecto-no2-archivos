@@ -26,6 +26,14 @@ export class FilesRepository {
       .exec();
   }
 
+  //Method to find active files by IDs
+  findByIds(ids: (string | Types.ObjectId)[], session?: ClientSession): Promise<FileDocument[]> {
+    return this.model
+      .find({ _id: { $in: ids }, isDeleted: false })
+      .session(session || null)
+      .exec();
+  }
+
   //Method to find active files in a folder
   findActiveByFolder(ownerId: string | Types.ObjectId, folderId: string | Types.ObjectId | null, session?: ClientSession): Promise<FileDocument[]> {
     return this.model.find({

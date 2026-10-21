@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
 import { Permission } from 'src/common/constants/permissions/permissions';
@@ -6,10 +6,12 @@ import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import type { AuthUser } from 'src/users/models/auth-user.model';
 import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
 import { SharingService } from '../service/sharing.service';
-import { SharedWithMeItemDto } from '../dto/response/shared-with-me-item.dto';
+import { PaginatedSharedWithMeResponseDto, SharedWithMeItemDto } from '../dto/response/shared-with-me-item.dto';
 import { ShareResponseDto } from '../dto/response/share-response.dto';
 import { ShareResourceDto } from '../dto/request/share-resource.dto';
 import { RevokeShareDto } from '../dto/request/revoke-share.dto';
+import { ListSharedWithMeQueryDto } from '../dto/request/list-shared-with-me-query.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
 
 /*Principal sharing controller class*/
 @ApiTags('Sharing')
@@ -18,12 +20,15 @@ import { RevokeShareDto } from '../dto/request/revoke-share.dto';
 export class SharingController {
   constructor(private readonly sharingService: SharingService) { }
 
-  //Endpoint to list files and folders directly
+  //Endpoint to list files and folders directly shared with me
   @Get('shared-with-me')
-  @ApiOperation({ summary: 'List files and folders directly' })
-  @ApiOkResponse({ type: [SharedWithMeItemDto] })
-  getSharedWithMe(@CurrentUser() actor: AuthUser): Promise<SharedWithMeItemDto[]> {
-    return this.sharingService.getSharedWithMe(actor);
+  @ApiOperation({ summary: 'List files and folders directly shared with the authenticated user with pagination and filters' })
+  @ApiOkResponse({ type: PaginatedSharedWithMeResponseDto })
+  getSharedWithMe(
+    @CurrentUser() actor: AuthUser,
+    @Query() query: ListSharedWithMeQueryDto,
+  ): Promise<PageResponseDto<SharedWithMeItemDto>> {
+    return this.sharingService.getSharedWithMe(actor, query);
   }
 
   //Endpoint to share a file
