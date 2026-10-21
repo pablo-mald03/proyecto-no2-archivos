@@ -12,7 +12,6 @@ import { FilesModule } from './files/files.module';
 import { SharingModule } from './sharing/sharing.module';
 import { TrashModule } from './trash/trash.module';
 import { ActivityModule } from './activity/activity.module';
-import { ReportsModule } from './reports/reports.module';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesModule } from './roles/roles.module';
@@ -20,6 +19,7 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
 import { CommentsModule } from './comments/comments.module';
+import { ReportUsersModule } from './report-users/report-users.module';
 
 @Module({
   imports: [
@@ -47,11 +47,11 @@ import { CommentsModule } from './comments/comments.module';
     SharingModule,
     TrashModule,
     ActivityModule,
-    ReportsModule,
     RolesModule,
     PermissionsModule,
     RefreshTokensModule,
     CommentsModule,
+    ReportUsersModule,
   ],
   providers: [
     AppService,
