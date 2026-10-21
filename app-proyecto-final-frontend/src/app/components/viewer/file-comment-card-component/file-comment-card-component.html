@@ -1,0 +1,103 @@
+<div class="flex flex-col gap-2.5">
+  <app-custom-card [bordered]="true" [hoverable]="true" bodyClass="!p-3.5 space-y-2.5">
+
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/25 to-primary/10 text-primary font-bold text-xs ring-1 ring-primary/20 shadow-sm">
+          {{ comment().authorName.charAt(0).toUpperCase() }}
+        </div>
+        <div class="min-w-0 flex flex-col">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="truncate font-semibold text-text text-xs">{{ comment().authorName }}</span>
+            @if (comment().isOwner || comment().canEdit) {
+            <span
+              class="shrink-0 rounded-md bg-primary/10 px-1.5 py-0.2 text-[9px] font-bold text-primary tracking-wide">
+              Autor
+            </span>
+            }
+          </div>
+          <div class="flex items-center gap-1.5 text-[10px] text-text-muted">
+            <span>{{ comment().createdAt | date:'short' }}</span>
+            @if (comment().editedAt) {
+            <span class="italic text-text-muted/70">(editado)</span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1 shrink-0">
+        @if (comment().canEdit && !isEditing()) {
+        <button type="button" (click)="startEdit()"
+          class="rounded-lg p-1 text-text-muted hover:text-yellow-500 hover:bg-yellow-500/10 transition-colors"
+          title="Editar comentario">
+          <ng-icon [svg]="lucidePencilIcon" size="14" />
+        </button>
+        }
+
+        @if (comment().canDelete) {
+        <button type="button" (click)="deleteComment()"
+          class="rounded-lg p-1 text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors"
+          title="Eliminar comentario">
+          <ng-icon [svg]="lucideTrashIcon" size="14" />
+        </button>
+        }
+      </div>
+    </div>
+
+    @if (isEditing()) {
+    <div class="flex flex-col gap-2 pt-1">
+      <app-custom-textfield label="" placeholder="Edita tu comentario..." [control]="editControl" [clearable]="true"
+        size="sm" />
+      <div class="flex items-center justify-end gap-2">
+        <app-custom-button label="Cancelar" variant="ghost" size="sm" (clicked)="cancelEdit()" />
+        <app-custom-button label="Guardar" size="sm" [icon]="lucideCheckIcon" [disabled]="editControl.invalid"
+          (clicked)="saveEdit()" />
+      </div>
+    </div>
+    }@else {
+    <p class="text-xs text-text/90 leading-relaxed wrap-break-word whitespace-pre-wrap pl-0.5">
+      {{ comment().content }}
+    </p>
+    }
+
+    @if (canComment() && !isChild() && !isEditing()) {
+    <div class="flex items-center justify-between border-t border-border/30 pt-2 text-[11px]">
+      <button type="button" (click)="startReply()"
+        class="flex items-center gap-1 text-text-muted hover:text-primary transition-colors font-medium">
+        <ng-icon [svg]="lucideCornerDownRightIcon" size="13" />
+        <span>{{ isReplying() ? 'Cancelar respuesta' : 'Responder' }}</span>
+      </button>
+
+      @if (comment().replies && comment().replies!.length > 0) {
+      <span class="text-[10px] text-text-muted font-medium">
+        {{ comment().replies!.length }} respuesta{{ comment().replies!.length > 1 ? 's' : '' }}
+      </span>
+      }
+    </div>
+    }
+
+    @if (isReplying()) {
+    <div class="flex flex-col gap-2 rounded-xl bg-surface-raised/60 p-2.5 border border-border/40 mt-1">
+      <app-custom-textfield label="" placeholder="Escribe tu respuesta..." [control]="replyControl" [clearable]="true"
+        size="sm" />
+      <div class="flex items-center justify-end gap-2">
+        <app-custom-button label="Cancelar" variant="ghost" size="sm" (clicked)="cancelReply()" />
+        <app-custom-button label="Responder" size="sm" [icon]="lucideSendIcon" [disabled]="replyControl.invalid"
+          (clicked)="sendReply()" />
+      </div>
+    </div>
+    }
+
+  </app-custom-card>
+
+  @if (comment().replies && comment().replies!.length > 0) {
+  <div class="ml-4 pl-3 border-l-2 border-primary/20 space-y-2">
+    @for (reply of comment().replies; track reply.id) {
+    <app-file-comment-card-component [comment]="reply" [canComment]="canComment()" [currentUserId]="currentUserId()"
+      [isChild]="true" (commentUpdated)="commentUpdated.emit($event)" (commentDeleted)="commentDeleted.emit($event)"
+      (replySubmitted)="replySubmitted.emit($event)" />
+    }
+  </div>
+  }
+</div>

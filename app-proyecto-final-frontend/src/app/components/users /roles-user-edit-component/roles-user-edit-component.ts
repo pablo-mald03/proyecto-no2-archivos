@@ -4,7 +4,7 @@ import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { RoleSelectorComponent } from '../../roles/role-selector-component/role-selector-component';
 import { ActivatedRoute, Router } from '@angular/router';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { RoleService } from '../../../features/roles/services/role.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Role } from '../../../features/roles/models/role.model';

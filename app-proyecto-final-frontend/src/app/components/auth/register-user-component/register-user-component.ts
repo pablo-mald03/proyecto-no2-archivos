@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Router } from '@angular/router';
 import { lucideLock, lucideMail, lucideUser, lucideUserCheck } from '@ng-icons/lucide';

@@ -1,0 +1,41 @@
+@if (isOpen()) {
+<div class="fixed inset-0 z-50 flex h-screen w-screen flex-col bg-neutral-950/90 text-text backdrop-blur-md select-none"
+    (click)="onBackdropClick($event)">
+
+    <app-file-preview-header-component [fileName]="displayFileName()" [isRouted]="isRouted()" [isOwner]="isOwner()"
+        [accessLevel]="displayAccessLevel()" [zoomLevel]="zoomLevel()" [canEdit]="displayCanEdit()"
+        [canShare]="canShare()" [isEditMode]="isEditMode()" [saving]="saving()" [isCommentsOpen]="isCommentsOpen()"
+        [commentsCount]="displayComments().length" (close)="closeLayout()" (zoomIn)="zoomIn()" (zoomOut)="zoomOut()"
+        (zoomReset)="resetZoom()" (toggleEdit)="toggleEditMode()" (save)="saveChanges()"
+        (toggleComments)="toggleComments()" (openNewTab)="openInNewTab()" (download)="downloadFile()"
+        (share)="openShareModal()" />
+
+    <div class="relative flex flex-1 min-h-0 w-full overflow-hidden">
+
+        <div class="flex flex-1 items-center justify-center overflow-auto p-4 md:p-8">
+            <app-file-preview-content-component #canvas [loading]="loading()" [fileName]="displayFileName()"
+                [editableContent]="editableContent()" [contentControl]="contentControl" [zoomLevel]="zoomLevel()"
+                [isEditMode]="isEditMode()" />
+        </div>
+
+        <div (click)="$event.stopPropagation()" class="h-full">
+            <app-file-comments-panel-component [isOpen]="isCommentsOpen()" [comments]="displayComments()"
+                [isSubmitting]="submittingComment()" [canComment]="displayCanComment()"
+                [currentUserId]="currentUserId()" (closePanel)="isCommentsOpen.set(false)"
+                (commentAdded)="handleCommentAdded($event)" (commentUpdated)="handleCommentUpdated($event)"
+                (commentDeleted)="handleCommentDeleted($event)" />
+        </div>
+
+    </div>
+
+</div>
+}
+
+@if (isShareModalOpen() && activeFileId()) {
+<app-share-modal-component
+    [isOpen]="isShareModalOpen()"
+    [resourceId]="activeFileId()!"
+    [resourceName]="displayFileName()"
+    resourceType="files"
+    (closed)="closeShareModal()" />
+}

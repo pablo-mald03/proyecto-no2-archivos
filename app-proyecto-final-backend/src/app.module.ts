@@ -19,6 +19,7 @@ import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { PermissionsGuard } from './common/guards/permissions.guard';
 import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [
@@ -33,7 +34,12 @@ import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
         autoIndex: false, // indexes are owned by the migrations
       }),
     }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 200,
+      },
+    ]),
     AuthModule,
     UsersModule,
     FoldersModule,
@@ -45,6 +51,7 @@ import { RefreshTokensModule } from './refresh-tokens/refresh-token.module';
     RolesModule,
     PermissionsModule,
     RefreshTokensModule,
+    CommentsModule,
   ],
   providers: [
     AppService,

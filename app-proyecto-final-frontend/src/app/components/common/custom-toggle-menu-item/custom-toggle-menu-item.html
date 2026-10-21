@@ -1,0 +1,7 @@
+<button type="button" role="menuitem" (click)="clicked.emit()"
+    class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text transition-colors hover:bg-surface-raised/80 hover:text-primary active:scale-[0.98]">
+    @if (icon()) {
+    <ng-icon [svg]="icon()" size="18" class="text-text-muted group-hover:text-primary" />
+    }
+    <span class="truncate"><ng-content /></span>
+</button>

@@ -5,7 +5,9 @@ import { ResourceType } from "src/common/constants/actions/resource-type";
 export interface ActivityLogFilter {
   actorId?: string;
   action?: ActivityAction;
+  actionIn?: ActivityAction[];
   resourceType?: ResourceType;
+  resourceTypeIn?: ResourceType[];
   resourceId?: string;
   from?: Date;
   to?: Date;

@@ -74,6 +74,8 @@ export class CustomTextfield {
 
   readonly = input(false);
 
+  size = input<'sm' | 'md' | 'lg'>('md');
+
   min = input<number>();
   max = input<number>();
   step = input(1);
@@ -160,6 +162,20 @@ export class CustomTextfield {
 
     if (errors['max']) {
       return `El valor máximo es ${errors['max'].max}`;
+    }
+
+    if (errors['invalidFolderName']) {
+      return 'El nombre de la carpeta no debe incluir extensiones';
+    }
+
+    if (errors['invalidCharacters']) {
+      return 'El nombre contiene caracteres no permitidos (\\ / : * ? " < > |)';
+    }
+
+    if (errors['invalidExtension']) {
+      return typeof errors['invalidExtension'] === 'string'
+        ? errors['invalidExtension']
+        : 'El archivo debe conservar una extensión válida (.txt o .md)';
     }
 
     return 'Valor inválido';

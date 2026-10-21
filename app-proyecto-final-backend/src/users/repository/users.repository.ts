@@ -1,7 +1,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, QueryFilter, Types } from 'mongoose';
+import { ClientSession, Model, QueryFilter, Types } from 'mongoose';
 import { UserEntity, UserDocument } from '../entities/user.entity';
 import { UserFilter } from '../types/user-filter';
 import { PageRequest } from 'src/common/types/page-request';
@@ -111,6 +111,37 @@ export class UsersRepository {
         return this.model.countDocuments({ roleId }).exec();
     }
 
+    //Method to reserve storage quota
+    async reserveStorageQuota(userId: string | Types.ObjectId, bytes: number, session?: ClientSession): Promise<boolean> {
+        const result = await this.model
+            .updateOne(
+                {
+                    _id: new Types.ObjectId(userId),
+                    $expr: {
+                        $lte: [
+                            { $add: ['$storage.usedBytes', bytes] },
+                            '$storage.quotaBytes',
+                        ],
+                    },
+                },
+                { $inc: { 'storage.usedBytes': bytes } },
+                { session },
+            )
+            .exec();
+        return result.modifiedCount > 0;
+    }
+
+    // Method to change the storage quota
+    async releaseStorageQuota(userId: string | Types.ObjectId, bytes: number, session?: ClientSession): Promise<void> {
+        await this.model
+            .updateOne(
+                { _id: new Types.ObjectId(userId) },
+                { $inc: { 'storage.usedBytes': -bytes } },
+                { session },
+            )
+            .exec();
+    }
+
     //Method to verify if the user exists
     private async exists(match: Record<string, string>, excludeId?: string): Promise<boolean> {
         const filter = excludeId ? { ...match, _id: { $ne: excludeId } } : match;
@@ -126,6 +157,7 @@ export class UsersRepository {
             const rx = new RegExp(escapeRegex(f.search), 'i');
             q.$or = [{ username: rx }, { email: rx }, { firstName: rx }, { lastName: rx }];
         }
+        if (f.excludeId) q._id = { $ne: new Types.ObjectId(f.excludeId) };
         return q;
     }
 }

@@ -1,0 +1,58 @@
+@if (isOpen()) {
+<aside
+  class="flex h-full w-80 md:w-96 flex-col border-l border-border/40 bg-surface/95 backdrop-blur-md transition-all duration-300 shadow-2xl">
+
+  <div class="flex items-center justify-between border-b border-border/40 px-4 py-3.5">
+    <div class="flex items-center gap-2 text-text font-semibold text-sm">
+      <ng-icon [svg]="lucideMessageSquareIcon" size="18" class="text-primary" />
+      <span>Comentarios</span>
+      <span class="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary font-bold">
+        {{ comments().length }}
+      </span>
+    </div>
+
+    <button type="button" (click)="closePanel.emit()"
+      class="rounded-lg p-1 text-text-muted hover:bg-surface-raised hover:text-text transition-colors"
+      title="Cerrar panel de comentarios">
+      <ng-icon [svg]="lucideXIcon" size="18" />
+    </button>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-4 space-y-3.5">
+    @if (comments().length === 0) {
+    <div class="flex flex-col items-center justify-center h-48 text-center text-text-muted">
+      <ng-icon [svg]="lucideMessageSquareIcon" size="32" class="opacity-40 mb-2" />
+      <p class="text-sm font-medium">No hay comentarios aún</p>
+      <p class="text-xs mt-1">Sé el primero en añadir un comentario a este archivo.</p>
+    </div>
+    }
+
+    @for (comment of comments(); track comment.id) {
+    <app-file-comment-card-component [comment]="comment" [canComment]="canComment()" [currentUserId]="currentUserId()"
+      (commentUpdated)="commentUpdated.emit($event)" (commentDeleted)="commentDeleted.emit($event)"
+      (replySubmitted)="handleReply($event)" />
+    }
+  </div>
+
+  <div class="border-t border-border/40 p-3 bg-surface">
+    @if (canComment()) {
+    <form (ngSubmit)="onSubmitComment()" class="flex flex-col gap-2">
+      <app-custom-textfield label="" placeholder="Añadir un comentario..." [control]="commentControl"
+        [clearable]="true" />
+
+      <div class="flex justify-end">
+        <app-custom-button label="Comentar" size="md" [icon]="lucideSendIcon"
+          [disabled]="commentControl.invalid || isSubmitting()" [loading]="isSubmitting()" type="submit" />
+      </div>
+    </form>
+    } @else {
+    <div
+      class="flex items-center gap-2 p-2.5 rounded-xl bg-surface-raised/80 border border-border/40 text-text-muted text-xs">
+      <ng-icon [svg]="lucideEyeIcon" size="16" class="text-text-muted shrink-0" />
+      <span>Modo solo lectura. No tienes permisos para comentar.</span>
+    </div>
+    }
+  </div>
+
+</aside>
+}

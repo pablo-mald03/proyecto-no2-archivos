@@ -1,196 +1,88 @@
 <div class="w-full">
 
     @if (label()) {
-
-    <label class="
-                mb-2
-                block
-                text-sm
-                font-medium
-                text-text
-            ">
+    <label class="mb-2 block text-sm font-medium text-text">
         {{ label() }}
     </label>
-
     }
-
 
     <div class="relative">
 
         @if (icon()) {
-
-        <div class="
-                    pointer-events-none
-                    absolute
-                    left-3
-                    top-1/2
-                    -translate-y-1/2
-                    text-text-muted
-                ">
-            <ng-icon [svg]="icon()!" size="18" />
+        <div class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
+            <ng-icon [svg]="icon()!" [size]="size() === 'sm' ? '16' : '18'" />
         </div>
-
         }
 
-
         <input [type]="fieldType()" [formControl]="control()" [placeholder]="placeholder()" [min]="min()" [max]="max()"
-            [step]="step()" [readOnly]="readonly()" class="
-w-full
-rounded-xl
-border
-bg-surface
-px-4
-py-3
-text-text
-transition
-outline-none
-" [class.pl-10]="icon()" [class.pr-20]="isNumber() && clearable() && !readonly()"
-            [class.pr-12]="isNumber() && !clearable() && !readonly()" [class.pr-11]="
-!isNumber()
-&& (
-    isPassword()
-    || (clearable() && !readonly())
-)
-" [class.border-border]="!hasError" [class.border-red-500]="hasError" [class.focus:border-primary]="!hasError"
+            [step]="step()" [readOnly]="readonly()"
+            class="w-full rounded-xl border bg-surface text-text transition outline-none" [class.px-3]="size() === 'sm'"
+            [class.py-1.5]="size() === 'sm'" [class.text-xs]="size() === 'sm'" [class.px-4]="size() === 'md'"
+            [class.py-2.5]="size() === 'md'" [class.text-sm]="size() === 'md'" [class.px-5]="size() === 'lg'"
+            [class.py-3]="size() === 'lg'" [class.text-base]="size() === 'lg'" [class.pl-10]="icon()"
+            [class.pr-20]="isNumber() && clearable() && !readonly()"
+            [class.pr-12]="isNumber() && !clearable() && !readonly()"
+            [class.pr-11]="!isNumber() && (isPassword() || (clearable() && !readonly()))"
+            [class.border-border]="!hasError" [class.border-red-500]="hasError" [class.focus:border-primary]="!hasError"
             [class.focus:border-red-500]="hasError" [class.opacity-70]="readonly()"
             [class.cursor-not-allowed]="readonly()" />
 
 
         @if (isNumber() && !readonly()) {
-
-        <div class="
-            absolute
-            right-2
-            top-1/2
-            flex
-            -translate-y-1/2
-            flex-col
-            overflow-hidden
-            rounded-md
-            border
-            border-border
-            bg-surface-raised
-        ">
-
-            <button type="button" class="
-                flex
-                h-5
-                w-6
-                items-center
-                justify-center
-                text-shadow-xs
-                text-text-muted
-                transition-colors
-                hover:bg-primary/10
-                hover:text-primary
-                disabled:cursor-not-allowed
-                disabled:opacity-40
-            " [disabled]="max() !== undefined&& numericValue >= max()!" (click)="increment()" aria-label="Incrementar">
+        <div class="absolute right-2 top-1/2 flex -translate-y-1/2 flex-col overflow-hidden rounded-md
+            border border-border bg-surface-raised">
+            <button type="button" class="flex h-5 w-6 items-center justify-center text-xs text-text-muted
+                transition-colors hover:bg-primary/10 hover:text-primary
+                disabled:cursor-not-allowed disabled:opacity-40"
+                [disabled]="max() !== undefined && numericValue >= max()!" (click)="increment()"
+                aria-label="Incrementar">
                 +
             </button>
-
             <div class="h-px bg-border"></div>
-
-            <button type="button" class="
-                flex
-                h-5
-                w-6
-                items-center
-                justify-center
-                text-xs
-                text-text-muted
-                transition-colors
-                hover:bg-primary/10
-                hover:text-primary
-                disabled:cursor-not-allowed
-                disabled:opacity-40" [disabled]="min() !== undefined&& numericValue <= min()!" (click)="decrement()"
+            <button type="button" class="flex h-5 w-6 items-center justify-center text-xs text-text-muted
+                transition-colors hover:bg-primary/10 hover:text-primary
+                disabled:cursor-not-allowed disabled:opacity-40"
+                [disabled]="min() !== undefined && numericValue <= min()!" (click)="decrement()"
                 aria-label="Decrementar">
                 -
             </button>
-
         </div>
-
         }
 
 
         @if (isPassword()) {
-
-        <button type="button" (click)="togglePassword()" class="
-                    absolute
-                    right-3
-                    top-1/2
-                    -translate-y-1/2
-                    rounded-md
-                    p-1
-                    text-text-muted
-                    transition-colors
-                    hover:bg-surface-raised
-                    hover:text-text" [attr.aria-label]="
-                    showPassword()
-                        ? 'Ocultar contraseña'
-                        : 'Mostrar contraseña'">
-
+        <button type="button" (click)="togglePassword()" class="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1
+            text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
             @if (showPassword()) {
-
-            <ng-icon [svg]="lucideEyeOffIcon" size="18" />
-
+            <ng-icon [svg]="lucideEyeOffIcon" [size]="size() === 'sm' ? '16' : '18'" />
             } @else {
-
-            <ng-icon [svg]="lucideEyeIcon" size="18" />
-
+            <ng-icon [svg]="lucideEyeIcon" [size]="size() === 'sm' ? '16' : '18'" />
             }
-
         </button>
-
         }
 
 
-        @if (
-        clearable()
-        && !isPassword()
-        && !readonly()
-        && control().value
-        ) {
-
-        <button type="button" (click)="clear()" class="
-            absolute
-            top-1/2
-            -translate-y-1/2
-            rounded-md
-            p-1
-            text-text-muted
-            transition-colors
-            hover:bg-surface-raised
-            hover:text-text
-        " [class.right-12]="isNumber()" [class.right-3]="!isNumber()" aria-label="Limpiar campo">
-            <ng-icon [svg]="lucideXIcon" size="18" />
+        @if (clearable() && !isPassword() && !readonly() && control().value) {
+        <button type="button" (click)="clear()" class="absolute top-1/2 -translate-y-1/2 rounded-md
+                    text-text-muted transition-colors hover:bg-surface-raised hover:text-text"
+            [class.p-1]="size() !== 'sm'" [class.p-0.5]="size() === 'sm'" [class.right-12]="isNumber()"
+            [class.right-3]="!isNumber()" aria-label="Limpiar campo">
+            <ng-icon [svg]="lucideXIcon" [size]="size() === 'sm' ? '14' : '18'" />
         </button>
-
         }
 
     </div>
 
 
     @if (hasError) {
-
-    <p class="
-                mt-1
-                text-sm
-                text-red-500
-            ">
-        {{ errorMessage}}
+    <p class="mt-1 text-xs text-red-500">
+        {{ errorMessage }}
     </p>
-
     } @else if (hint()) {
-
-    <p class="
-                mt-1
-                text-sm
-                text-text-muted
-            ">
+    <p class="mt-1 text-xs text-text-muted">
         {{ hint() }}
     </p>
-
     }
 
 </div>

@@ -5,7 +5,7 @@ import { lucideArrowLeft, lucideAtSign, lucideCake, lucideCalendar, lucideCheck,
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { Router } from '@angular/router';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { finalize } from 'rxjs';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
@@ -89,8 +89,13 @@ export class ProfileComponent implements OnInit {
   readonly storagePercentage = computed(() => {
     const s = this.profile()?.storage;
     if (!s || s.quotaBytes === 0) return 0;
+
     const percentage = (s.usedBytes / s.quotaBytes) * 100;
-    return Math.min(Math.round(percentage), 100);
+    const rounded = Math.round(percentage * 100) / 100;
+
+    const visible = s.usedBytes > 0 ? Math.max(rounded, 0.01) : rounded;
+
+    return Math.min(visible, 100);
   });
 
   ngOnInit(): void {
@@ -114,13 +119,17 @@ export class ProfileComponent implements OnInit {
       });
   }
 
-  // Format bytes into readable human units (MB, GB, etc.)
+  // Format bytes into readable human units 
   formatBytes(bytes: number): string {
-    if (bytes === 0) return '0 MB';
+    if (!bytes || bytes <= 0) return '0 Bytes';
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
+
+    if (i <= 0) return `${Math.round(bytes)} Bytes`;
+
+    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   }
 
   // Modal controls

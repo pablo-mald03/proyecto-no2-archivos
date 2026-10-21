@@ -1,0 +1,69 @@
+<app-custom-modal-component
+  [isOpen]="isOpen()" 
+  title="Mover elemento" 
+  [subtitle]="'Selecciona la carpeta de destino para: ' + (itemToMove()?.name || '')"
+  maxWidth="md"
+  (closed)="close()"
+>
+  <div class="flex flex-col gap-4">
+    
+    <div class="flex items-center justify-between bg-surface-raised px-3 py-2 rounded-xl border border-border">
+      <div class="flex items-center gap-2 text-sm font-medium text-text">
+        <ng-icon [svg]="lucideFolderIcon" size="18" class="text-amber-500" />
+        <span>{{ currentFolderName() }}</span>
+      </div>
+
+      @if (breadcrumbs().length > 1) {
+        <app-custom-button 
+          label="Atrás" 
+          variant="ghost" 
+          size="sm" 
+          [icon]="lucideArrowLeftIcon" 
+          (clicked)="goBack()" 
+        />
+      }
+    </div>
+
+    <div class="h-60 overflow-y-auto border border-border/60 rounded-xl p-2 flex flex-col gap-1 bg-surface/50">
+      @if (loading()) {
+        <div class="flex h-full items-center justify-center text-xs text-text-muted">
+          Cargando carpetas...
+        </div>
+      } @else if (subFolders().length === 0) {
+        <div class="flex h-full items-center justify-center text-xs text-text-muted">
+          Esta carpeta está vacía.
+        </div>
+      } @else {
+        @for (folder of subFolders(); track folder.id) {
+          <div 
+            class="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-surface-raised cursor-pointer transition-colors group"
+            (click)="openFolder(folder)"
+          >
+            <div class="flex items-center gap-3 min-w-0">
+              <ng-icon [svg]="lucideFolderIcon" size="20" class="text-amber-500 shrink-0" />
+              <span class="text-sm font-medium text-text truncate group-hover:text-primary transition-colors">
+                {{ folder.name }}
+              </span>
+            </div>
+            <ng-icon [svg]="lucideChevronRightIcon" size="16" class="text-text-muted shrink-0" />
+          </div>
+        }
+      }
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-2 border-t border-border">
+      <app-custom-button 
+        label="Cancelar" 
+        variant="ghost" 
+        type="button"
+        (clicked)="close()" 
+      />
+      <app-custom-button 
+        label="Mover aquí" 
+        type="button"
+        (clicked)="onConfirmMove()"
+      />
+    </div>
+
+  </div>
+</app-custom-modal-component>

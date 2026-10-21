@@ -34,8 +34,6 @@ import { CustomTextfield } from '../../common/custom-textfield/custom-textfield'
   templateUrl: './logs-page.html',
   styleUrl: './logs-page.css',
 })
-/*Principal logs page */
-
 /* Principal logs page */
 export class LogsPage implements OnInit {
 

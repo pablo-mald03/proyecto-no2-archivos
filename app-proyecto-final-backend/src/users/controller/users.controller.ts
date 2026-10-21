@@ -18,6 +18,7 @@ import { Throttle } from '@nestjs/throttler';
 import { RegisterUserDto } from '../dto/request/register-user.dto';
 import { RecoverPasswordDto } from '../dto/request/recovery-password.dto';
 
+//Principal users controller
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
@@ -54,6 +55,14 @@ export class UsersController {
   findAll(@Query() query: ListUsersQueryDto) {
     return this.users.findAll(query);
   }
+
+  @Get('registered')
+  @ApiOperation({ summary: 'List all registered users except the one making the request' })
+  @ApiOkResponse({ type: PaginatedUsersResponseDto })
+  findAllUsers(@Query() query: ListUsersQueryDto, @CurrentUser() actor?: AuthUser) {
+    return this.users.findAllUsers(query, actor);
+  }
+
 
   @Get('profile')
   @ApiOperation({ summary: 'Get the full profile of the current user' })

@@ -1,0 +1,16 @@
+<app-custom-modal-component [isOpen]="isOpen()" [title]="modalTitle()" [subtitle]="modalSubtitle()" maxWidth="sm"
+  (closed)="close()">
+  <form (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+    <div class="flex flex-col gap-4">
+      <app-custom-textfield [label]="inputLabel()" [placeholder]="inputPlaceholder()" [control]="nameControl"
+        [icon]="fieldIcon()" [clearable]="true" />
+    </div>
+
+    <div class="flex items-center justify-end gap-3 pt-2">
+      <app-custom-button label="Cancelar" variant="ghost" type="button" [disabled]="loading()" (clicked)="close()" />
+
+      <app-custom-button [label]="submitButtonLabel()" [disabled]="nameControl.invalid || loading()"
+        [loading]="loading()" type="submit" />
+    </div>
+  </form>
+</app-custom-modal-component>

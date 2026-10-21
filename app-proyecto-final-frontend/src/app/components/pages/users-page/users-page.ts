@@ -2,7 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
 import { User } from '../../../features/users/models/user.model';
 import { lucideArrowUpDown, lucideChevronDown, lucideFilter, lucidePlus, lucideRotateCcw, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
-import { UserService } from '../../../features/users/services/user.service';
+import { UserService } from '../../../features/users/service/user.service';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { AuthState } from '../../../stores/auth.state';

@@ -28,6 +28,13 @@ import { PermissionsPage } from './components/pages/permissions-page/permissions
 import { RegisterUserComponent } from './components/auth/register-user-component/register-user-component';
 import { SettingsPage } from './components/pages/settings-page/settings-page';
 import { UpdateSettingsComponent } from './components/settings/update-settings-component/update-settings-component';
+import { DriveFilesPageComponent } from './components/drive/drive-files-page-component/drive-files-page-component';
+import { DriveExplorerComponent } from './components/files/drive-explorer-component/drive-explorer-component';
+import { FilePreviewLayoutComponent } from './components/viewer/file-preview-layout-component/file-preview-layout-component';
+import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-page';
+import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
+import { TrashPage } from './components/pages/trash-page/trash-page';
+import { SharedWithMePage } from './components/pages/shared-with-me-page/shared-with-me-page';
 
 export const routes: Routes = [
 
@@ -73,7 +80,19 @@ export const routes: Routes = [
         children: [
             { path: '', component: DriveHome },
             { path: 'profile', component: ProfileComponent },
-
+            { path: 'activity', component: UserActivityPage },
+            { path: 'trash', component: TrashPage },
+            { path: 'shared', component: SharedWithMePage },
+            {
+                path: 'files',
+                component: DriveExplorerComponent,
+                children: [
+                    { path: '', component: DriveFilesPageComponent },
+                    { path: 'folder/:id', component: DriveFilesPageComponent },
+                    { path: 'preview/:id', component: FilePreviewLayoutComponent },
+                    { path: 'file/:id', redirectTo: 'preview/:id' }
+                ]
+            }
         ],
     },
     {
@@ -233,5 +252,15 @@ export const routes: Routes = [
             }
         ],
     },
+    //ACCES DENIED PAGE
+    {
+        path: 'forbidden',
+        component: ForbiddenPage
+    },
+    //FORBIDDEN PAGE
+    {
+        path: '**',
+        component: ForbiddenPage
+    }
 
 ];

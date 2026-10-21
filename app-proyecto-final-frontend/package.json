@@ -38,6 +38,7 @@
     "@ng-icons/lucide": "^31.4.0",
     "@primeuix/themes": "^3.0.1",
     "chart.js": "^4.5.1",
+    "marked": "^18.1.1",
     "ng2-charts": "^10.0.0",
     "primeicons": "^8.0.2",
     "primeng": "^21.1.10",

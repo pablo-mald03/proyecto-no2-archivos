@@ -1,0 +1,70 @@
+<app-custom-modal-component [isOpen]="isOpen()" title="Subir Archivos"
+    subtitle="Sube hasta 20 archivos de Texto (.txt) o Markdown (.md)" maxWidth="lg" (closed)="close()">
+    <div class="flex flex-col gap-5">
+
+        <div class="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-200"
+            [class.border-primary]="isDragging()" [class.bg-primary/5]="isDragging()"
+            [class.border-border]="!isDragging()" [class.hover:border-primary/50]="!isDragging()"
+            [class.hover:bg-surface-raised/50]="!isDragging()" (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+            <input type="file" #fileInput multiple class="absolute inset-0 h-full w-full opacity-0 cursor-pointer"
+                accept=".txt,.md" (change)="onFileSelected($event)" />
+
+            <div
+                class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary mb-3 transition-transform duration-200 group-hover:scale-110">
+                <ng-icon [svg]="lucideCloudUploadIcon" size="26" />
+            </div>
+
+            <p class="font-medium text-text text-sm">
+                Arrastra varios archivos aquí o <span
+                    class="text-primary underline underline-offset-2 cursor-pointer font-semibold">examina</span>
+            </p>
+            <p class="text-xs text-text-muted mt-1">Archivos .txt y .md (máximo 20 por subida)</p>
+        </div>
+
+        @if (selectedFiles().length > 0) {
+        <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between px-1 text-xs">
+                <span class="font-semibold text-text">
+                    Archivos en cola ({{ totalFilesCount() }}/20) · <span class="text-text-muted">{{
+                        formatFileSize(totalSize()) }}</span>
+                </span>
+                <button type="button" (click)="clearAll()" class="text-primary hover:underline font-medium">
+                    Limpiar todo
+                </button>
+            </div>
+
+            <div class="max-h-48 overflow-y-auto rounded-xl border border-border bg-surface divide-y divide-border/30">
+                @for (file of selectedFiles(); track $index) {
+                <div
+                    class="flex items-center justify-between gap-3 px-3.5 py-2.5 transition-colors hover:bg-surface-raised/50">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                        <div
+                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                            <ng-icon [svg]="lucideFileTextIcon" size="16" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="truncate text-xs font-medium text-text">{{ file.name }}</p>
+                            <p class="text-[10px] text-text-muted">{{ formatFileSize(file.size) }}</p>
+                        </div>
+                    </div>
+                    <button type="button" (click)="removeFile($index)"
+                        class="rounded-lg p-1.5 text-text-muted hover:bg-surface-raised hover:text-error transition-colors"
+                        title="Quitar archivo">
+                        <ng-icon [svg]="lucideXIcon" size="16" />
+                    </button>
+                </div>
+                }
+            </div>
+        </div>
+        }
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+            <app-custom-button label="Cancelar" variant="ghost" (clicked)="close()" />
+            <app-custom-button
+                [label]="totalFilesCount() > 1 ? 'Subir ' + totalFilesCount() + ' archivos' : 'Subir archivo'"
+                [disabled]="selectedFiles().length === 0" (clicked)="confirmUpload()" />
+        </div>
+
+    </div>
+</app-custom-modal-component>
