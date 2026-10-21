@@ -1,13 +1,10 @@
 import { Location } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { NgIcon } from '@ng-icons/core';
 import { lucideArrowLeft } from '@ng-icons/lucide';
 import { finalize, Subscription } from 'rxjs';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
-import { CustomPagination } from '../../common/custom-pagination/custom-pagination';
 import { ReportFoldersKpiStrip } from '../../reports/report-folders-kpi-strip/report-folders-kpi-strip';
-import { ReportFoldersIdSearch } from '../../reports/report-folders-id-search/report-folders-id-search';
 import { ReportFoldersContentTree } from '../../reports/report-folders-content-tree/report-folders-content-tree';
 import { ReportFoldersExtensionBreakdown } from '../../reports/report-folders-extension-breakdown/report-folders-extension-breakdown';
 import { ReportFoldersService } from '../../../features/report-folders/service/report-folders.service';
@@ -18,6 +15,10 @@ import { formatBytes } from '../../../core/ui/report-users-shared/utils/format-b
 import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
+import { User } from '../../../features/users/models/user.model';
+import { FolderResponse } from '../../../features/folders/models/response/folder-response.model';
+import { ReportUserFolderFilterBarComponent } from '../report-user-folder-filter-bar-component/report-user-folder-filter-bar-component';
+import { NgIconComponent } from '@ng-icons/core';
 
 
 @Component({
@@ -25,14 +26,14 @@ import { CustomPaginationSlide } from '../../common/custom-pagination-slide/cust
   standalone: true,
   host: { class: 'flex flex-col h-full min-h-0' },
   imports: [
-    NgIcon,
+    NgIconComponent,
     CustomCard,
     CustomAlert,
+    CustomPaginationSlide,
+    ReportUserFolderFilterBarComponent,
     ReportFoldersKpiStrip,
-    ReportFoldersIdSearch,
     ReportFoldersContentTree,
-    ReportFoldersExtensionBreakdown,
-    CustomPaginationSlide
+    ReportFoldersExtensionBreakdown
   ],
   templateUrl: './report-folders-contents-component.html',
   styleUrl: './report-folders-contents-component.css',
@@ -44,10 +45,11 @@ export class ReportFoldersContentsComponent {
   private readonly reportService = inject(ReportFoldersService);
   private readonly toastService = inject(ToastService);
 
-  private request?: Subscription;
+  private requestSub?: Subscription;
 
-  //Selected folder
-  readonly folderId = signal<string | null>(null);
+  //Selected user and folder
+  readonly selectedUser = signal<User | null>(null);
+  readonly selectedFolder = signal<FolderResponse | null>(null);
 
   //Data signals
   readonly items = signal<FolderContentReportItemResponse[]>([]);
@@ -58,7 +60,7 @@ export class ReportFoldersContentsComponent {
 
   readonly size = 20;
 
-  // Summary of the current page
+  //Summary of the current page
   readonly kpis = computed<KpiItem[]>(() => {
     const items = this.items();
     const folders = items.filter(item => item.resourceType === 'FOLDER').length;
@@ -72,32 +74,31 @@ export class ReportFoldersContentsComponent {
     ];
   });
 
-  // Icons
+  //Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
-  // Submit al buscar un folderId
-  onFolderSubmitted(folderId: string): void {
-    const cleanId = folderId.trim();
-    if (!cleanId) return;
-
-    this.folderId.set(cleanId);
+  //Method to handle selection changes from the filter bar
+  onFilterSelectionChange(selection: { user: User | null; folder: FolderResponse | null }): void {
+    this.selectedUser.set(selection.user);
+    this.selectedFolder.set(selection.folder);
     this.page.set(0);
     this.items.set([]);
-    this.loadReport();
+
+    if (selection.folder) {
+      this.loadReport();
+    }
   }
 
-  // Method to load the contents of the folder and subfolders
+  //Method to load the contents of the selected folder and subfolders
   loadReport(): void {
-    const folderId = this.folderId();
-    if (!folderId) return;
+    const folder = this.selectedFolder();
+    if (!folder) return;
 
-    this.request?.unsubscribe();
+    this.requestSub?.unsubscribe();
     this.loading.set(true);
 
-    const targetPage = this.page();
-
-    this.request = this.reportService
-      .getFolderContents(folderId, { page: targetPage, size: this.size })
+    this.requestSub = this.reportService
+      .getFolderContents(folder.id, { page: this.page(), size: this.size })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response: PaginatedResponse<FolderContentReportItemResponse>) => {
@@ -117,13 +118,13 @@ export class ReportFoldersContentsComponent {
       });
   }
 
-  // Method to handle page change from the pagination
+  //Method to handle page change from the pagination
   onPageChange(page: number): void {
     this.page.set(page);
     this.loadReport();
   }
 
-  // Method to go back to the previous page
+  //Method to go back to the previous page
   goBack(): void {
     this.location.back();
   }

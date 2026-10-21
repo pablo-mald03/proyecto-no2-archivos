@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, OnInit, output, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, input, OnInit, output, signal } from '@angular/core';
 import { FolderService } from '../../../features/folders/service/folder.service';
 import { UserService } from '../../../features/users/service/user.service';
 import { FolderResponse } from '../../../features/folders/models/response/folder-response.model';
@@ -26,11 +26,15 @@ import { lucideCheck, lucideChevronDown, lucideFolder, lucideSearch, lucideUser,
   templateUrl: './report-user-folder-filter-bar-component.html',
   styleUrl: './report-user-folder-filter-bar-component.css',
 })
+//Component for filtering folders by user
 export class ReportUserFolderFilterBarComponent implements OnInit {
 
   private readonly userService = inject(UserService);
   private readonly folderService = inject(FolderService);
   private readonly elementRef = inject(ElementRef);
+
+  // Inputs
+  showFolders = input<boolean>(true);
 
   // Outputs
   readonly selectionChange = output<{ user: User | null; folder: FolderResponse | null }>();
@@ -56,7 +60,6 @@ export class ReportUserFolderFilterBarComponent implements OnInit {
   private foldersSub?: Subscription;
 
   ngOnInit(): void {
-    // Búsqueda reactiva de usuarios con debounce
     this.userSearchCtrl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
@@ -64,15 +67,15 @@ export class ReportUserFolderFilterBarComponent implements OnInit {
       this.fetchUsers(search || '');
     });
 
-    // Búsqueda reactiva de carpetas
     this.folderSearchCtrl.valueChanges.pipe(
       debounceTime(300),
       distinctUntilChanged()
     ).subscribe(search => {
-      this.fetchFolders(search || '');
+      if (this.showFolders()) {
+        this.fetchFolders(search || '');
+      }
     });
 
-    // Carga inicial de primeros usuarios
     this.fetchUsers('');
   }
 
@@ -90,7 +93,7 @@ export class ReportUserFolderFilterBarComponent implements OnInit {
   }
 
   toggleFolderDropdown(): void {
-    if (!this.selectedUser()) return;
+    if (!this.selectedUser() || !this.showFolders()) return;
     this.isUserOpen.set(false);
     this.isFolderOpen.update(v => !v);
   }
@@ -115,7 +118,7 @@ export class ReportUserFolderFilterBarComponent implements OnInit {
   // Folders Fetching
   fetchFolders(search: string): void {
     const user = this.selectedUser();
-    if (!user) return;
+    if (!user || !this.showFolders()) return;
 
     this.foldersSub?.unsubscribe();
     this.loadingFolders.set(true);
@@ -139,7 +142,11 @@ export class ReportUserFolderFilterBarComponent implements OnInit {
     this.selectedUser.set(user);
     this.selectedFolder.set(null);
     this.isUserOpen.set(false);
-    this.fetchFolders('');
+
+    if (this.showFolders()) {
+      this.fetchFolders('');
+    }
+
     this.emitChange();
   }
 
@@ -166,7 +173,7 @@ export class ReportUserFolderFilterBarComponent implements OnInit {
   private emitChange(): void {
     this.selectionChange.emit({
       user: this.selectedUser(),
-      folder: this.selectedFolder()
+      folder: this.showFolders() ? this.selectedFolder() : null
     });
   }
 }

@@ -2,10 +2,9 @@ import { Location } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { lucideArrowLeft } from '@ng-icons/lucide';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
-import { CustomPagination } from '../../common/custom-pagination/custom-pagination';
 import { ToastService } from '../../../core/services/toast.service';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { ReportFoldersService } from '../../../features/report-folders/service/report-folders.service';
@@ -13,11 +12,14 @@ import { PaginatedResponse } from '../../../features/report-shared/models/respon
 import { ReportFoldersKpiStrip } from '../../reports/report-folders-kpi-strip/report-folders-kpi-strip';
 import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
 import { UserRootFolderSpaceResponse } from '../../../features/report-folders/models/response/user-root-folder-space-response.model';
-import { ReportFoldersIdSearch } from '../../reports/report-folders-id-search/report-folders-id-search';
 import { ReportFoldersSpaceDonut } from '../../reports/report-folders-space-donut/report-folders-space-donut';
 import { ReportFoldersSpaceLegend } from '../../reports/report-folders-space-legend/report-folders-space-legend';
 import { buildSpaceSlices } from '../../../core/ui/report-folders-shared/utils/build-space-slices.util';
 import { formatBytes } from '../../../core/ui/report-users-shared/utils/format-bytes.util';
+import { User } from '../../../features/users/models/user.model';
+import { FolderResponse } from '../../../features/folders/models/response/folder-response.model';
+import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
+import { ReportUserFolderFilterBarComponent } from '../report-user-folder-filter-bar-component/report-user-folder-filter-bar-component';
 @Component({
   selector: 'app-report-folders-user-space-component',
   standalone: true,
@@ -26,11 +28,11 @@ import { formatBytes } from '../../../core/ui/report-users-shared/utils/format-b
     NgIcon,
     CustomCard,
     CustomAlert,
-    CustomPagination,
     ReportFoldersKpiStrip,
-    ReportFoldersIdSearch,
     ReportFoldersSpaceDonut,
-    ReportFoldersSpaceLegend
+    ReportFoldersSpaceLegend,
+    CustomPaginationSlide,
+    ReportUserFolderFilterBarComponent
   ],
   templateUrl: './report-folders-user-space-component.html',
   styleUrl: './report-folders-user-space-component.css',
@@ -42,8 +44,10 @@ export class ReportFoldersUserSpaceComponent {
   private readonly reportService = inject(ReportFoldersService);
   private readonly toastService = inject(ToastService);
 
+  private requestSub?: Subscription;
+
   //Selected user
-  readonly userId = signal<string | null>(null);
+  readonly selectedUser = signal<User | null>(null);
 
   //Data signals
   readonly folders = signal<UserRootFolderSpaceResponse[]>([]);
@@ -77,30 +81,36 @@ export class ReportFoldersUserSpaceComponent {
   //Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
-  //Method to handle user submission
-  onUserSubmitted(userId: string): void {
-    this.userId.set(userId);
+  //Method to handle filter selection changes
+  onFilterSelectionChange(selection: { user: User | null; folder: FolderResponse | null }): void {
+    this.selectedUser.set(selection.user);
     this.page.set(0);
     this.folders.set([]);
-    this.loadReport();
+
+    if (selection.user) {
+      this.loadReport();
+    }
   }
 
   //Method to load the report for the selected user and page
   loadReport(): void {
-    const userId = this.userId();
-    if (!userId) return;
+    const user = this.selectedUser();
+    if (!user) return;
 
+    this.requestSub?.unsubscribe();
     this.loading.set(true);
 
-    this.reportService.getUserRootFoldersSpace(userId, { page: this.page() + 1, size: this.size })
+    this.requestSub = this.reportService
+      .getUserRootFoldersSpace(user.id, { page: this.page(), size: this.size })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response: PaginatedResponse<UserRootFolderSpaceResponse>) => {
-          this.folders.set(response.content);
-          this.totalPages.set(response.totalPages);
-          this.totalElements.set(response.totalElements);
+          this.folders.set(response.content ?? []);
+          this.totalPages.set(response.totalPages ?? 0);
+          this.totalElements.set(response.totalElements ?? 0);
         },
         error: (error: ErrorResponse) => {
+          this.folders.set([]);
           this.toastService.error(
             error.message || 'No fue posible cargar el reporte.',
             'Error al cargar reporte'

@@ -16,15 +16,18 @@
         </div>
     </div>
 
-    <app-custom-card [hoverable]="false">
-        <app-report-folders-id-search label="ID de la carpeta" placeholder="Pega el ID de la carpeta a explorar"
-            buttonLabel="Explorar carpeta" [loading]="loading()" (submitted)="onFolderSubmitted($event)" />
-    </app-custom-card>
+    <app-report-user-folder-filter-bar-component [showFolders]="true"
+        (selectionChange)="onFilterSelectionChange($event)" />
 
-    @if (!folderId()) {
+    @if (!selectedUser()) {
+
+    <app-custom-alert type="info" title="Selecciona un usuario"
+        message="Busca y selecciona un usuario en el filtro superior para listar sus carpetas disponibles." />
+
+    } @else if (!selectedFolder()) {
 
     <app-custom-alert type="info" title="Selecciona una carpeta"
-        message="Ingresa el ID de una carpeta para explorar su contenido y el de sus subcarpetas." />
+        message="Elige la carpeta del usuario seleccionado para explorar su contenido y subcarpetas." />
 
     } @else {
 
@@ -41,7 +44,8 @@
                 Cargando reporte...
             </div>
             } @else if (items().length === 0) {
-            <app-custom-alert type="info" title="Sin datos" message="La carpeta no tiene contenido registrado." />
+            <app-custom-alert type="info" title="Sin datos"
+                message="La carpeta seleccionada no tiene contenido registrado." />
             } @else {
 
             <div class="min-h-0 flex-1 overflow-y-auto pr-1">
