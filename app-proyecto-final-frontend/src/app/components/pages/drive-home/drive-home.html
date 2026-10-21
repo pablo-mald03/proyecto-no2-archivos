@@ -1,4 +1,7 @@
-<section class="flex flex-col shrink-0 min-h-full space-y-8 pb-6">
+<app-custom-infinite-scroll class="block h-full min-h-0" [loading]="loadingMore() || loadingRecent()"
+    [hasMore]="hasMore()" [threshold]="200" (loadMore)="loadMoreItems()">
+
+<section class="flex flex-col min-h-full space-y-8 pb-6 pr-2">
 
     <header>
         <h1 class="text-2xl font-bold text-text">Hola, {{ firstName() }}</h1>
@@ -19,27 +22,104 @@
     </div>
 
     <div class="flex flex-1 flex-col space-y-4 pt-4">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-text">Archivos recientes</h2>
 
-            @if (recentItems().length > 0) {
+        <div class="flex items-center justify-between">
+            <div class="flex items-baseline gap-2">
+                <h2 class="text-lg font-semibold text-text">Archivos recientes</h2>
+                @if (!loadingRecent() && totalElements() > 0) {
+                <span class="text-xs text-text-muted">{{ totalElements() }} en total</span>
+                }
+            </div>
+
             <a routerLink="/drive/files" class="text-xs font-semibold text-primary hover:underline">
                 Ver todos
             </a>
-            }
         </div>
 
-        @if (loadingRecent()) {
+        <app-custom-card [hoverable]="false">
+            <button type="button" class="flex w-full items-center justify-between gap-3 text-left"
+                [attr.aria-expanded]="filtersExpanded()" (click)="filtersExpanded.set(!filtersExpanded())">
+
+                <div class="flex min-w-0 items-center gap-3">
+                    <div
+                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                        <ng-icon [svg]="lucideSlidersHorizontalIcon" size="16" />
+                    </div>
+
+                    <div class="flex min-w-0 items-center gap-2">
+                        <h3 class="text-sm font-semibold text-text">Filtros</h3>
+                        @if (hasActiveFilters()) {
+                        <span class="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                            Activos
+                        </span>
+                        }
+                    </div>
+                </div>
+
+                <ng-icon [svg]="lucideChevronDownIcon" size="18"
+                    class="shrink-0 text-text-muted transition-transform duration-200"
+                    [class.rotate-180]="filtersExpanded()" />
+            </button>
+
+            @if (filtersExpanded()) {
+            <div class="mt-4 border-t border-border pt-4">
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <app-custom-textfield label="Buscar por nombre" placeholder="Nombre del archivo..."
+                        [control]="searchControl" [icon]="lucideSearchIcon" [clearable]="true" />
+
+                    <app-custom-dropdown label="Tipo de archivo" placeholder="Todos" [options]="extensionOptions"
+                        optionKey="value" optionLabel="label" [control]="extensionControl" [clearable]="true" />
+
+                    <app-custom-dropdown label="Ordenar por" [options]="sortOptions" optionKey="value"
+                        optionLabel="label" [control]="sortByControl" />
+
+                    <app-custom-dropdown label="Dirección" [options]="directionOptions" optionKey="value"
+                        optionLabel="label" [control]="directionControl" />
+
+                    <app-custom-datepicker label="Desde" placeholder="Seleccionar fecha" [control]="fromControl"
+                        [max]="toDate()" [clearable]="true" />
+
+                    <app-custom-datepicker label="Hasta" placeholder="Seleccionar fecha" [control]="toControl"
+                        [min]="fromDate()" [clearable]="true" />
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <app-custom-button label="Limpiar filtros" variant="ghost" size="sm"
+                        [icon]="lucideRotateCcwIcon" (clicked)="resetFilters()" />
+                </div>
+            </div>
+            }
+        </app-custom-card>
+
+        @switch (viewState()) {
+
+        @case ('loading') {
         <app-empty-state-component class="block flex-1" [loading]="true"
             loadingText="Cargando tus archivos recientes..." />
-        } @else if (recentItems().length > 0) {
+        }
+
+        @case ('list') {
         <app-drive-item-list-component class="block flex-1" [items]="recentItems()"
             (shareClicked)="onShare($event)" (previewClicked)="onPreview($event)"
             (downloadClicked)="onDownload($event)" (deleteClicked)="onDelete($event)"
             (renameClicked)="onRename($event)" (moveClicked)="onMoveItem($event)"
             (itemDoubleClicked)="onOpenItem($event)" (itemClicked)="onOpenItem($event)"
             (itemDropped)="handleItemDrop($event)" />
-        } @else {
+
+        @if (loadingMore()) {
+        <app-empty-state-component [loading]="true" loadingText="Cargando más archivos..." />
+        }
+        }
+
+        @case ('no-results') {
+        <app-empty-state-component class="block flex-1" [icon]="lucideHistoryIcon" title="Sin resultados"
+            description="No encontramos archivos recientes que coincidan con los filtros seleccionados.">
+            <app-custom-button label="Restablecer filtros" variant="secondary" size="sm"
+                [icon]="lucideRotateCcwIcon" [bordered]="true" (clicked)="resetFilters()" />
+        </app-empty-state-component>
+        }
+
+        @default {
         <app-empty-state-component class="block flex-1" [icon]="lucideHistoryIcon"
             title="Nada por aquí últimamente"
             description="Los archivos que abras, edites o subas recientemente aparecerán en este espacio para un acceso rápido.">
@@ -49,6 +129,7 @@
                 Explorar mis archivos
             </a>
         </app-empty-state-component>
+        }
         }
     </div>
 
@@ -65,3 +146,5 @@
     }
 
 </section>
+
+</app-custom-infinite-scroll>
