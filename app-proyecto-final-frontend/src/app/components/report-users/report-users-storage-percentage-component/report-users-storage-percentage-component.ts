@@ -2,10 +2,9 @@ import { Location } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { lucideArrowLeft } from '@ng-icons/lucide';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
-import { CustomPagination } from '../../common/custom-pagination/custom-pagination';
 import { ReportUsersKpiStrip } from '../../reports/report-users-kpi-strip/report-users-kpi-strip';
 import { ReportUsersStorageCard } from '../../reports/report-users-storage-card/report-users-storage-card';
 import { ReportUsersLevelDistribution } from '../../reports/report-users-level-distribution/report-users-level-distribution';
@@ -16,6 +15,7 @@ import { KpiItem } from '../../reports/report-users-shared/types/kpi-item.model'
 import { getStorageUsageLevel } from '../../reports/report-users-shared/utils/storage-usage.util';
 import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
 
 @Component({
   selector: 'app-report-users-storage-percentage-component',
@@ -25,22 +25,24 @@ import { ErrorResponse } from '../../../features/errors/models/error-response.mo
     NgIcon,
     CustomCard,
     CustomAlert,
-    CustomPagination,
     ReportUsersKpiStrip,
     ReportUsersStorageCard,
-    ReportUsersLevelDistribution
-  ],
+    ReportUsersLevelDistribution,
+    CustomPaginationSlide
+],
   templateUrl: './report-users-storage-percentage-component.html',
   styleUrl: './report-users-storage-percentage-component.css',
 })
-/*Storage percentage used by each user report */
+/*Storage percentage component report */
 export class ReportUsersStoragePercentageComponent implements OnInit {
 
   private readonly location = inject(Location);
   private readonly reportService = inject(ReportUsersService);
   private readonly toastService = inject(ToastService);
 
-  //Data signals
+  private request?: Subscription;
+
+  // Data signals
   readonly users = signal<UserStoragePercentageResponse[]>([]);
   readonly loading = signal(false);
   readonly page = signal(0);
@@ -49,10 +51,18 @@ export class ReportUsersStoragePercentageComponent implements OnInit {
 
   readonly size = 8;
 
-  //Percents of the current page
+  // Formateador de porcentajes con precisión significativa (3 a 4 decimales)
+  static formatPercentage(val: number): string {
+    if (!val || val === 0) return '0%';
+    // Si es menor al 0.01%, mostramos hasta 4 decimales para no perder visibilidad
+    const decimals = val < 0.01 ? 4 : 3;
+    return `${val.toFixed(decimals)}%`;
+  }
+
+  // Percents of the current page
   readonly percents = computed(() => this.users().map(u => u.percentageUsed));
 
-  //Summary of the current page
+  // Summary of the current page
   readonly kpis = computed<KpiItem[]>(() => {
     const percents = this.percents();
     const average = percents.length ? percents.reduce((acc, p) => acc + p, 0) / percents.length : 0;
@@ -60,30 +70,36 @@ export class ReportUsersStoragePercentageComponent implements OnInit {
 
     return [
       { label: 'Usuarios', value: String(this.totalElements()), hint: 'con almacenamiento asignado' },
-      { label: 'Uso promedio', value: `${average.toFixed(1)}%`, hint: 'en la página actual' },
+      { label: 'Uso promedio', value: ReportUsersStoragePercentageComponent.formatPercentage(average), hint: 'en la página actual' },
       { label: 'En nivel crítico', value: String(critical), hint: 'en la página actual' }
     ];
   });
 
-  //Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
   ngOnInit(): void {
     this.loadReport();
   }
 
-  //Load the report for the current page
+  // Load the report for the current page
   loadReport(): void {
+    // 1. Cancelamos la petición previa si aún no finalizaba
+    this.request?.unsubscribe();
     this.loading.set(true);
 
-    //The UI page is 0-based, the API page is 1-based
-    this.reportService.getStoragePercentage({ page: this.page() + 1, size: this.size })
+    // 2. AJUSTE DE PÁGINA: 
+    // Si en Swagger la página 1 devuelve los primeros datos, usa `this.page() + 1`.
+    // Si en Swagger la página 0 devuelve los primeros datos, usa `this.page()`.
+    const targetPage = this.page(); // Cambiar a this.page() + 1 si la API es 1-indexed
+
+    this.request = this.reportService
+      .getStoragePercentage({ page: targetPage, size: this.size })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response: PaginatedResponse<UserStoragePercentageResponse>) => {
-          this.users.set(response.content);
-          this.totalPages.set(response.totalPages);
-          this.totalElements.set(response.totalElements);
+          this.users.set(response.content ?? []);
+          this.totalPages.set(response.totalPages ?? 0);
+          this.totalElements.set(response.totalElements ?? 0);
         },
         error: (error: ErrorResponse) => {
           this.toastService.error(
@@ -94,13 +110,13 @@ export class ReportUsersStoragePercentageComponent implements OnInit {
       });
   }
 
-  //Page change from the pagination
+  // Page change from the pagination
   onPageChange(page: number): void {
     this.page.set(page);
     this.loadReport();
   }
 
-  //Back to the previous page
+  // Back to the previous page
   goBack(): void {
     this.location.back();
   }

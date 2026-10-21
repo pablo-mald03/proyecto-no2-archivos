@@ -12,7 +12,7 @@ import { getStorageUsageLevel } from '../report-users-shared/utils/storage-usage
   templateUrl: './report-users-level-distribution.html',
   styleUrl: './report-users-level-distribution.css',
 })
-/*Segmented bar with the distribution of users by storage usage level */
+/*Segmented bar with the distribution of users component */
 export class ReportUsersLevelDistribution {
 
   // Inputs

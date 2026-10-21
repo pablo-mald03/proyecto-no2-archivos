@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { lucideArrowLeft } from '@ng-icons/lucide';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomPagination } from '../../common/custom-pagination/custom-pagination';
@@ -40,19 +40,22 @@ export class ReportUsersShareCountComponent implements OnInit {
   private readonly reportService = inject(ReportUsersService);
   private readonly toastService = inject(ToastService);
 
-  //Data signals
+  // Guarda la petición activa para cancelarla si el usuario cambia de página rápido
+  private request?: Subscription;
+
+  // Data signals
   readonly users = signal<UserShareCountResponse[]>([]);
   readonly loading = signal(false);
-  readonly page = signal(0);
+  readonly page = signal(0); // Página actual (inicia en 0)
   readonly totalPages = signal(0);
   readonly totalElements = signal(0);
 
   readonly size = 10;
 
-  //Summary of the current page
+  // Resumen calculado de la página actual
   readonly kpis = computed<KpiItem[]>(() => {
     const users = this.users();
-    const total = users.reduce((acc, user) => acc + user.shareCount, 0);
+    const total = users.reduce((acc, user) => acc + (user.shareCount ?? 0), 0);
     const top = users.reduce<UserShareCountResponse | null>(
       (best, user) => (!best || user.shareCount > best.shareCount ? user : best),
       null
@@ -65,25 +68,31 @@ export class ReportUsersShareCountComponent implements OnInit {
     ];
   });
 
-  //Icons
+  // Íconos
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
   ngOnInit(): void {
     this.loadReport();
   }
 
-  //Load the report for the current page
+  // Carga los datos solicitando la página correspondiente
   loadReport(): void {
+    // 1. Cancela la petición anterior si aún no terminaba
+    this.request?.unsubscribe();
     this.loading.set(true);
 
-    //The UI page is 0-based, the API page is 1-based
-    this.reportService.getShareCount({ page: this.page() + 1, size: this.size })
+    // 2. OJO AQUÍ: Si en Swagger la primera página es 0, usa `this.page()`.
+    //    Si en Swagger la primera página es 1, cambia a `this.page() + 1`.
+    const pageParam = this.page();
+
+    this.request = this.reportService
+      .getShareCount({ page: pageParam, size: this.size })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response: PaginatedResponse<UserShareCountResponse>) => {
-          this.users.set(response.content);
-          this.totalPages.set(response.totalPages);
-          this.totalElements.set(response.totalElements);
+          this.users.set(response.content ?? []);
+          this.totalPages.set(response.totalPages ?? 0);
+          this.totalElements.set(response.totalElements ?? 0);
         },
         error: (error: ErrorResponse) => {
           this.toastService.error(
@@ -94,13 +103,13 @@ export class ReportUsersShareCountComponent implements OnInit {
       });
   }
 
-  //Page change from the pagination
+  // Cambio de página desde el paginador de tu vista
   onPageChange(page: number): void {
     this.page.set(page);
     this.loadReport();
   }
 
-  //Back to the previous page
+  // Volver
   goBack(): void {
     this.location.back();
   }

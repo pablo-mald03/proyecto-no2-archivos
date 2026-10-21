@@ -20,3 +20,14 @@ export function getStorageUsageLevel(percent: number): StorageUsageLevel {
   if (percent >= STORAGE_WARNING_THRESHOLD) return 'warning';
   return 'ok';
 }
+
+/**
+ * Percentage formatter helper
+ */
+export function formatUsagePercentage(val: number): string {
+  if (!val || val === 0) return '0%';
+  if (val < 0.01) {
+    return `${Number(val.toPrecision(3))}%`;
+  }
+  return `${val.toFixed(3)}%`;
+}

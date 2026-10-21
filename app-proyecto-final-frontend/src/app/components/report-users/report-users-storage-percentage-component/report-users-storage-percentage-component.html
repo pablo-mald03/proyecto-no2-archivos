@@ -16,38 +16,43 @@
     </div>
 
     @if (users().length > 0) {
-    <app-report-users-kpi-strip [items]="kpis()" />
+        <app-report-users-kpi-strip [items]="kpis()" />
     }
 
     @if (users().length > 0) {
-    <app-custom-card [hoverable]="false">
-        <p class="mb-3 text-xs font-medium uppercase tracking-wide text-text-muted">
-            Distribución por nivel de uso (página actual)
-        </p>
-        <app-report-users-level-distribution [percents]="percents()" />
-    </app-custom-card>
+        <app-custom-card [hoverable]="false">
+            <p class="mb-3 text-xs font-medium uppercase tracking-wide text-text-muted">
+                Distribución por nivel de uso (página actual)
+            </p>
+            <app-report-users-level-distribution [percents]="percents()" />
+        </app-custom-card>
     }
 
     <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
 
         @if (loading() && users().length === 0) {
-        <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
-            Cargando reporte...
-        </div>
+            <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
+                Cargando reporte...
+            </div>
         } @else if (users().length === 0) {
-        <app-custom-alert type="info" title="Sin datos" message="No hay usuarios con almacenamiento registrado." />
+            <app-custom-alert type="info" title="Sin datos" message="No hay usuarios con almacenamiento registrado." />
         } @else {
 
-        <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto sm:grid-cols-2 xl:grid-cols-4">
-            @for (user of users(); track user.userId) {
-            <app-report-users-storage-card [user]="user" />
-            }
-        </div>
+            <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-4">
+                @for (user of users(); track user.userId) {
+                    <app-report-users-storage-card [user]="user" />
+                }
+            </div>
 
-        <div class="mt-4 shrink-0">
-            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
-                [loading]="loading()" (pageChange)="onPageChange($event)" />
-        </div>
+            <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+                <app-custom-pagination-slide
+                    [page]="page()" 
+                    [totalPages]="totalPages()" 
+                    [totalElements]="totalElements()"
+                    [size]="size"
+                    [loading]="loading()" 
+                    (pageChange)="onPageChange($event)" />
+            </div>
 
         }
 
