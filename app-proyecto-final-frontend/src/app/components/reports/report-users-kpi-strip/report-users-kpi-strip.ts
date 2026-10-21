@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { KpiItem } from '../report-users-shared/types/kpi-item.model';
+import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
 
 @Component({
   selector: 'app-report-users-kpi-strip',

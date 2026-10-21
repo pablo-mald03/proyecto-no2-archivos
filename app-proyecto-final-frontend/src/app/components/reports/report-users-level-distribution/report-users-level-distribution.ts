@@ -1,7 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { LEVELS } from './constants/levels.constants';
-import { STORAGE_LEVEL_STYLES } from '../report-users-shared/utils/storage-usage-level-style.util';
-import { getStorageUsageLevel } from '../report-users-shared/utils/storage-usage.util';
+import { STORAGE_LEVEL_STYLES } from '../../../core/ui/report-users-shared/utils/storage-usage-level-style.util';
+import { getStorageUsageLevel } from '../../../core/ui/report-users-shared/utils/storage-usage.util';
 
 
 

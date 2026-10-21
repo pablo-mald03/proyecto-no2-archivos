@@ -1,0 +1,16 @@
+<div class="relative mx-auto" [style.width.px]="size()" [style.height.px]="size()">
+
+    <div class="space-donut h-full w-full rounded-full" [class.bg-surface-raised]="totalBytes() === 0"
+        [style.background]="gradient()"></div>
+
+    <div
+        class="absolute flex flex-col items-center justify-center rounded-full bg-surface text-center"
+        style="inset: 18%;">
+        <span class="text-[10px] uppercase tracking-wide text-text-muted">Total</span>
+        <span class="font-bold text-text tabular-nums" [style.font-size.px]="size() * 0.13">
+            {{ totalLabel() }}
+        </span>
+        <span class="text-[11px] text-text-muted tabular-nums">{{ slices().length }} carpetas</span>
+    </div>
+
+</div>

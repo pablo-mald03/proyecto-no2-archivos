@@ -11,8 +11,8 @@ import { ReportUsersLevelDistribution } from '../../reports/report-users-level-d
 import { ReportUsersService } from '../../../features/report-users/service/report-users.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { UserStoragePercentageResponse } from '../../../features/report-users/models/response/user-storage-percentage-response.model';
-import { KpiItem } from '../../reports/report-users-shared/types/kpi-item.model';
-import { getStorageUsageLevel } from '../../reports/report-users-shared/utils/storage-usage.util';
+import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
+import { getStorageUsageLevel } from '../../../core/ui/report-users-shared/utils/storage-usage.util';
 import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
@@ -29,7 +29,7 @@ import { CustomPaginationSlide } from '../../common/custom-pagination-slide/cust
     ReportUsersStorageCard,
     ReportUsersLevelDistribution,
     CustomPaginationSlide
-],
+  ],
   templateUrl: './report-users-storage-percentage-component.html',
   styleUrl: './report-users-storage-percentage-component.css',
 })

@@ -1,7 +1,7 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
-import { getStorageUsageLevel, STORAGE_CRITICAL_THRESHOLD, STORAGE_WARNING_THRESHOLD } from '../report-users-shared/utils/storage-usage.util';
-import { STORAGE_LEVEL_STYLES } from '../report-users-shared/utils/storage-usage-level-style.util';
+import { getStorageUsageLevel, STORAGE_CRITICAL_THRESHOLD, STORAGE_WARNING_THRESHOLD } from '../../../core/ui/report-users-shared/utils/storage-usage.util';
+import { STORAGE_LEVEL_STYLES } from '../../../core/ui/report-users-shared/utils/storage-usage-level-style.util';
 
 //Ring geometry (viewBox 100)
 const RADIUS = 40;

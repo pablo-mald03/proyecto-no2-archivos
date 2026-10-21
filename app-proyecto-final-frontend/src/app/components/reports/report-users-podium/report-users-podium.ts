@@ -2,9 +2,9 @@ import { Component, computed, input } from '@angular/core';
 import { IconType, NgIcon } from '@ng-icons/core';
 import { lucideAward, lucideCrown, lucideMedal, lucideTrophy } from '@ng-icons/lucide';
 import { ReportUsersAvatar } from '../report-users-avatar/report-users-avatar';
-import { PodiumEntry } from '../report-users-shared/types/podium-entry.model';
-import { getStorageUsageLevel } from '../report-users-shared/utils/storage-usage.util';
-import { STORAGE_LEVEL_STYLES } from '../report-users-shared/utils/storage-usage-level-style.util';
+import { PodiumEntry } from '../../../core/ui/report-users-shared/types/podium-entry.model';
+import { getStorageUsageLevel } from '../../../core/ui/report-users-shared/utils/storage-usage.util';
+import { STORAGE_LEVEL_STYLES } from '../../../core/ui/report-users-shared/utils/storage-usage-level-style.util';
 
 //Ring around the avatar (viewBox 72)
 const RING_RADIUS = 32;

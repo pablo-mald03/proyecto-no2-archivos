@@ -12,7 +12,7 @@ import { ReportUsersShareRanking } from '../../reports/report-users-share-rankin
 import { ToastService } from '../../../core/services/toast.service';
 import { ReportUsersService } from '../../../features/report-users/service/report-users.service';
 import { UserShareCountResponse } from '../../../features/report-users/models/response/user-share-count-response.model';
-import { KpiItem } from '../../reports/report-users-shared/types/kpi-item.model';
+import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
 import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 

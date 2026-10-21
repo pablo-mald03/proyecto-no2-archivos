@@ -12,8 +12,8 @@ import { ReportUsersService } from '../../../features/report-users/service/repor
 import { ToastService } from '../../../core/services/toast.service';
 import { TopUserByFileCountResponse } from '../../../features/report-users/models/response/top-user-by-file-count-response.model';
 import { TopUsersReportParams } from '../../../features/report-users/models/request/top-users-report-params.model';
-import { toPodiumEntryByFileCount } from '../../reports/report-users-shared/utils/podium-entry.mapper';
-import { KpiItem } from '../../reports/report-users-shared/types/kpi-item.model';
+import { toPodiumEntryByFileCount } from '../../../core/ui/report-users-shared/utils/podium-entry.mapper';
+import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 
 @Component({

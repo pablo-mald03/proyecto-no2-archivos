@@ -2,9 +2,9 @@ import { Component, computed, input } from '@angular/core';
 import { ReportUsersAvatar } from '../report-users-avatar/report-users-avatar';
 import { ReportUsersStorageGauge } from '../report-users-storage-gauge/report-users-storage-gauge';
 import { UserStoragePercentageResponse } from '../../../features/report-users/models/response/user-storage-percentage-response.model';
-import { getStorageUsageLevel } from '../report-users-shared/utils/storage-usage.util';
-import { STORAGE_LEVEL_STYLES } from '../report-users-shared/utils/storage-usage-level-style.util';
-import { formatBytes } from '../report-users-shared/utils/format-bytes.util';
+import { getStorageUsageLevel } from '../../../core/ui/report-users-shared/utils/storage-usage.util';
+import { STORAGE_LEVEL_STYLES } from '../../../core/ui/report-users-shared/utils/storage-usage-level-style.util';
+import { formatBytes } from '../../../core/ui/report-users-shared/utils/format-bytes.util';
 
 
 @Component({

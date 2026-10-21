@@ -12,10 +12,10 @@ import { ReportUsersService } from '../../../features/report-users/service/repor
 import { ToastService } from '../../../core/services/toast.service';
 import { TopUserByStorageResponse } from '../../../features/report-users/models/response/top-user-by-storage-response.model';
 import { TopUsersReportParams } from '../../../features/report-users/models/request/top-users-report-params.model';
-import { toPodiumEntryByStorage } from '../../reports/report-users-shared/utils/podium-entry.mapper';
-import { KpiItem } from '../../reports/report-users-shared/types/kpi-item.model';
-import { formatBytes } from '../../reports/report-users-shared/utils/format-bytes.util';
-import { calculateUsagePercent } from '../../reports/report-users-shared/utils/storage-usage.util';
+import { toPodiumEntryByStorage } from '../../../core/ui/report-users-shared/utils/podium-entry.mapper';
+import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
+import { formatBytes } from '../../../core/ui/report-users-shared/utils/format-bytes.util';
+import { calculateUsagePercent } from '../../../core/ui/report-users-shared/utils/storage-usage.util';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 
 @Component({
