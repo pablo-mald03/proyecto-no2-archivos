@@ -1,0 +1,19 @@
+/* Forgotten files get a slow frost shimmer */
+.vault-frost::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 30%, rgb(125 211 252 / 0.10) 50%, transparent 70%);
+  background-size: 250% 100%;
+  animation: vault-frost-shimmer 5s ease-in-out infinite;
+}
+
+@keyframes vault-frost-shimmer {
+  0% { background-position: 150% 0; }
+  100% { background-position: -50% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vault-frost::after { animation: none; }
+}

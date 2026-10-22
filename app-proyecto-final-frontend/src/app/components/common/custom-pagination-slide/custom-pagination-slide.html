@@ -1,0 +1,60 @@
+<div
+    class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border/60 bg-surface/50 p-3 backdrop-blur-sm">
+
+    <div class="flex items-center gap-2 text-xs font-medium text-text-muted">
+        <span class="inline-flex h-2 w-2 rounded-full"
+            [ngClass]="loading() ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'"></span>
+        <span>
+            Mostrando <strong class="text-text font-semibold">{{ startItem() }} - {{ endItem() }}</strong> de <strong
+                class="text-text font-semibold">{{ totalElements() }}</strong> usuarios
+        </span>
+    </div>
+
+    <div class="flex items-center gap-1.5">
+
+        <button type="button" (click)="goToPage(0)" [disabled]="page() === 0 || loading()" title="Primera página"
+            class="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-surface text-text-muted transition-all hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-30 disabled:pointer-events-none">
+            <ng-icon name="lucideChevronsLeft" size="16" />
+        </button>
+
+        <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() === 0 || loading()" title="Anterior"
+            class="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-surface text-text-muted transition-all hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-30 disabled:pointer-events-none">
+            <ng-icon name="lucideChevronLeft" size="16" />
+        </button>
+
+        <div class="flex items-center gap-1 px-1">
+            @for (p of visiblePages(); track $index) {
+                @if (p === -1) {
+                    <span class="px-1 text-xs text-text-muted select-none">•••</span>
+                } @else {
+                    <button type="button" 
+                        (click)="goToPage(p)" 
+                        [disabled]="loading()" 
+                        [class.bg-primary]="p === page()"
+                        [class.text-white]="p === page()" 
+                        [class.shadow-md]="p === page()" 
+                        [class.shadow-primary/25]="p === page()"
+                        [class.border-primary]="p === page()" 
+                        [class.bg-surface]="p !== page()" 
+                        [class.text-text-muted]="p !== page()"
+                        class="flex h-8 min-w-8 items-center justify-center rounded-lg border border-border/80 px-2.5 text-xs font-semibold transition-all hover:border-primary/50 hover:text-primary">
+                        {{ p + 1 }}
+                    </button>
+                }
+            }
+        </div>
+
+        <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() >= totalPages() - 1 || loading()"
+            title="Siguiente"
+            class="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-surface text-text-muted transition-all hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-30 disabled:pointer-events-none">
+            <ng-icon name="lucideChevronRight" size="16" />
+        </button>
+
+        <button type="button" (click)="goToPage(totalPages() - 1)" [disabled]="page() >= totalPages() - 1 || loading()"
+            title="Última página"
+            class="flex h-8 w-8 items-center justify-center rounded-lg border border-border/80 bg-surface text-text-muted transition-all hover:border-primary/50 hover:bg-primary/10 hover:text-primary disabled:opacity-30 disabled:pointer-events-none">
+            <ng-icon name="lucideChevronsRight" size="16" />
+        </button>
+
+    </div>
+</div>

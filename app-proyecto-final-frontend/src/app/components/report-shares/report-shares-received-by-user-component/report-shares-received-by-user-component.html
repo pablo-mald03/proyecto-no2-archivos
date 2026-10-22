@@ -1,0 +1,65 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" (click)="goBack()" aria-label="Volver"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-text">Recursos recibidos por un usuario</h1>
+                <p class="mt-1 text-sm text-text-muted">
+                    Bandeja agrupada por remitente: quién le ha compartido recursos al usuario y con qué permisos.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <app-report-shares-user-filter-bar-component searchPlaceholder="Buscar por recurso o remitente..."
+        [directionOptions]="sortOptions" (selectionChange)="onFilterSelectionChange($event)" />
+
+    @if (!selectedUser()) {
+
+    <app-custom-alert type="info" title="Selecciona un usuario"
+        message="Busca y selecciona un usuario en el filtro superior para consultar los recursos que ha recibido." />
+
+    } @else {
+
+    @if (entries().length > 0) {
+    <app-report-shares-kpi-strip [items]="kpis()" />
+
+    <app-custom-card [hoverable]="false">
+        <p class="mb-3 text-xs font-medium uppercase tracking-wide text-text-muted">
+            Permisos recibidos (página actual)
+        </p>
+        <app-report-shares-segment-bar [segments]="segments()" />
+    </app-custom-card>
+    }
+
+    <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
+
+        @if (loading() && entries().length === 0) {
+        <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
+            Cargando reporte...
+        </div>
+        } @else if (entries().length === 0) {
+        <app-custom-alert type="info" title="Sin datos"
+            message="Este usuario aún no ha recibido recursos con los filtros aplicados." />
+        } @else {
+
+        <div class="min-h-0 flex-1 overflow-y-auto py-1 pr-1">
+            <app-report-shares-owner-groups [entries]="entries()" />
+        </div>
+
+        <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+            <app-custom-pagination-slide [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [size]="size" [loading]="loading()" (pageChange)="onPageChange($event)" />
+        </div>
+
+        }
+
+    </app-custom-card>
+
+    }
+
+</div>

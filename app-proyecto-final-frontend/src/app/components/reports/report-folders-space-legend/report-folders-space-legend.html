@@ -1,0 +1,29 @@
+<div class="flex flex-col gap-2">
+
+    @for (slice of slices(); track slice.id) {
+
+    <div
+        class="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-2.5 transition-colors hover:border-primary/40 hover:bg-surface-raised">
+
+        <span class="h-3 w-3 shrink-0 rounded-full" [style.background]="slice.color"></span>
+
+        <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-medium text-text" [title]="slice.name">{{ slice.name }}</p>
+            <div class="relative mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-raised">
+                <div class="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
+                    [style.background]="slice.color" [style.width.%]="slice.percent"></div>
+            </div>
+        </div>
+
+        <div class="shrink-0 text-right">
+            <p class="text-sm font-semibold text-text tabular-nums">{{ label(slice) }}</p>
+            <p class="text-[11px] text-text-muted tabular-nums">
+                {{ slice.fileCount }} archivos · {{ slice.percent.toFixed(1) }}%
+            </p>
+        </div>
+
+    </div>
+
+    }
+
+</div>

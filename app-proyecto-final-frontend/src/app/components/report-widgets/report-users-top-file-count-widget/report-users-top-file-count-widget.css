@@ -1,0 +1,25 @@
+/* Podium steps grow from the base */
+.mini-step {
+  transform-origin: bottom;
+  animation: mini-step-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Crown of the first place */
+.mini-crown {
+  animation: mini-crown-float 2.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgb(234 179 8 / 0.5));
+}
+
+@keyframes mini-step-rise {
+  from { transform: scaleY(0); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+@keyframes mini-crown-float {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-3px) rotate(4deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mini-step, .mini-crown { animation: none; }
+}

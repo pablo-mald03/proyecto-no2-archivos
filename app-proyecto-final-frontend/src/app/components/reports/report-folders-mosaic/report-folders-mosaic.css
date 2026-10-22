@@ -1,0 +1,13 @@
+/* Tiles pop in one after another */
+.mosaic-tile {
+  animation: mosaic-tile-in 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes mosaic-tile-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mosaic-tile { animation: none; }
+}

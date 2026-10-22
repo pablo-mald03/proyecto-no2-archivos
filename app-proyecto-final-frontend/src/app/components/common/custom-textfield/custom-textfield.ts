@@ -1,31 +1,12 @@
-import {
-  Component,
-  computed,
-  input,
-  signal
-} from '@angular/core';
+import { Component, computed, input, signal } from '@angular/core';
 
-import {
-  FormControl,
-  ReactiveFormsModule
-} from '@angular/forms';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
-import {
-  IconType,
-  NgIcon,
-  provideIcons
-} from '@ng-icons/core';
+import { IconType, NgIcon, provideIcons } from '@ng-icons/core';
 
-import {
+import { lucideEye, lucideEyeOff, lucideX } from '@ng-icons/lucide';
 
-  lucideEye,
-  lucideEyeOff,
-  lucideX
-} from '@ng-icons/lucide';
-
-import {
-  FieldType
-} from './types/textfield.types';
+import { FieldType } from './types/textfield.types';
 
 @Component({
   selector: 'app-custom-textfield',

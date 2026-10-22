@@ -22,6 +22,9 @@ import { FileMapper } from 'src/files/mapper/file.mapper';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
 import { AccessResolverService } from 'src/sharing/service/access-resolver.service';
 import { AccessLevel } from 'src/common/constants/permissions/access-level';
+import { ListUserFoldersQueryDto } from '../dto/request/list-user-folders-query.dto';
+import { UserFolderItemDto } from '../dto/response/user-folder-item.dto';
+import { PageRequest } from 'src/common/types/page-request';
 
 /* Principal folder service */
 @Injectable()
@@ -262,6 +265,38 @@ export class FoldersService {
 
     const refreshed = await this.foldersRepository.findActiveById(id);
     return FolderMapper.toResponse(refreshed!);
+  }
+
+  /* Method to list folders of a specific user with pagination and optional search */
+  async findFoldersByUser(
+    userId: string,
+    query: ListUserFoldersQueryDto,
+  ): Promise<PageResponseDto<UserFolderItemDto>> {
+    const pageReq: PageRequest = {
+      page: query.page ?? 0,
+      size: query.size ?? 10,
+      sortBy: query.sortBy ?? 'name',
+      direction: query.direction ?? 'asc',
+    };
+
+    const { content, total } = await this.foldersRepository.findPage(
+      {
+        ownerId: new Types.ObjectId(userId),
+        search: query.search,
+        isDeleted: false,
+      },
+      pageReq,
+    );
+
+    const items: UserFolderItemDto[] = content.map((doc) => ({
+      id: doc._id.toString(),
+      name: doc.name,
+      parentId: doc.parentId ? doc.parentId.toString() : null,
+      createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt),
+      updatedAt: doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : String(doc.updatedAt),
+    }));
+
+    return PageResponseDto.of(items, total, query);
   }
 
   /*Principal helper method to get a folder by ID*/

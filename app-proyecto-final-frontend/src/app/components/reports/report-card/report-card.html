@@ -1,0 +1,43 @@
+@if (disabled()) {
+
+<div class="block cursor-not-allowed opacity-50">
+    <app-custom-card [hoverable]="false">
+        <div class="flex h-full flex-col gap-6 py-2">
+            <div class="flex h-16 w-16 items-center justify-center rounded-2xl" [class]="accentClass()">
+                <ng-icon [svg]="icon()" size="32" />
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold text-text">{{ title() }}</h2>
+                <p class="mt-2 text-sm leading-6 text-text-muted">{{ description() }}</p>
+            </div>
+            <div class="mt-auto flex items-center gap-2 text-sm font-medium text-text-muted">
+                Próximamente
+            </div>
+        </div>
+    </app-custom-card>
+</div>
+
+} @else {
+
+<a [routerLink]="route()"
+    class="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-primary/60">
+    <app-custom-card [hoverable]="true" class="block h-full">
+        <div class="flex h-full flex-col gap-6 py-2">
+            <div class="flex h-16 w-16 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:scale-105"
+                [class]="accentClass()">
+                <ng-icon [svg]="icon()" size="32" />
+            </div>
+            <div>
+                <h2 class="text-xl font-semibold text-text">{{ title() }}</h2>
+                <p class="mt-2 text-sm leading-6 text-text-muted">{{ description() }}</p>
+            </div>
+            <div class="mt-auto flex items-center gap-2 text-sm font-medium text-primary">
+                Abrir reporte
+                <ng-icon [svg]="lucideArrowRightIcon" size="16"
+                    class="inline-flex transition-transform duration-300 group-hover:translate-x-1" />
+            </div>
+        </div>
+    </app-custom-card>
+</a>
+
+}

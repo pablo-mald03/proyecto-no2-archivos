@@ -1,0 +1,49 @@
+<div class="flex flex-col gap-4 rounded-xl border border-border/80 bg-surface p-4 shadow-sm">
+
+    <div class="flex items-center justify-between border-b border-border/40 pb-2">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+            <ng-icon [svg]="lucideFilterIcon" size="14" />
+            <span>Filtros de Búsqueda</span>
+        </div>
+
+        @if (hasActiveFilters) {
+        <app-custom-button label="Reiniciar filtros" icon="lucideRotateCcw" variant="secondary" size="sm"
+            (clicked)="resetFilters()" />
+        }
+    </div>
+
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+
+        <div class="lg:col-span-4">
+            <app-custom-textfield label="Búsqueda" [placeholder]="searchPlaceholder()" [control]="searchCtrl"
+                [clearable]="true" [icon]="lucideSearchIcon" size="md" />
+        </div>
+
+        <div class="lg:col-span-3">
+            <app-custom-dropdown label="Tipo de recurso" placeholder="Todos los recursos" [control]="resourceTypeCtrl"
+                [options]="resourceTypeOptions" optionKey="key" optionLabel="label" size="md" />
+        </div>
+
+        <div class="lg:col-span-2">
+            <app-custom-dropdown label="Orden" placeholder="Ordenamiento" [control]="directionCtrl"
+                [options]="directionOptions()" optionKey="key" optionLabel="label" size="md" />
+        </div>
+
+        <div class="sm:col-span-2 lg:col-span-3">
+            <label class="mb-1.5 block text-sm text-text">Rango de fechas</label>
+            <div class="flex items-center gap-1.5">
+                <div class="flex-1">
+                    <app-custom-datepicker placeholder="Desde" [control]="dateFromCtrl" [clearable]="true" size="md" />
+                </div>
+
+                <span class="text-xs text-text-muted">-</span>
+
+                <div class="flex-1">
+                    <app-custom-datepicker placeholder="Hasta" [control]="dateToCtrl" [clearable]="true" size="md" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

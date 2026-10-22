@@ -1,0 +1,63 @@
+<app-report-widget-frame title="Usuarios con más archivos" subtitle="Quiénes crean más contenido"
+    [icon]="lucideFilesIcon" iconClass="bg-sky-950/40 text-sky-400" [loading]="loading()"
+    [empty]="entries().length === 0" emptyMessage="Aún no hay usuarios con archivos." [showViewMore]="showViewMore()"
+    (viewMore)="viewMore.emit()">
+
+    <div class="flex h-full flex-col justify-between gap-3">
+
+        <div class="grid grid-cols-3 items-end gap-2">
+
+            @for (entry of podiumOrder(); track entry.id) {
+
+            <div class="flex min-w-0 flex-col items-center">
+
+                <div class="relative mb-1.5 rounded-full ring-2" [class]="ringClass(podiumPosition(entry))">
+                    @if (podiumPosition(entry) === 1) {
+                    <div class="absolute -top-4 left-1/2 -translate-x-1/2">
+                        <ng-icon [svg]="lucideCrownIcon" size="16" class="mini-crown inline-flex text-yellow-400" />
+                    </div>
+                    }
+                    <app-report-users-avatar [name]="entry.name" [size]="podiumPosition(entry) === 1 ? 46 : 38" />
+                </div>
+
+                <p class="w-full truncate text-center text-xs font-semibold text-text" [title]="entry.name">
+                    {{ entry.name }}
+                </p>
+                <p class="text-sm font-bold text-text tabular-nums">
+                    {{ entry.valueLabel }}
+                    <span class="text-[10px] font-normal text-text-muted">arch.</span>
+                </p>
+
+                <div class="mini-step mt-1.5 flex w-full items-center justify-center rounded-t-md border-t-2 bg-linear-to-b"
+                    [class]="stepClass(podiumPosition(entry))"
+                    [style.animation-delay.ms]="(4 - podiumPosition(entry)) * 100">
+                    <span class="text-lg font-black opacity-30" [class]="numberClass(podiumPosition(entry))">
+                        {{ podiumPosition(entry) }}
+                    </span>
+                </div>
+
+            </div>
+
+            }
+
+        </div>
+
+        @if (rest().length > 0) {
+        <div class="flex flex-col gap-1.5 border-t border-border pt-3">
+            @for (entry of rest(); track entry.id; let i = $index) {
+            <div class="flex items-center gap-2.5 text-xs">
+                <span
+                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-surface-raised text-[10px] font-bold text-text-muted">
+                    {{ i + 4 }}
+                </span>
+                <app-report-users-avatar [name]="entry.name" [size]="22" />
+                <span class="min-w-0 flex-1 truncate text-text">{{ entry.name }}</span>
+                <span class="font-semibold text-text tabular-nums">{{ entry.valueLabel }}</span>
+            </div>
+            }
+        </div>
+        }
+
+    </div>
+
+</app-report-widget-frame>

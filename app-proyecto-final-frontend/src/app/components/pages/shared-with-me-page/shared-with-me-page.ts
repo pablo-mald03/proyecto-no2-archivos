@@ -6,7 +6,7 @@ import {
   lucideCalendar, lucideChevronDown, lucideInfo, lucideRotateCcw,
   lucideSearch, lucideSlidersHorizontal, lucideUsers
 } from '@ng-icons/lucide';
-import { debounceTime, merge } from 'rxjs';
+import { debounceTime, map, merge } from 'rxjs';
 
 import { ShareService } from '../../../features/shares/service/share.service';
 import { FileService } from '../../../features/files/service/file.service';
@@ -24,6 +24,8 @@ import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom
 import { DriveItemListComponent } from '../../drive/drive-item-list-component/drive-item-list-component';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { CustomDatepicker } from '../../common/custom-datepicker/custom-datepicker';
 
 @Component({
   selector: 'app-shared-with-me-page',
@@ -38,8 +40,9 @@ import { CustomAlert } from '../../common/custom-alert/custom-alert';
     CustomInfiniteScroll,
     DriveItemListComponent,
     EmptyStateComponent,
-    CustomAlert
-  ],
+    CustomAlert,
+    CustomDatepicker
+],
   templateUrl: './shared-with-me-page.html',
   styleUrl: './shared-with-me-page.css',
   host: { class: 'block h-full min-h-0' }
@@ -74,6 +77,26 @@ export class SharedWithMePage implements OnInit {
   readonly extensionControl = new FormControl<string>('', { nonNullable: true });
   readonly fromControl = new FormControl<string>('', { nonNullable: true });
   readonly toControl = new FormControl<string>('', { nonNullable: true });
+
+  // Signals mirroring the date controls so each picker limits the other (from <= to)
+  readonly fromDate = toSignal(this.fromControl.valueChanges.pipe(map(v => v ?? '')), { initialValue: '' });
+  readonly toDate = toSignal(this.toControl.valueChanges.pipe(map(v => v ?? '')), { initialValue: '' });
+
+  // Active filters flag 
+  readonly hasActiveFilters = signal<boolean>(false);
+
+  private computeHasActiveFilters(): boolean {
+    return !!(
+      this.searchControl.value.trim() ||
+      this.typeFilterControl.value ||
+      this.accessFilterControl.value ||
+      this.extensionControl.value ||
+      this.fromControl.value ||
+      this.toControl.value ||
+      this.sortByControl.value !== 'updatedAt' ||
+      this.directionControl.value !== 'desc'
+    );
+  }
 
   // Filter options
   readonly typeOptions = [
@@ -110,20 +133,6 @@ export class SharedWithMePage implements OnInit {
     { value: 'jpg', label: 'Imagen (.jpg)' }
   ];
 
-  // Active filters helper
-  readonly hasActiveFilters = computed(() => {
-    return !!(
-      this.searchControl.value.trim() ||
-      this.typeFilterControl.value ||
-      this.accessFilterControl.value ||
-      this.extensionControl.value ||
-      this.fromControl.value ||
-      this.toControl.value ||
-      this.sortByControl.value !== 'updatedAt' ||
-      this.directionControl.value !== 'desc'
-    );
-  });
-
   // Empty state condition
   readonly emptyStateType = computed<'loading' | 'shared-empty' | 'search-empty' | 'none'>(() => {
     if (!this.initialized() || (this.loading() && this.items().length === 0)) return 'loading';
@@ -151,9 +160,11 @@ export class SharedWithMePage implements OnInit {
       this.directionControl.valueChanges,
       this.fromControl.valueChanges.pipe(debounceTime(300)),
       this.toControl.valueChanges.pipe(debounceTime(300))
-    ).subscribe(() => {
-      this.fetchItems({ reset: true });
-    });
+    )
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => {
+        this.fetchItems({ reset: true });
+      });
   }
 
   ngOnInit(): void {
@@ -165,6 +176,8 @@ export class SharedWithMePage implements OnInit {
 
   // Method to fetch shared-with-me items with server-side pagination and filters
   fetchItems({ reset = false }: { reset?: boolean } = {}): void {
+    this.hasActiveFilters.set(this.computeHasActiveFilters());
+
     const targetPage = reset ? 0 : this.currentPage() + 1;
 
     if (reset) {

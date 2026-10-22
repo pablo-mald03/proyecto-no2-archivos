@@ -15,6 +15,10 @@ import { MoveFolderDto } from '../dto/request/move-folder.dto';
 import { ListFolderContentQueryDto } from '../dto/request/list-folder-content-query.dto';
 import { FolderResponseDto } from '../dto/response/folder-response.dto';
 import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
+import { ListUserFoldersQueryDto } from '../dto/request/list-user-folders-query.dto';
+import { UserFolderItemDto } from '../dto/response/user-folder-item.dto';
+import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { ApiPaginatedResponse } from 'src/common/decorators/api-paginated-response.decorator';
 import { RequirePermissions } from 'src/common/decorators/require-permissions.decorator';
 import { Permission } from 'src/common/constants/permissions/permissions';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
@@ -24,12 +28,12 @@ import { ParseObjectIdPipe } from 'src/common/pipes/parse-object-id.pipe';
 /*Principal folders controller class*/
 @ApiTags('Folders')
 @Controller('folders')
-@RequirePermissions(Permission.DRIVE_ACCESS)
 export class FoldersController {
   constructor(private readonly foldersService: FoldersService) { }
 
   /*Endpoint to create a new folder*/
   @Post()
+  @RequirePermissions(Permission.DRIVE_ACCESS)
   @ApiOperation({ summary: 'Create a new folder' })
   @ApiOkResponse({ type: FolderResponseDto })
   create(
@@ -41,6 +45,7 @@ export class FoldersController {
 
   /*Endpoint to list contents of the virtual root folder with filters and pagination*/
   @Get('root')
+  @RequirePermissions(Permission.DRIVE_ACCESS)
   @ApiOperation({ summary: 'List contents of the virtual root folder with filters and pagination' })
   @ApiOkResponse({ type: FolderContentResponseDto })
   findRootContent(
@@ -52,6 +57,7 @@ export class FoldersController {
 
   /*Endpoint to list content of a folder with filters and pagination*/
   @Get(':id/content')
+  @RequirePermissions(Permission.DRIVE_ACCESS)
   @ApiOperation({ summary: 'List content of a folder with filters and pagination' })
   @ApiOkResponse({ type: FolderContentResponseDto })
   findFolderContent(
@@ -62,8 +68,19 @@ export class FoldersController {
     return this.foldersService.findContent(id, actor, query);
   }
 
+  /*Endpoint to list folders of a user with query*/
+  @Get('by-user')
+  @ApiOperation({ summary: 'List folders of a user with query param userId' })
+  @ApiPaginatedResponse(UserFolderItemDto, 'Paginated list of user folders')
+  findFoldersByUserQuery(
+    @Query() query: ListUserFoldersQueryDto,
+  ): Promise<PageResponseDto<UserFolderItemDto>> {
+    return this.foldersService.findFoldersByUser(query.userId, query);
+  }
+
   /*Endpoint to get folder details*/
   @Get(':id')
+  @RequirePermissions(Permission.DRIVE_ACCESS)
   @ApiOperation({ summary: 'Get folder details' })
   @ApiOkResponse({ type: FolderResponseDto })
   findById(
@@ -75,6 +92,7 @@ export class FoldersController {
 
   /*Endpoint to rename a folder*/
   @Patch(':id/rename')
+  @RequirePermissions(Permission.DRIVE_ACCESS)
   @ApiOperation({ summary: 'Rename a folder' })
   @ApiOkResponse({ type: FolderResponseDto })
   rename(
@@ -87,6 +105,7 @@ export class FoldersController {
 
   /*Endpoint to move a folder*/
   @Patch(':id/move')
+  @RequirePermissions(Permission.DRIVE_ACCESS)
   @ApiOperation({ summary: 'Move a folder to another parent' })
   @ApiOkResponse({ type: FolderResponseDto })
   move(

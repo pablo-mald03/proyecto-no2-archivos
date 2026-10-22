@@ -1,0 +1,50 @@
+<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+    @for (group of groups(); track group.key; let i = $index) {
+
+    <div class="owner-group flex flex-col overflow-hidden rounded-xl border border-border bg-surface"
+        [style.animation-delay.ms]="i * 60">
+
+        <div class="flex items-center gap-3 border-b border-border bg-surface-raised px-4 py-3">
+            <app-report-shares-avatar [name]="group.name" [size]="38" />
+
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-text">{{ group.name }}</p>
+                @if (group.email) {
+                <p class="truncate text-xs text-text-muted">{{ group.email }}</p>
+                }
+            </div>
+
+            <span class="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 px-2 text-xs font-bold text-primary tabular-nums">
+                {{ group.entries.length }}
+            </span>
+        </div>
+
+        <div class="flex flex-col divide-y divide-border">
+            @for (entry of group.entries; track entry.id) {
+            <div class="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-surface-raised">
+
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" [class]="iconClass(entry)">
+                    <ng-icon [svg]="icon(entry)" size="16" />
+                </span>
+
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm text-text" [title]="entry.resourceName">{{ entry.resourceName }}</p>
+                    <p class="text-[11px] text-text-muted tabular-nums">{{ entry.date | date:'dd/MM/yyyy' }}</p>
+                </div>
+
+                <span class="flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+                    [class]="accent(entry).badge">
+                    <ng-icon [svg]="accent(entry).icon" size="10" />
+                    {{ accent(entry).label }}
+                </span>
+
+            </div>
+            }
+        </div>
+
+    </div>
+
+    }
+
+</div>

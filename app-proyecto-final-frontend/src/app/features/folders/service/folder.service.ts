@@ -9,6 +9,8 @@ import { MoveFolderRequest } from "../models/request/move-folder-request.model";
 import { FolderResponse } from "../models/response/folder-response.model";
 import { FolderContentResponse } from "../models/response/folder-content-response.model";
 import { ListFolderContentQueryParams } from "../models/request/list-folder-content-query.model";
+import { PaginatedFoldersResponse } from "../models/response/paginated-folders-response.model";
+import { ListUserFoldersQueryParams } from "../models/list-user-folders-query.model";
 
 @Injectable({
     providedIn: 'root'
@@ -107,6 +109,32 @@ export class FolderService {
         return this.http.patch<FolderResponse>(
             `${this.apiUrl}/folders/${id}/move`,
             request
+        ).pipe(
+            catchError((error: HttpErrorResponse) =>
+                throwError(() => this.parseError(error))
+            )
+        );
+    }
+
+    //Build query params for user folders listing
+    private buildUserFoldersQueryParams(queryParams: ListUserFoldersQueryParams): HttpParams {
+        let params = new HttpParams()
+            .set('userId', queryParams.userId)
+            .set('page', queryParams.page ?? 0)
+            .set('size', queryParams.size ?? 10)
+            .set('sortBy', queryParams.sortBy ?? 'name')
+            .set('direction', queryParams.direction ?? 'desc');
+
+        if (queryParams.search) params = params.set('search', queryParams.search);
+
+        return params;
+    }
+
+    //Method to list folders of a user with filters and pagination
+    findFoldersByUser(queryParams: ListUserFoldersQueryParams): Observable<PaginatedFoldersResponse> {
+        return this.http.get<PaginatedFoldersResponse>(
+            `${this.apiUrl}/folders/by-user`,
+            { params: this.buildUserFoldersQueryParams(queryParams) }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))

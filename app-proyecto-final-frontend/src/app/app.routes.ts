@@ -35,6 +35,20 @@ import { ForbiddenPage } from './components/forbidden/forbidden-page/forbidden-p
 import { UserActivityPage } from './components/pages/user-activity-page/user-activity-page';
 import { TrashPage } from './components/pages/trash-page/trash-page';
 import { SharedWithMePage } from './components/pages/shared-with-me-page/shared-with-me-page';
+import { ReportSharedPage } from './components/pages/report-shared-page/report-shared-page';
+import { ReportUsersPage } from './components/pages/report-users-page/report-users-page';
+import { ReportFilesPage } from './components/pages/report-files-page/report-files-page';
+import { ReportUsersShareCountComponent } from './components/report-users/report-users-share-count-component/report-users-share-count-component';
+import { ReportUsersStoragePercentageComponent } from './components/report-users/report-users-storage-percentage-component/report-users-storage-percentage-component';
+import { ReportUsersTopStorageComponent } from './components/report-users/report-users-top-storage-component/report-users-top-storage-component';
+import { ReportUsersTopFileCountComponent } from './components/report-users/report-users-top-file-count-component/report-users-top-file-count-component';
+import { ReportFoldersMostFilesComponent } from './components/report-folders/report-folders-most-files-component/report-folders-most-files-component';
+import { ReportFoldersUserSpaceComponent } from './components/report-folders/report-folders-user-space-component/report-folders-user-space-component';
+import { ReportFoldersContentsComponent } from './components/report-folders/report-folders-contents-component/report-folders-contents-component';
+import { ReportSharesMostSharedComponent } from './components/report-shares/report-shares-most-shared-component/report-shares-most-shared-component';
+import { ReportSharesSharedByUserComponent } from './components/report-shares/report-shares-shared-by-user-component/report-shares-shared-by-user-component';
+import { ReportSharesNeverSharedComponent } from './components/report-shares/report-shares-never-shared-component/report-shares-never-shared-component';
+import { ReportSharesReceivedByUserComponent } from './components/report-shares/report-shares-received-by-user-component/report-shares-received-by-user-component';
 
 export const routes: Routes = [
 
@@ -103,6 +117,105 @@ export const routes: Routes = [
         children: [
             { path: '', component: DashboardHome },
             { path: 'profile', component: ProfileComponent },
+
+            //REPORTS
+            {
+                path: 'reports',
+                canActivate: [
+                    permissionGuard
+                ],
+                data: {
+                    permission: 'REPORTS_VIEW'
+                },
+                children: [
+
+                    {
+                        path: 'users',
+                        component: ReportUsersPage,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_VIEW' }
+                    },
+                    {
+                        path: 'users/top-file-count',
+                        component: ReportUsersTopFileCountComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_TOP_FILES' }
+                    },
+                    {
+                        path: 'users/top-storage-used',
+                        component: ReportUsersTopStorageComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_TOP_STORAGE' }
+                    },
+                    {
+                        path: 'users/storage-percentage',
+                        component: ReportUsersStoragePercentageComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_STORAGE_PERCENTAGE' }
+                    },
+                    {
+                        path: 'users/share-count',
+                        component: ReportUsersShareCountComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_USERS_SHARE_COUNT' }
+                    },
+                    {
+                        path: 'sharing',
+                        component: ReportSharedPage,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_VIEW' }
+                    },
+                    {
+                        path: 'sharing/most-shared-files',
+                        component: ReportSharesMostSharedComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_MOST_SHARED' }
+                    },
+                    {
+                        path: 'sharing/received-by-user',
+                        component: ReportSharesReceivedByUserComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_RECEIVED_BY_USER' }
+                    },
+                    {
+                        path: 'sharing/shared-by-user',
+                        component: ReportSharesSharedByUserComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_BY_USER' }
+                    },
+                    {
+                        path: 'sharing/never-shared-files',
+                        component: ReportSharesNeverSharedComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_SHARING_NEVER_SHARED' }
+                    },
+                    {
+                        path: 'folders',
+                        component: ReportFilesPage,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_VIEW' }
+                    },
+                    {
+                        path: 'folders/top-files-per-folder',
+                        component: ReportFoldersMostFilesComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_TOP_FILES' }
+                    },
+                    {
+                        path: 'folders/root-folders-storage',
+                        component: ReportFoldersUserSpaceComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_ROOT_STORAGE' }
+                    },
+                    {
+                        path: 'folders/folder-content-tree',
+                        component: ReportFoldersContentsComponent,
+                        canActivate: [permissionGuard],
+                        data: { permission: 'REPORTS_FOLDERS_CONTENT_TREE' }
+                    },
+                ]
+
+            },
             {
                 path: 'activity',
                 canActivate: [

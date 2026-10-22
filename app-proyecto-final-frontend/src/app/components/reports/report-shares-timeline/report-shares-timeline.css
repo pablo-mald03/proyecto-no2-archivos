@@ -1,0 +1,13 @@
+/* Timeline items rise one after another */
+.timeline-item {
+  animation: timeline-item-in 420ms ease-out both;
+}
+
+@keyframes timeline-item-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timeline-item { animation: none; }
+}

@@ -1,0 +1,61 @@
+<ol class="relative flex flex-col gap-4 border-l-2 border-border pl-6">
+
+    @for (entry of entries(); track entry.id; let i = $index) {
+
+    <li class="timeline-item relative" [style.animation-delay.ms]="(i % 12) * 40">
+
+        <span class="absolute -left-[37px] top-3 flex h-6 w-6 items-center justify-center rounded-full border-2 border-surface text-white"
+            [class]="accent(entry).dot">
+            <ng-icon [svg]="accent(entry).icon" size="12" />
+        </span>
+
+        <div class="rounded-xl border border-border bg-surface p-3 transition-colors hover:border-primary/40 hover:bg-surface-raised">
+
+            <div class="flex flex-wrap items-center gap-3">
+
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                    [class]="iconClass(entry)">
+                    <ng-icon [svg]="icon(entry)" size="18" />
+                </span>
+
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-semibold text-text" [title]="entry.resourceName">
+                        {{ entry.resourceName }}
+                    </p>
+                    <p class="text-[11px] uppercase tracking-wide text-text-muted">
+                        {{ entry.resourceType === 'FOLDER' ? 'Carpeta' : 'Archivo' }}
+                    </p>
+                </div>
+
+                <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold" [class]="accent(entry).badge">
+                    {{ accent(entry).label }}
+                </span>
+
+            </div>
+
+            <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-xs text-text-muted">
+
+                <span>{{ direction() === 'out' ? 'Compartido con' : 'Recibido de' }}</span>
+                <ng-icon [svg]="lucideArrowRightIcon" size="14" class="inline-flex" />
+
+                <app-report-shares-avatar [name]="entry.counterpartName" [size]="24" />
+
+                <span class="font-medium text-text">{{ entry.counterpartName }}</span>
+
+                @if (entry.counterpartEmail) {
+                <span class="hidden truncate sm:inline">{{ entry.counterpartEmail }}</span>
+                }
+
+                <span class="rounded-md bg-surface-raised px-1.5 py-0.5 text-[10px]">{{ entry.viaLabel }}</span>
+
+                <span class="ml-auto tabular-nums">{{ entry.date | date:'dd/MM/yyyy HH:mm' }}</span>
+
+            </div>
+
+        </div>
+
+    </li>
+
+    }
+
+</ol>

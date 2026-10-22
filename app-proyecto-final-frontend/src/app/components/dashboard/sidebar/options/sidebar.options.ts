@@ -2,24 +2,16 @@
 import { IconType } from '@ng-icons/core';
 import {
     lucideLayoutDashboard,
-    lucidePackage,
-    lucideShoppingCart,
-    lucideWarehouse,
     lucideUsers,
     lucideSettings,
     lucideShield,
     lucideKey,
     lucideLogs,
-    lucideLibrary,
-    lucideClipboard,
-    lucideMailbox,
-    lucideArchive,
-    lucideFeather,
-    lucideFileArchive,
-    lucidePackageCheck,
-    lucideBadgeDollarSign,
-    lucideCoins,
-    lucideSettings2
+    lucideSettings2,
+    lucideUsersRound,
+    lucideFolder,
+    lucideScreenShare,
+    lucideFileArchive
 } from '@ng-icons/lucide';
 
 //Sidebar option menu model
@@ -39,84 +31,29 @@ export const SIDEBAR_OPTIONS: SidebarOption[] = [
         icon: lucideLayoutDashboard
     },
     {
-        label: 'Productos',
-        route: '/dashboard/products',
-        icon: lucidePackage,
-        permission: 'productos:consultar'
-    },
-    {
-        label: 'Categorias',
-        route: '/dashboard/categories',
-        icon: lucideLibrary,
-        permission: 'categorias:consultar'
-    },
-    {
-        label: 'Tipos de productos',
-        route: '/dashboard/product-types',
-        icon: lucideClipboard,
-        permission: 'tipos_producto:consultar'
-    },
-    {
-        label: 'Compras',
-        route: '/dashboard/purchases',
-        icon: lucideShoppingCart,
-        permission: 'compras:consultar'
-    },
-    {
-        label: 'Ventas',
-        route: '/dashboard/sales',
-        icon: lucideArchive,
-        permission: 'ventas:consultar'
-    },
-    {
-        label: 'Inventario',
-        route: '/dashboard/inventory',
-        icon: lucideWarehouse,
-        permission: 'inventario:consultar'
-    },
-    {
-        label: 'Proveedores',
-        route: '/dashboard/providers',
-        icon: lucideMailbox,
-        permission: 'proveedores:consultar'
-    },
-    {
-        label: 'Clientes',
-        route: '/dashboard/customers',
-        icon: lucideUsers,
-        permission: 'clientes:consultar'
-    },
-    {
-        label: 'Facturas',
-        route: '/dashboard/bills',
-        icon: lucideFeather,
-        permission: 'facturas:consultar'
-    },
-    {
         label: 'Reportes',
         route: '/dashboard/reports',
         icon: lucideFileArchive,
-        permission: 'reportes:consultar',
+        permission: 'REPORTS_ACTIVITY_VIEW',
         children: [
             {
-                label: 'Inventario',
-                route: '/dashboard/reports/inventory',
-                icon: lucidePackageCheck,
-                permission: 'reportes:consultar_inventario'
+                label: 'Reporte de usuarios',
+                route: '/dashboard/reports/users',
+                icon: lucideUsersRound,
+                permission: 'REPORTS_USERS_VIEW'
             },
             {
-                label: 'Compras',
-                route: '/dashboard/reports/purchases',
-                icon: lucideBadgeDollarSign,
-                permission: 'reportes:consultar_compras'
+                label: 'Reporte de compartidos',
+                route: '/dashboard/reports/sharing',
+                icon: lucideScreenShare,
+                permission: 'REPORTS_SHARING_VIEW'
             },
             {
-                label: 'Ventas',
-                route: '/dashboard/reports/sales',
-                icon: lucideCoins,
-                permission: 'reportes:consultar_ventas'
-            }
-
+                label: 'Reporte de carpetas',
+                route: '/dashboard/reports/folders',
+                icon: lucideFolder,
+                permission: 'REPORTS_FOLDERS_VIEW'
+            },
         ]
     },
     {

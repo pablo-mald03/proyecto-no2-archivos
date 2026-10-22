@@ -1,0 +1,58 @@
+<div class="flex h-full min-h-0 flex-col gap-6">
+
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <button type="button" (click)="goBack()" aria-label="Volver"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
+                <ng-icon [svg]="lucideArrowLeftIcon" size="18" />
+            </button>
+            <div>
+                <h1 class="text-2xl font-bold text-text">Archivos nunca compartidos</h1>
+                <p class="mt-1 text-sm text-text-muted">
+                    La bóveda de archivos que siguen sin compartirse, clasificados por antigüedad.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <app-report-shares-filter-bar-component searchPlaceholder="Buscar en la bóveda..." [directionOptions]="sortOptions"
+        (filterChange)="onFilterChange($event)" />
+
+    @if (files().length > 0) {
+    <app-report-shares-kpi-strip [items]="kpis()" />
+
+    <app-custom-card [hoverable]="false">
+        <p class="mb-3 text-xs font-medium uppercase tracking-wide text-text-muted">
+            Antigüedad de los archivos (página actual)
+        </p>
+        <app-report-shares-segment-bar [segments]="segments()" />
+    </app-custom-card>
+    }
+
+    <app-custom-card [hoverable]="false" bodyClass="flex min-h-0 flex-1 flex-col">
+
+        @if (loading() && files().length === 0) {
+        <div class="flex flex-1 items-center justify-center py-12 text-sm text-text-muted">
+            Cargando reporte...
+        </div>
+        } @else if (files().length === 0) {
+        <app-custom-alert type="info" title="Sin datos"
+            message="No se encontraron archivos sin compartir con los filtros seleccionados." />
+        } @else {
+
+        <div class="grid min-h-0 flex-1 gap-4 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-4">
+            @for (file of files(); track file.fileId) {
+            <app-report-shares-vault-card [file]="file" [maxSize]="maxSize()" />
+            }
+        </div>
+
+        <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+            <app-custom-pagination-slide [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [size]="size" [loading]="loading()" (pageChange)="onPageChange($event)" />
+        </div>
+
+        }
+
+    </app-custom-card>
+
+</div>

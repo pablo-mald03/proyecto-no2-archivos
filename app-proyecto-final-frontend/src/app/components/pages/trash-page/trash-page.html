@@ -23,7 +23,7 @@
 
       <div class="flex items-center gap-2">
         <app-custom-button label="Vaciar papelera" variant="danger" size="md" [icon]="lucideTrash2Icon"
-          [bordered]="true" (clicked)="onEmptyTrash()" />
+          [bordered]="true" [disabled]="!canEmptyTrash()" (clicked)="onEmptyTrash()" />
         <app-custom-button label="Actualizar" variant="secondary" size="md" [icon]="lucideRotateCcwIcon"
           [bordered]="true" (clicked)="refresh()" />
       </div>
@@ -75,11 +75,11 @@
           <app-custom-dropdown label="Dirección" [options]="directionOptions" optionKey="value" optionLabel="label"
             [control]="directionControl" />
 
-          <app-custom-textfield label="Eliminado desde" placeholder="AAAA-MM-DD" [control]="fromControl"
-            [icon]="lucideCalendarIcon" [clearable]="true" />
+          <app-custom-datepicker label="Eliminado desde" placeholder="Seleccionar fecha" [control]="fromControl"
+            [max]="toDate()" [clearable]="true" />
 
-          <app-custom-textfield label="Eliminado hasta" placeholder="AAAA-MM-DD" [control]="toControl"
-            [icon]="lucideCalendarIcon" [clearable]="true" />
+          <app-custom-datepicker label="Eliminado hasta" placeholder="Seleccionar fecha" [control]="toControl"
+            [min]="fromDate()" [clearable]="true" />
         </div>
 
         <div class="mt-4 flex justify-end">
@@ -119,7 +119,7 @@
     <div class="flex flex-col gap-2 min-h-0 flex-1">
       <div class="flex items-center justify-between px-6 py-2 text-xs font-semibold text-text-muted">
         <div class="flex-1">Nombre</div>
-        <div class="hidden sm:block w-36">Fecha de eliminación</div>
+        <div class="hidden sm:block w-44">Fecha de eliminación</div>
         <div class="hidden md:block w-24 text-right">Tamaño</div>
         <div class="w-16 text-right">Acciones</div>
       </div>
@@ -128,10 +128,7 @@
         (permanentDeleteClicked)="onPermanentDeleteItem($event)" />
 
       @if (loadingMore()) {
-      <div class="flex items-center justify-center py-4 text-xs text-text-muted gap-2">
-        <span class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></span>
-        Cargando más elementos...
-      </div>
+      <app-empty-state-component [loading]="true" loadingText="Cargando más elementos..." />
       }
 
       @if (!hasMore() && items().length > 0) {

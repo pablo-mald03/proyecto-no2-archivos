@@ -7,204 +7,35 @@
 
   <div class="flex flex-wrap justify-center gap-6">
 
-    @if (canSeeTopProviders()) {
-    <div class="w-full xl:w-[calc(50%-0.75rem)]">
-      <app-custom-card [hoverable]="true">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-text">Top proveedores</h2>
-            <p class="mt-1 text-sm text-text-muted">Mayor monto acumulado en compras.</p>
-          </div>
-          <button type="button" (click)="goToTopProvidersReport()"
-            class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
-            Ver reporte
-            <ng-icon [svg]="lucideArrowRightIcon" size="14" />
-          </button>
-        </div>
-
-        <!-- <div class="mt-5">
-          @if (topProvidersLoading() && topProviders().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Cargando...</div>
-          } @else if (topProviders().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Sin datos.</div>
-          } @else {
-          <app-top-provider-mini-podium [providers]="topProviders()" />
-          }
-        </div> -->
-      </app-custom-card>
+    @if (canSeeTopFileCount()) {
+    <div class="flex w-full xl:w-[calc(50%-0.75rem)]">
+      <app-report-users-top-file-count-widget class="w-full" [users]="topFileCount()" [loading]="topFileCountLoading()"
+        [limit]="PREVIEW_LIMIT" [showViewMore]="true" (viewMore)="goToTopFileCountReport()" />
     </div>
     }
 
-    @if (canSeeTopCustomers()) {
-    <div class="w-full xl:w-[calc(50%-0.75rem)]">
-      <app-custom-card [hoverable]="true">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-text">Top clientes</h2>
-            <p class="mt-1 text-sm text-text-muted">Mayor monto acumulado en compras.</p>
-          </div>
-          <button type="button" (click)="goToTopCustomersReport()"
-            class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
-            Ver reporte
-            <ng-icon [svg]="lucideArrowRightIcon" size="14" />
-          </button>
-        </div>
-
-        <!-- <div class="mt-5">
-          @if (topCustomersLoading() && topCustomers().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Cargando...</div>
-          } @else if (topCustomers().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Sin datos.</div>
-          } @else {
-          <app-top-customer-compact-list [customers]="topCustomers()" />
-          }
-        </div> -->
-      </app-custom-card>
+    @if (canSeeTopStorage()) {
+    <div class="flex w-full xl:w-[calc(50%-0.75rem)]">
+      <app-report-users-top-storage-widget class="w-full" [users]="topStorage()" [loading]="topStorageLoading()"
+        [limit]="PREVIEW_LIMIT" [showViewMore]="true" (viewMore)="goToTopStorageReport()" />
     </div>
     }
 
-    @if (canSeeTopSold()) {
-    <div class="w-full xl:w-[calc(50%-0.75rem)]">
-      <app-custom-card [hoverable]="true">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-text">Top productos vendidos</h2>
-            <p class="mt-1 text-sm text-text-muted">Los productos con mayor cantidad de ventas completadas.</p>
-          </div>
-          <button type="button" (click)="goToTopSoldReport()"
-            class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
-            Ver reporte
-            <ng-icon [svg]="lucideArrowRightIcon" size="14" />
-          </button>
-        </div>
-
-        <!-- <div class="mt-5">
-          @if (topSoldLoading() && topSold().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Cargando...</div>
-          } @else if (topSold().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Aún no hay ventas completadas
-            registradas.</div>
-          } @else {
-          <app-top-sold-list [products]="topSold()" />
-          }
-        </div> -->
-      </app-custom-card>
+    @if (canSeeMostShared()) {
+    <div class="flex w-full xl:w-[calc(50%-0.75rem)]">
+      <app-report-shares-most-shared-widget class="w-full" [files]="mostShared()" [loading]="mostSharedLoading()"
+        [limit]="PREVIEW_LIMIT" [showViewMore]="true" (viewMore)="goToMostSharedReport()" />
     </div>
     }
 
-    @if (canSeeMostPurchased()) {
-    <div class="w-full xl:w-[calc(50%-0.75rem)]">
-      <app-custom-card [hoverable]="true">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-text">Productos más adquiridos</h2>
-            <p class="mt-1 text-sm text-text-muted">Mayor cantidad comprada a proveedores.</p>
-          </div>
-          <button type="button" (click)="goToMostPurchasedReport()"
-            class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
-            Ver reporte
-            <ng-icon [svg]="lucideArrowRightIcon" size="14" />
-          </button>
-        </div>
-
-        <!-- <div class="mt-5">
-          @if (mostPurchasedLoading() && mostPurchased().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Cargando...</div>
-          } @else if (mostPurchased().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Sin datos.</div>
-          } @else {
-          <app-most-purchased-compact-list [products]="mostPurchased()" />
-          }
-        </div> -->
-      </app-custom-card>
+    @if (canSeeTopFolders()) {
+    <div class="flex w-full xl:w-[calc(50%-0.75rem)]">
+      <app-report-folders-most-files-widget class="w-full" [folders]="topFolders()" [loading]="topFoldersLoading()"
+        [limit]="PREVIEW_LIMIT" [showViewMore]="true" (viewMore)="goToTopFoldersReport()" />
     </div>
     }
 
-    @if (canSeeTopRevenue()) {
-    <div class="w-full xl:w-[calc(50%-0.75rem)]">
-      <app-custom-card [hoverable]="true">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h2 class="text-lg font-semibold text-text">Productos con mayores ingresos</h2>
-            <p class="mt-1 text-sm text-text-muted">Mayor ingreso generado por ventas.</p>
-          </div>
-          <button type="button" (click)="goToTopRevenueReport()"
-            class="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-text-muted transition-colors hover:border-primary/50 hover:text-primary">
-            Ver reporte
-            <ng-icon [svg]="lucideArrowRightIcon" size="14" />
-          </button>
-        </div>
-
-        <!-- <div class="mt-5">
-          @if (topRevenueLoading() && topRevenue().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Cargando...</div>
-          } @else if (topRevenue().length === 0) {
-          <div class="flex items-center justify-center py-8 text-sm text-text-muted">Sin datos.</div>
-          } @else {
-          <app-top-revenue-compact-list [products]="topRevenue()" />
-          }
-        </div> -->
-      </app-custom-card>
-    </div>
-    }
-
-    @if (canCreateProduct() || canCreatePurchase() || canManageUsers() || canCreateSale() || canViewInventory()) {
-    <div class="w-full xl:w-[calc(50%-0.75rem)]">
-      <app-custom-card [hoverable]="true">
-        <div>
-          <h2 class="text-lg font-semibold text-text">Acciones rápidas</h2>
-          <p class="mt-1 text-sm text-text-muted">Accede rápidamente a las operaciones frecuentes.</p>
-        </div>
-
-        <div class="mt-5 space-y-2">
-
-          @if (canCreateProduct()) {
-          <button type="button" (click)="goToCreateProduct()"
-            class="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:border-primary hover:bg-primary/5">
-            <span class="text-sm font-medium text-text">Registrar producto</span>
-            <ng-icon [svg]="lucideArrowRightIcon" size="16" class="text-primary" />
-          </button>
-          }
-
-          @if (canCreatePurchase()) {
-          <button type="button" (click)="goToCreatePurchase()"
-            class="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:border-primary hover:bg-primary/5">
-            <span class="text-sm font-medium text-text">Registrar compra</span>
-            <ng-icon [svg]="lucideArrowRightIcon" size="16" class="text-primary" />
-          </button>
-          }
-
-          @if (canCreateSale()) {
-          <button type="button" (click)="goToSales()"
-            class="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:border-primary hover:bg-primary/5">
-            <span class="text-sm font-medium text-text">Registrar venta</span>
-            <ng-icon [svg]="lucideArrowRightIcon" size="16" class="text-primary" />
-          </button>
-          }
-
-          @if (canViewInventory()) {
-          <button type="button" (click)="goToInventory()"
-            class="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:border-primary hover:bg-primary/5">
-            <span class="text-sm font-medium text-text">Consultar inventario</span>
-            <ng-icon [svg]="lucideArrowRightIcon" size="16" class="text-primary" />
-          </button>
-          }
-
-          @if (canManageUsers()) {
-          <button type="button" (click)="goToUsers()"
-            class="flex w-full items-center justify-between rounded-lg border border-border px-4 py-3 text-left transition-colors hover:border-primary hover:bg-primary/5">
-            <span class="text-sm font-medium text-text">Administrar usuarios</span>
-            <ng-icon [svg]="lucideArrowRightIcon" size="16" class="text-primary" />
-          </button>
-          }
-
-        </div>
-      </app-custom-card>
-    </div>
-    }
-
-    @if (!canSeeTopProviders() && !canSeeTopCustomers() && !canSeeTopSold() && !canSeeMostPurchased() &&
-    !canCreateProduct() && !canCreatePurchase() && !canManageUsers()) {
+    @if (!canSeeAnyWidget()) {
     <div class="w-full">
       <app-custom-alert type="info" title="Sin contenido disponible"
         message="Tu rol actual no tiene acceso a ningún widget del dashboard." />

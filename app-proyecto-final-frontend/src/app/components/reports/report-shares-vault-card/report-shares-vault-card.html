@@ -1,0 +1,44 @@
+<div class="relative flex flex-col gap-3 overflow-hidden rounded-xl border-2 border-dashed bg-surface p-4 transition-colors hover:bg-surface-raised"
+    [class]="styles().card" [class.vault-frost]="bucket() === 'forgotten'">
+
+    <div class="flex items-start gap-3">
+
+        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" [class]="styles().icon">
+            <ng-icon [svg]="lucideLockIcon" size="20" />
+        </span>
+
+        <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold text-text" [title]="file().fileName">{{ file().fileName }}</p>
+            @if (file().extension) {
+            <span class="mt-1 inline-block rounded-md bg-surface-raised px-1.5 py-0.5 font-mono text-[10px] text-text-muted">
+                .{{ file().extension }}
+            </span>
+            }
+        </div>
+
+        <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+            [class]="styles().badge">
+            {{ styles().label }}
+        </span>
+
+    </div>
+
+    <div>
+        <div class="mb-1 flex items-center justify-between text-xs">
+            <span class="text-text-muted">Peso</span>
+            <span class="font-semibold text-text tabular-nums">{{ sizeLabel() }}</span>
+        </div>
+        <div class="relative h-1.5 overflow-hidden rounded-full bg-surface-raised">
+            <div class="absolute inset-y-0 left-0 rounded-full transition-all duration-700" [class]="styles().bg"
+                [style.width.%]="sizePercent()"></div>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between gap-2 border-t border-border pt-3 text-xs text-text-muted">
+        <span class="truncate" [title]="file().ownerEmail">&#64;{{ file().ownerUsername }}</span>
+        <span class="shrink-0 tabular-nums" [title]="file().createdAt | date:'dd/MM/yyyy HH:mm'">
+            Creado {{ ageLabel() }}
+        </span>
+    </div>
+
+</div>

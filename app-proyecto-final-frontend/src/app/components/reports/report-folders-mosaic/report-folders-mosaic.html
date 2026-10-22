@@ -1,0 +1,32 @@
+<div class="flex flex-wrap gap-3">
+
+    @for (tile of tiles(); track tile.folder.folderId) {
+
+    <div class="mosaic-tile relative flex cursor-default flex-col justify-between overflow-hidden rounded-xl border bg-gradient-to-br p-3 transition-transform duration-300 hover:-translate-y-1"
+        [class]="tile.toneClass" [style.flex-grow]="tile.grow" [style.flex-basis.px]="tile.basis"
+        [style.min-height.px]="tile.height" [style.animation-delay.ms]="tile.delay"
+        [title]="tile.folder.folderName + ' · ' + tile.folder.fileCount + ' archivos'">
+
+        <div class="flex items-start justify-between gap-2">
+            <ng-icon [svg]="lucideFolderIcon" size="22" class="inline-flex opacity-90" />
+
+            <span class="rounded-full bg-black/20 px-2 py-0.5 text-[10px] font-bold tabular-nums">
+                #{{ tile.rank }}
+            </span>
+        </div>
+
+        <div class="mt-3 min-w-0">
+            <p class="font-black leading-none tabular-nums" [style.font-size.px]="tile.numberSize">
+                {{ tile.folder.fileCount }}
+            </p>
+            <p class="mt-0.5 text-[10px] uppercase tracking-wide opacity-70">archivos</p>
+
+            <p class="mt-2 truncate text-sm font-semibold">{{ tile.folder.folderName }}</p>
+            <p class="truncate text-[11px] opacity-70">&#64;{{ tile.folder.ownerUsername }}</p>
+        </div>
+
+    </div>
+
+    }
+
+</div>

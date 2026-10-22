@@ -1,0 +1,49 @@
+<div class="relative flex flex-col items-center gap-3 overflow-hidden rounded-xl border bg-gradient-to-b to-transparent p-4 pt-5 transition-transform duration-300 hover:-translate-y-1"
+    [class]="tone().card">
+
+    <span class="absolute left-3 top-3 rounded-full bg-black/20 px-2 py-0.5 text-[10px] font-bold text-text-muted tabular-nums">
+        #{{ rank() }}
+    </span>
+
+    <div class="relative my-3 h-[152px] w-[152px]">
+
+        <div class="absolute inset-[3px] rounded-full border border-dashed" [class]="tone().ring"></div>
+
+        <div class="orbit-ring absolute inset-0" [style.animation-duration.s]="spinSeconds()">
+            @for (dot of dots(); track dot.index) {
+            <span class="absolute left-1/2 top-1/2 -ml-[5px] -mt-[5px] h-2.5 w-2.5 rounded-full"
+                [style.background]="tone().dot" [style.box-shadow]="'0 0 8px ' + tone().dot"
+                [style.transform]="dot.transform"></span>
+            }
+        </div>
+
+        <div class="absolute inset-0 flex items-center justify-center">
+            <div class="flex h-[72px] w-[72px] flex-col items-center justify-center gap-0.5 rounded-full border"
+                [class]="tone().center">
+                <ng-icon [svg]="lucideFileIcon" size="22" />
+                @if (file().extension) {
+                <span class="font-mono text-[10px] font-bold uppercase">{{ file().extension }}</span>
+                }
+            </div>
+        </div>
+
+    </div>
+
+    <div class="text-center">
+        <p class="font-black leading-none tabular-nums text-text" style="font-size: 30px;">
+            {{ file().shareCount }}
+        </p>
+        <p class="mt-1 text-[10px] uppercase tracking-wide text-text-muted">
+            {{ file().shareCount === 1 ? 'usuario' : 'usuarios' }}
+            @if (extraShares() > 0) {
+            <span class="ml-1 normal-case">(+{{ extraShares() }} fuera de la órbita)</span>
+            }
+        </p>
+    </div>
+
+    <div class="w-full min-w-0 border-t border-border pt-3 text-center">
+        <p class="truncate text-sm font-semibold text-text" [title]="file().fileName">{{ file().fileName }}</p>
+        <p class="truncate text-xs text-text-muted" [title]="file().ownerEmail">&#64;{{ file().ownerUsername }}</p>
+    </div>
+
+</div>

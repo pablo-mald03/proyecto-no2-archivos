@@ -20,16 +20,31 @@ const PERMISSIONS: readonly PermissionSeed[] = [
   ['ROLES_DELETE', 'ROLES', 'Eliminar roles', 'Eliminar roles que no sean del sistema'],
   ['ROLES_PERMISSIONS_UPDATE', 'ROLES', 'Gestionar permisos de roles', 'Agregar o quitar permisos de un rol'],
 
-  ['PERMISSIONS_VIEW', 'PERMISSIONS', 'Ver permisos', 'Consultar el catálogo de permisos disponibles'], // <--- ¡Agregado aquí!
+  ['PERMISSIONS_VIEW', 'PERMISSIONS', 'Ver permisos', 'Consultar el catálogo de permisos disponibles'],
 
   ['SETTINGS_VIEW', 'SETTINGS', 'Ver configuración', 'Consultar las reglas generales del sistema'],
   ['SETTINGS_UPDATE', 'SETTINGS', 'Modificar configuración', 'Modificar las reglas generales del sistema'],
 
-  ['REPORTS_FILES_VIEW', 'REPORTS', 'Reportes de archivos', 'Consultar los reportes de archivos y almacenamiento'],
-  ['REPORTS_USERS_VIEW', 'REPORTS', 'Reportes de usuarios', 'Consultar los reportes de usuarios'],
-  ['REPORTS_SHARING_VIEW', 'REPORTS', 'Reportes de compartición', 'Consultar los reportes de compartición'],
-  ['REPORTS_FOLDERS_VIEW', 'REPORTS', 'Reportes de carpetas', 'Consultar los reportes de carpetas'],
-  ['REPORTS_ACTIVITY_VIEW', 'REPORTS', 'Reportes de actividad', 'Consultar los reportes de actividad'],
+  ['REPORTS_VIEW', 'REPORTS', 'Acceso a reportes', 'Acceso general al módulo de reportes'],
+
+  ['REPORTS_USERS_VIEW', 'REPORTS', 'Ver sección reportes de usuarios', 'Acceder a la sección de reportes de usuarios'],
+  ['REPORTS_USERS_TOP_FILES', 'REPORTS', 'Top usuarios con más archivos', 'Consultar el top 10 de usuarios con mayor cantidad de archivos almacenados'],
+  ['REPORTS_USERS_TOP_STORAGE', 'REPORTS', 'Top usuarios con más almacenamiento', 'Consultar el top 10 de usuarios con mayor cantidad de almacenamiento utilizado'],
+  ['REPORTS_USERS_STORAGE_PERCENTAGE', 'REPORTS', 'Porcentaje de almacenamiento por usuario', 'Consultar el porcentaje de almacenamiento utilizado por cada usuario'],
+  ['REPORTS_USERS_SHARE_COUNT', 'REPORTS', 'Usuarios con más recursos compartidos', 'Consultar usuarios con mayor cantidad de recursos compartidos'],
+
+  ['REPORTS_SHARING_VIEW', 'REPORTS', 'Ver sección reportes de compartición', 'Acceder a la sección de reportes de compartición'],
+  ['REPORTS_SHARING_MOST_SHARED', 'REPORTS', 'Archivos más compartidos', 'Consultar los archivos compartidos con mayor cantidad de usuarios'],
+  ['REPORTS_SHARING_BY_USER', 'REPORTS', 'Recursos compartidos por un usuario', 'Consultar los recursos compartidos por un usuario seleccionado'],
+  ['REPORTS_SHARING_RECEIVED_BY_USER', 'REPORTS', 'Recursos recibidos por un usuario', 'Consultar los recursos recibidos por un usuario seleccionado'],
+  ['REPORTS_SHARING_NEVER_SHARED', 'REPORTS', 'Archivos nunca compartidos', 'Consultar los archivos que nunca han sido compartidos'],
+
+  ['REPORTS_FOLDERS_VIEW', 'REPORTS', 'Ver sección reportes de carpetas', 'Acceder a la sección de reportes de carpetas'],
+  ['REPORTS_FOLDERS_TOP_FILES', 'REPORTS', 'Carpetas con más archivos', 'Consultar las carpetas con mayor cantidad de archivos'],
+  ['REPORTS_FOLDERS_ROOT_STORAGE', 'REPORTS', 'Espacio en carpetas principales', 'Consultar el espacio utilizado por las carpetas principales de un usuario'],
+  ['REPORTS_FOLDERS_CONTENT_TREE', 'REPORTS', 'Contenido y subcarpetas de carpeta', 'Consultar el contenido de una carpeta seleccionada y sus subcarpetas'],
+
+  ['REPORTS_ACTIVITY_VIEW', 'REPORTS', 'Reportes de actividad', 'Consultar los reportes de actividad del sistema'],
 
   ['ACTIVITY_VIEW_ALL', 'ACTIVITY', 'Ver toda la actividad', 'Consultar el historial de actividad de cualquier usuario'],
 

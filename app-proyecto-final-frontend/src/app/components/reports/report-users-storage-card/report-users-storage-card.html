@@ -1,0 +1,37 @@
+<div class="flex flex-col gap-4 rounded-xl border bg-surface p-4 transition-colors hover:bg-surface-raised"
+    [class.border-border]="level() !== 'critical'" [class.border-red-900/60]="level() === 'critical'">
+
+    <div class="flex items-center gap-3">
+        <app-report-users-avatar [name]="user().fullName" [size]="40" />
+
+        <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-semibold text-text" [title]="user().fullName">{{ user().fullName }}</p>
+            <p class="truncate text-xs text-text-muted" [title]="user().email">{{ user().email }}</p>
+        </div>
+
+        <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+            [class]="styles().badge">
+            {{ styles().label }}
+        </span>
+    </div>
+
+    <div class="flex justify-center">
+        <app-report-users-storage-gauge [percent]="user().percentageUsed" [size]="128" />
+    </div>
+
+    <div class="grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
+        <div>
+            <p class="text-[10px] uppercase tracking-wide text-text-muted">Usado</p>
+            <p class="text-sm font-semibold text-text tabular-nums">{{ usedLabel() }}</p>
+        </div>
+        <div>
+            <p class="text-[10px] uppercase tracking-wide text-text-muted">Cuota</p>
+            <p class="text-sm font-semibold text-text tabular-nums">{{ quotaLabel() }}</p>
+        </div>
+        <div>
+            <p class="text-[10px] uppercase tracking-wide text-text-muted">Libre</p>
+            <p class="text-sm font-semibold tabular-nums" [class]="styles().text">{{ freeLabel() }}</p>
+        </div>
+    </div>
+
+</div>

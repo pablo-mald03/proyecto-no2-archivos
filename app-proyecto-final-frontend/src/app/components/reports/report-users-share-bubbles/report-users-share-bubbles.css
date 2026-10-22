@@ -1,0 +1,13 @@
+/* Bubbles float softly with a different delay each one */
+.share-bubble {
+  animation: share-bubble-float 6s ease-in-out infinite;
+}
+
+@keyframes share-bubble-float {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .share-bubble { animation: none; }
+}
