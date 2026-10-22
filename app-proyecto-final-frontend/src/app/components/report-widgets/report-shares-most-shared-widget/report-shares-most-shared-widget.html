@@ -1,7 +1,6 @@
-<app-report-widget-frame title="Archivos más compartidos" subtitle="Alcance de cada archivo (usuarios con acceso)"
-    [icon]="lucideShareIcon" iconClass="bg-amber-950/40 text-amber-400" [loading]="loading()"
-    [empty]="rows().length === 0" emptyMessage="Aún no hay archivos compartidos." [showViewMore]="showViewMore()"
-    (viewMore)="viewMore.emit()">
+<app-report-widget-frame title="Archivos más compartidos" subtitle="Alcance de cada archivo" [icon]="lucideShareIcon"
+    iconClass="bg-amber-950/40 text-amber-400" [loading]="loading()" [empty]="rows().length === 0"
+    emptyMessage="Aún no hay archivos compartidos." [showViewMore]="showViewMore()" (viewMore)="viewMore.emit()">
 
     <div class="flex flex-col gap-2">
 

@@ -1,31 +1,32 @@
-import { Component, computed, inject, OnInit } from '@angular/core';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { CustomCard } from '../../common/custom-card/custom-card';
-import { lucideArrowRight, lucideBoxes, lucideFileText, lucidePackage, lucideShoppingCart, lucideUserPlus, lucideUsers, lucideWarehouse } from '@ng-icons/lucide';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthState } from '../../../stores/auth.state';
-import { ToastService } from '../../../core/services/toast.service';
+import { finalize } from 'rxjs';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
+import { ReportUsersTopFileCountWidget } from '../../report-widgets/report-users-top-file-count-widget/report-users-top-file-count-widget';
+import { ReportUsersTopStorageWidget } from '../../report-widgets/report-users-top-storage-widget/report-users-top-storage-widget';
+import { ReportSharesMostSharedWidget } from '../../report-widgets/report-shares-most-shared-widget/report-shares-most-shared-widget';
+import { ReportFoldersMostFilesWidget } from '../../report-widgets/report-folders-most-files-widget/report-folders-most-files-widget';
+import { AuthState } from '../../../stores/auth.state';
+import { ReportUsersService } from '../../../features/report-users/service/report-users.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { ReportSharesService } from '../../../features/report-shares/service/report-shares.service';
+import { ReportFoldersService } from '../../../features/report-folders/service/report-folders.service';
+import { TopUserByFileCountResponse } from '../../../features/report-users/models/response/top-user-by-file-count-response.model';
+import { TopUserByStorageResponse } from '../../../features/report-users/models/response/top-user-by-storage-response.model';
+import { MostSharedFileResponse } from '../../../features/report-shares/models/response/most-shared-file-response.model';
+import { FolderWithMostFilesResponse } from '../../../features/report-folders/models/response/folder-with-most-files-response.model';
+import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 
 @Component({
   selector: 'app-dashboard-home',
   standalone: true,
   imports: [
-    NgIcon,
-    CustomCard,
-    CustomAlert
-  ],
-  viewProviders: [
-    provideIcons({
-      lucideArrowRight,
-      lucideBoxes,
-      lucideShoppingCart,
-      lucideUsers,
-      lucideWarehouse,
-      lucidePackage,
-      lucideUserPlus,
-      lucideFileText
-    })
+    CustomAlert,
+    ReportUsersTopFileCountWidget,
+    ReportUsersTopStorageWidget,
+    ReportSharesMostSharedWidget,
+    ReportFoldersMostFilesWidget
   ],
   templateUrl: './dashboard-home.html',
   styleUrl: './dashboard-home.css',
@@ -37,210 +38,174 @@ export class DashboardHome implements OnInit {
   private readonly router = inject(Router);
   private readonly authState = inject(AuthState);
   private readonly toastService = inject(ToastService);
-
-  //Icons
-  readonly lucideArrowRightIcon = lucideArrowRight;
-  readonly lucideBoxesIcon = lucideBoxes;
-  readonly lucideShoppingCartIcon = lucideShoppingCart;
-  readonly lucideUsersIcon = lucideUsers;
-  readonly lucideWarehouseIcon = lucideWarehouse;
-  readonly lucidePackageIcon = lucidePackage;
-  readonly lucideUserPlusIcon = lucideUserPlus;
-  readonly lucideFileTextIcon = lucideFileText;
+  private readonly reportUsersService = inject(ReportUsersService);
+  private readonly reportSharesService = inject(ReportSharesService);
+  private readonly reportFoldersService = inject(ReportFoldersService);
 
   //Preview limit
-  private readonly PREVIEW_LIMIT = 5;
+  readonly PREVIEW_LIMIT = 5;
 
-
-  //Permissions
-  readonly canSeeTopCustomers = computed(() =>
-    this.authState.hasPermission('reportes:top_clientes')
-  );
-
-  //Permissions
-  readonly canSeeTopSold = computed(() =>
-    this.authState.hasPermission('reportes:top_productos_vendidos')
-  );
-
-  readonly canSeeTopProviders = computed(() =>
-    this.authState.hasPermission('reportes:top_proveedores')
-  );
-
-  readonly canSeeMostPurchased = computed(() =>
-    this.authState.hasPermission('reportes:productos_mas_adquiridos')
-  );
-
-  readonly canCreateProduct = computed(() =>
-    this.authState.hasPermission('productos:crear')
-  );
-
-  readonly canCreatePurchase = computed(() =>
-    this.authState.hasPermission('compras:crear')
-  );
-
-  readonly canCreateSale = computed(() =>
-    this.authState.hasPermission('ventas:crear')
-  );
-
-  readonly canManageUsers = computed(() =>
-    this.authState.hasPermission('usuarios:consultar')
-  );
-
-  readonly canViewInventory = computed(() =>
-    this.authState.hasPermission('inventario:consultar')
-  );
+  //Report routes
+  private readonly ROUTE_TOP_FILE_COUNT = '/dashboard/reports/users/top-file-count';
+  private readonly ROUTE_TOP_STORAGE = '/dashboard/reports/users/top-storage-used';
+  private readonly ROUTE_MOST_SHARED = '/dashboard/reports/sharing/most-shared-files';
+  private readonly ROUTE_TOP_FOLDERS = '/dashboard/reports/folders/top-files-per-folder';
 
   //Permissions
-  readonly canSeeTopRevenue = computed(() =>
-    this.authState.hasPermission('reportes:top_productos_ingresos')
+  readonly canSeeTopFileCount = computed(() =>
+    this.authState.hasPermission('REPORTS_USERS_TOP_FILES')
   );
 
-  //Top revenue preview state
-  // readonly topRevenue = signal<TopProductRevenue[]>([]);
-  // readonly topRevenueLoading = signal(false);
+  readonly canSeeTopStorage = computed(() =>
+    this.authState.hasPermission('REPORTS_USERS_TOP_STORAGE')
+  );
 
+  readonly canSeeMostShared = computed(() =>
+    this.authState.hasPermission('REPORTS_SHARING_MOST_SHARED')
+  );
 
-  //Top sold preview state
-  // readonly topSold = signal<TopSoldProduct[]>([]);
-  // readonly topSoldLoading = signal(false);
+  readonly canSeeTopFolders = computed(() =>
+    this.authState.hasPermission('REPORTS_FOLDERS_TOP_FILES')
+  );
 
-  // //Top providers preview state
-  // readonly topProviders = signal<TopProvider[]>([]);
-  // readonly topProvidersLoading = signal(false);
+  readonly canSeeAnyWidget = computed(() =>
+    this.canSeeTopFileCount() ||
+    this.canSeeTopStorage() ||
+    this.canSeeMostShared() ||
+    this.canSeeTopFolders()
+  );
 
-  // //Most purchased preview state
-  // readonly mostPurchased = signal<MostPurchasedProduct[]>([]);
-  // readonly mostPurchasedLoading = signal(false);
+  //Top users by file count preview state
+  readonly topFileCount = signal<TopUserByFileCountResponse[]>([]);
+  readonly topFileCountLoading = signal(false);
 
-  // readonly topCustomers = signal<TopCustomer[]>([]);
-  // readonly topCustomersLoading = signal(false);
+  //Top users by storage preview state
+  readonly topStorage = signal<TopUserByStorageResponse[]>([]);
+  readonly topStorageLoading = signal(false);
+
+  //Most shared files preview state
+  readonly mostShared = signal<MostSharedFileResponse[]>([]);
+  readonly mostSharedLoading = signal(false);
+
+  //Folders with most files preview state
+  readonly topFolders = signal<FolderWithMostFilesResponse[]>([]);
+  readonly topFoldersLoading = signal(false);
 
   //On init
   ngOnInit(): void {
-    // if (this.canSeeTopSold()) {
-    //   this.loadTopSoldPreview();
-    // }
+    if (this.canSeeTopFileCount()) {
+      this.loadTopFileCountPreview();
+    }
 
-    // if (this.canSeeTopProviders()) {
-    //   this.loadTopProvidersPreview();
-    // }
+    if (this.canSeeTopStorage()) {
+      this.loadTopStoragePreview();
+    }
 
-    // if (this.canSeeMostPurchased()) {
-    //   this.loadMostPurchasedPreview();
-    // }
-    // if (this.canSeeTopCustomers()) {
-    //   this.loadTopCustomersPreview();
-    // }
+    if (this.canSeeMostShared()) {
+      this.loadMostSharedPreview();
+    }
 
-    // if (this.canSeeTopRevenue()) {
-    //   this.loadTopRevenuePreview();
-    // }
+    if (this.canSeeTopFolders()) {
+      this.loadTopFoldersPreview();
+    }
   }
 
-  //Load top revenue preview
-  // private loadTopRevenuePreview(): void {
-  //   this.topRevenueLoading.set(true);
+  //Method to load top users by file count preview
+  private loadTopFileCountPreview(): void {
+    this.topFileCountLoading.set(true);
 
-  //   this.reportSaleService.getTopProductsByRevenue({ limit: this.PREVIEW_LIMIT })
-  //     .pipe(finalize(() => this.topRevenueLoading.set(false)))
-  //     .subscribe({
-  //       next: (response) => this.topRevenue.set(response),
-  //       error: () => { /* silent */ }
-  //     });
-  // }
-
-  //Navigation
-  goToTopRevenueReport(): void {
-    this.router.navigate(['/dashboard/reports/sales/top-products-by-revenue']);
+    this.reportUsersService.getTopByFileCount()
+      .pipe(finalize(() => this.topFileCountLoading.set(false)))
+      .subscribe({
+        next: (response) => this.topFileCount.set(response ?? []),
+        error: (error: ErrorResponse) => {
+          this.toastService.error(
+            error.message || 'No fue posible cargar el top de usuarios con más archivos.',
+            'Error al cargar dashboard'
+          );
+        }
+      });
   }
 
-  // private loadTopCustomersPreview(): void {
-  //   this.topCustomersLoading.set(true);
+  //Method to load top users by storage preview
+  private loadTopStoragePreview(): void {
+    this.topStorageLoading.set(true);
 
-  //   this.reportSaleService.getTopCustomers({ limit: this.PREVIEW_LIMIT })
-  //     .pipe(finalize(() => this.topCustomersLoading.set(false)))
-  //     .subscribe({
-  //       next: (response) => this.topCustomers.set(response),
-  //       error: () => { }
-  //     });
-  // }
-
-  //Load top sold preview
-  // private loadTopSoldPreview(): void {
-  //   this.topSoldLoading.set(true);
-
-  //   this.reportService.getTopSoldProducts({ limit: this.PREVIEW_LIMIT })
-  //     .pipe(finalize(() => this.topSoldLoading.set(false)))
-  //     .subscribe({
-  //       next: (response) => this.topSold.set(response),
-  //       error: (error: ErrorResponse) => {
-  //         this.toastService.error(
-  //           error.message || 'No fue posible cargar el top de productos vendidos.',
-  //           'Error al cargar dashboard'
-  //         );
-  //       }
-  //     });
-  // }
-
-  //Load top providers preview
-  // private loadTopProvidersPreview(): void {
-  //   this.topProvidersLoading.set(true);
-
-  //   this.reportPurchaseService.getTopProviders({ limit: this.PREVIEW_LIMIT })
-  //     .pipe(finalize(() => this.topProvidersLoading.set(false)))
-  //     .subscribe({
-  //       next: (response) => this.topProviders.set(response),
-  //       error: () => { /* silent */ }
-  //     });
-  // }
-
-  //Load most purchased preview
-  // private loadMostPurchasedPreview(): void {
-  //   this.mostPurchasedLoading.set(true);
-
-  //   this.reportPurchaseService.getMostPurchasedProducts({ page: 0, size: this.PREVIEW_LIMIT })
-  //     .pipe(finalize(() => this.mostPurchasedLoading.set(false)))
-  //     .subscribe({
-  //       next: (response) => this.mostPurchased.set(response.content),
-  //       error: () => { /* silent */ }
-  //     });
-  // }
-
-  //Navigation shortcut
-  goToTopCustomersReport(): void {
-    this.router.navigate(['/dashboard/reports/sales/top-customers']);
+    this.reportUsersService.getTopByStorageUsed()
+      .pipe(finalize(() => this.topStorageLoading.set(false)))
+      .subscribe({
+        next: (response) => this.topStorage.set(response ?? []),
+        error: (error: ErrorResponse) => {
+          this.toastService.error(
+            error.message || 'No fue posible cargar el top de usuarios por almacenamiento.',
+            'Error al cargar dashboard'
+          );
+        }
+      });
   }
 
-  //Navigation shortcuts
-  goToTopSoldReport(): void {
-    this.router.navigate(['/dashboard/reports/inventory/top-sold']);
+  //Method to load most shared files preview (using 0-based page index)
+  private loadMostSharedPreview(): void {
+    this.mostSharedLoading.set(true);
+
+    this.reportSharesService.getMostSharedFiles({
+      page: 0,
+      size: this.PREVIEW_LIMIT,
+      direction: 'desc'
+    })
+      .pipe(finalize(() => this.mostSharedLoading.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<MostSharedFileResponse>) => {
+          this.mostShared.set(response.content ?? []);
+        },
+        error: (error: ErrorResponse) => {
+          this.toastService.error(
+            error.message || 'No fue posible cargar los archivos más compartidos.',
+            'Error al cargar dashboard'
+          );
+        }
+      });
   }
 
-  goToTopProvidersReport(): void {
-    this.router.navigate(['/dashboard/reports/purchases/top-providers']);
+  //Method to load folders with most files preview (using 0-based page index)
+  private loadTopFoldersPreview(): void {
+    this.topFoldersLoading.set(true);
+
+    this.reportFoldersService.getFoldersWithMostFiles({
+      page: 0,
+      size: this.PREVIEW_LIMIT,
+    })
+      .pipe(finalize(() => this.topFoldersLoading.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<FolderWithMostFilesResponse>) => {
+          this.topFolders.set(response.content ?? []);
+        },
+        error: (error: ErrorResponse) => {
+          this.toastService.error(
+            error.message || 'No fue posible cargar las carpetas con más archivos.',
+            'Error al cargar dashboard'
+          );
+        }
+      });
   }
 
-  goToMostPurchasedReport(): void {
-    this.router.navigate(['/dashboard/reports/purchases/most-purchased-products']);
+  //Method to navigate to top file count report
+  goToTopFileCountReport(): void {
+    this.router.navigate([this.ROUTE_TOP_FILE_COUNT]);
   }
 
-  goToCreateProduct(): void {
-    this.router.navigate(['/dashboard/products/create']);
+  //Method to navigate to top storage report
+  goToTopStorageReport(): void {
+    this.router.navigate([this.ROUTE_TOP_STORAGE]);
   }
 
-  goToCreatePurchase(): void {
-    this.router.navigate(['/dashboard/purchases/create']);
+  //Method to navigate to most shared files report
+  goToMostSharedReport(): void {
+    this.router.navigate([this.ROUTE_MOST_SHARED]);
   }
 
-  goToUsers(): void {
-    this.router.navigate(['/dashboard/administration/users']);
-  }
-
-  goToSales(): void {
-    this.router.navigate(['/dashboard/sales']);
-  }
-
-  goToInventory(): void {
-    this.router.navigate(['/dashboard/inventory']);
+  //Method to navigate to folders with most files report
+  goToTopFoldersReport(): void {
+    this.router.navigate([this.ROUTE_TOP_FOLDERS]);
   }
 }
