@@ -1,0 +1,13 @@
+/* Reach dots pop in one after another */
+.reach-dot {
+  animation: reach-dot-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes reach-dot-pop {
+  from { transform: scale(0); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reach-dot { animation: none; }
+}

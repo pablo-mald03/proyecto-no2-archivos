@@ -1,0 +1,35 @@
+<app-report-widget-frame title="Carpetas con más archivos" subtitle="El área de cada baldosa crece con sus archivos"
+    [icon]="lucideFolderOpenIcon" iconClass="bg-emerald-950/40 text-emerald-400" [loading]="loading()"
+    [empty]="tiles().length === 0" emptyMessage="Aún no hay carpetas con archivos." [showViewMore]="showViewMore()"
+    (viewMore)="viewMore.emit()">
+
+    <div class="flex flex-wrap gap-2">
+
+        @for (tile of tiles(); track tile.id) {
+
+        <div class="mini-tile flex min-w-0 flex-col justify-between rounded-xl border bg-linear-to-br p-2.5 transition-transform duration-300 hover:-translate-y-0.5"
+            [class]="tile.toneClass" [style.flex-grow]="tile.grow" [style.flex-basis.px]="tile.basis"
+            [style.min-height.px]="tile.height" [style.animation-delay.ms]="tile.delay"
+            [title]="tile.name + ' · ' + tile.count + ' archivos'">
+
+            <div class="flex items-center justify-between gap-2">
+                <ng-icon [svg]="lucideFolderIcon" size="16" class="inline-flex opacity-90" />
+                <span class="rounded-full bg-black/20 px-1.5 py-0.5 text-[10px] font-bold tabular-nums">#{{ tile.rank
+                    }}</span>
+            </div>
+
+            <div class="mt-2 min-w-0">
+                <p class="font-black leading-none tabular-nums" [style.font-size.px]="tile.numberSize">
+                    {{ tile.count }}
+                </p>
+                <p class="mt-1 truncate text-xs font-semibold">{{ tile.name }}</p>
+                <p class="truncate text-[10px] opacity-70">&#64;{{ tile.owner }}</p>
+            </div>
+
+        </div>
+
+        }
+
+    </div>
+
+</app-report-widget-frame>

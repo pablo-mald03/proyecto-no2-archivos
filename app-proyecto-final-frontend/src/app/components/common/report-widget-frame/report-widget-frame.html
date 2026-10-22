@@ -1,0 +1,44 @@
+<section class="flex h-full min-h-0 flex-col rounded-xl border border-border bg-surface p-4">
+
+    <header class="mb-3 flex items-center gap-3">
+
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg" [class]="iconClass()">
+            <ng-icon [svg]="icon()" size="18" />
+        </span>
+
+        <div class="min-w-0 flex-1">
+            <h3 class="truncate text-sm font-semibold text-text">{{ title() }}</h3>
+            @if (subtitle()) {
+            <p class="truncate text-xs text-text-muted">{{ subtitle() }}</p>
+            }
+        </div>
+
+        @if (showViewMore()) {
+        <button type="button" (click)="viewMore.emit()"
+            class="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs text-text-muted transition-colors hover:bg-surface-raised hover:text-primary">
+            Ver más
+            <ng-icon [svg]="lucideArrowRightIcon" size="14" />
+        </button>
+        }
+
+    </header>
+
+    <div class="min-h-0 flex-1">
+
+        @if (loading()) {
+        <div class="flex flex-col gap-2.5">
+            @for (row of skeletonRows; track row) {
+            <div class="h-9 animate-pulse rounded-lg bg-surface-raised"></div>
+            }
+        </div>
+        } @else if (empty()) {
+        <div class="flex h-full min-h-30 items-center justify-center text-center text-sm text-text-muted">
+            {{ emptyMessage() }}
+        </div>
+        } @else {
+        <ng-content />
+        }
+
+    </div>
+
+</section>

@@ -1,0 +1,45 @@
+<app-report-widget-frame title="Mayor almacenamiento" subtitle="Consumo frente a la cuota asignada"
+    [icon]="lucideHardDriveIcon" iconClass="bg-violet-950/40 text-violet-400" [loading]="loading()"
+    [empty]="rows().length === 0" emptyMessage="Aún no hay usuarios con almacenamiento." [showViewMore]="showViewMore()"
+    (viewMore)="viewMore.emit()">
+
+    <div class="flex flex-col gap-3">
+
+        @for (row of rows(); track row.id; let i = $index) {
+
+        <div class="flex items-center gap-2.5">
+
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                [class]="i === 0 ? 'bg-yellow-500 text-yellow-950' : 'bg-surface-raised text-text-muted'">
+                {{ i + 1 }}
+            </span>
+
+            <app-report-users-avatar [name]="row.name" [size]="30" />
+
+            <div class="min-w-0 flex-1">
+
+                <div class="flex items-baseline justify-between gap-2 text-xs">
+                    <p class="truncate font-medium text-text" [title]="row.name">{{ row.name }}</p>
+                    <span class="shrink-0 text-[11px] text-text-muted tabular-nums">
+                        {{ row.usedLabel }} / {{ row.quotaLabel }}
+                    </span>
+                </div>
+
+                <div class="relative mt-1 h-2 overflow-hidden rounded-full bg-surface-raised">
+                    <div class="absolute inset-y-0 left-0 rounded-full bg-linear-to-r transition-all duration-700"
+                        [class]="row.styles.gradient" [style.width.%]="row.barWidth"></div>
+                </div>
+
+            </div>
+
+            <span class="w-11 shrink-0 text-right text-xs font-bold tabular-nums" [class]="row.styles.text">
+                {{ row.percent.toFixed(0) }}%
+            </span>
+
+        </div>
+
+        }
+
+    </div>
+
+</app-report-widget-frame>
