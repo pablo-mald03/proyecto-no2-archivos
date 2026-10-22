@@ -81,7 +81,7 @@ export class ReportSharesRepository {
     return { content: rows, total: countResult[0]?.total ?? 0 };
   }
 
-  /* Method to list files shared by a specific user (paginated) */
+  /* Method to list files shared by a specific user  */
   async sharedByUserPage(query: ReportSharesByUserQueryDto): Promise<{ content: any[]; total: number }> {
     const skip = query.page * query.size;
     const sortDir = query.direction === 'asc' ? 1 : -1;
@@ -91,6 +91,7 @@ export class ReportSharesRepository {
 
     const pipeline: PipelineStage[] = [
       { $match: shareMatch },
+      ...this.buildResourceNameStages(query.search),
     ];
 
     if (query.search?.trim()) {
@@ -200,6 +201,7 @@ export class ReportSharesRepository {
 
     const pipeline: PipelineStage[] = [
       { $match: shareMatch },
+      ...this.buildResourceNameStages(query.search),
     ];
 
     if (query.search?.trim()) {
@@ -343,4 +345,49 @@ export class ReportSharesRepository {
 
     return { content: rows, total: countResult[0]?.total ?? 0 };
   }
+
+  //Helper method filter builder
+  private buildResourceNameStages(search?: string): PipelineStage[] {
+    const stages: PipelineStage[] = [
+      {
+        $lookup: {
+          from: 'files',
+          let: { rid: '$resourceId', rt: '$resourceType' },
+          pipeline: [
+            { $match: { $expr: { $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FILE'] }] } } },
+            { $project: { name: 1 } },
+          ],
+          as: 'fileDoc',
+        },
+      },
+      {
+        $lookup: {
+          from: 'folders',
+          let: { rid: '$resourceId', rt: '$resourceType' },
+          pipeline: [
+            { $match: { $expr: { $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FOLDER'] }] } } },
+            { $project: { name: 1 } },
+          ],
+          as: 'folderDoc',
+        },
+      },
+      {
+        $addFields: {
+          resourceName: {
+            $ifNull: [
+              { $arrayElemAt: ['$fileDoc.name', 0] },
+              { $arrayElemAt: ['$folderDoc.name', 0] },
+            ],
+          },
+        },
+      },
+    ];
+
+    if (search?.trim()) {
+      stages.push({ $match: { resourceName: { $regex: search.trim(), $options: 'i' } } });
+    }
+
+    return stages;
+  }
+
 }

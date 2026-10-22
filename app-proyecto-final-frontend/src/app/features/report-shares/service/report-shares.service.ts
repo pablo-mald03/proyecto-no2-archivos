@@ -35,10 +35,13 @@ export class ReportSharesService {
     }
 
     //Method to get resources shared by a selected user
-    getSharedByUser(userId: string, pagination?: PaginationParams): Observable<PaginatedResponse<SharedByUserItemResponse>> {
+    getSharedByUser(userId: string, queryParams?: ReportSharesQueryParams): Observable<PaginatedResponse<SharedByUserItemResponse>> {
+        const params = this.buildSharesQueryParams(queryParams).set('userId', userId);
+
+        console.log(userId);
         return this.http.get<PaginatedResponse<SharedByUserItemResponse>>(
             `${this.apiUrl}/reports/shares/shared-by-user`,
-            { params: withPaginationParams(pagination, new HttpParams().set('userId', userId)) }
+            { params }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))
@@ -46,11 +49,12 @@ export class ReportSharesService {
         );
     }
 
-    //Method to get resources received by a selected user
-    getReceivedByUser(userId: string, pagination?: PaginationParams): Observable<PaginatedResponse<ReceivedByUserItemResponse>> {
+    // Method to get resources received by a selected user
+    getReceivedByUser(userId: string, queryParams?: ReportSharesQueryParams): Observable<PaginatedResponse<ReceivedByUserItemResponse>> {
+        const params = this.buildSharesQueryParams(queryParams).set('userId', userId);
         return this.http.get<PaginatedResponse<ReceivedByUserItemResponse>>(
             `${this.apiUrl}/reports/shares/received-by-user`,
-            { params: withPaginationParams(pagination, new HttpParams().set('userId', userId)) }
+            { params }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))

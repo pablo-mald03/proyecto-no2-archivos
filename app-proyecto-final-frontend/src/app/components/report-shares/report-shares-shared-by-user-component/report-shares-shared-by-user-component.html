@@ -15,15 +15,13 @@
         </div>
     </div>
 
-    <app-custom-card [hoverable]="false">
-        <app-report-shares-id-search label="ID del usuario" placeholder="Pega el ID del usuario a consultar"
-            buttonLabel="Consultar compartidos" [loading]="loading()" (submitted)="onUserSubmitted($event)" />
-    </app-custom-card>
+    <app-report-shares-user-filter-bar-component searchPlaceholder="Buscar por recurso o destinatario..."
+        [directionOptions]="sortOptions" (selectionChange)="onFilterSelectionChange($event)" />
 
-    @if (!userId()) {
+    @if (!selectedUser()) {
 
     <app-custom-alert type="info" title="Selecciona un usuario"
-        message="Ingresa el ID de un usuario para ver los recursos que ha compartido." />
+        message="Busca y selecciona un usuario en el filtro superior para consultar los recursos que ha compartido." />
 
     } @else {
 
@@ -45,16 +43,17 @@
             Cargando reporte...
         </div>
         } @else if (entries().length === 0) {
-        <app-custom-alert type="info" title="Sin datos" message="Este usuario aún no ha compartido recursos." />
+        <app-custom-alert type="info" title="Sin datos"
+            message="Este usuario aún no ha compartido recursos con los filtros aplicados." />
         } @else {
 
         <div class="min-h-0 flex-1 overflow-y-auto py-2 pr-1">
             <app-report-shares-timeline [entries]="entries()" direction="out" />
         </div>
 
-        <div class="mt-4 shrink-0">
-            <app-custom-pagination [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
-                [loading]="loading()" (pageChange)="onPageChange($event)" />
+        <div class="mt-4 shrink-0 border-t border-border/40 pt-3">
+            <app-custom-pagination-slide [page]="page()" [totalPages]="totalPages()" [totalElements]="totalElements()"
+                [size]="size" [loading]="loading()" (pageChange)="onPageChange($event)" />
         </div>
 
         }

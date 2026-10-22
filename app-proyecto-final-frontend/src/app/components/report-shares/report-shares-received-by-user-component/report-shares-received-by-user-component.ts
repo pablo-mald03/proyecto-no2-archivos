@@ -1,8 +1,8 @@
 import { Location } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { NgIcon } from '@ng-icons/core';
+import { NgIcon, NgIconComponent } from '@ng-icons/core';
 import { lucideArrowLeft } from '@ng-icons/lucide';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { CustomPagination } from '../../common/custom-pagination/custom-pagination';
@@ -19,6 +19,11 @@ import { buildAccessSegments } from '../../../core/ui/report-shares-shared/utils
 import { KpiItem } from '../../../core/ui/report-users-shared/types/kpi-item.model';
 import { PaginatedResponse } from '../../../features/report-shared/models/response/paginated-response.model';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
+import { ReportSharesQueryParams } from '../../../features/report-shares/models/query/report-share-query-param.model';
+import { User } from '../../../features/users/models/user.model';
+import { FilterDirectionOption } from '../report-shares-filter-bar-component/constants/filter-direction.constant';
+import { CustomPaginationSlide } from '../../common/custom-pagination-slide/custom-pagination-slide';
+import { ReportSharesUserFilterBarComponent } from '../report-shares-user-filter-bar-component/report-shares-user-filter-bar-component';
 
 
 @Component({
@@ -26,14 +31,14 @@ import { ErrorResponse } from '../../../features/errors/models/error-response.mo
   standalone: true,
   host: { class: 'flex flex-col h-full min-h-0' },
   imports: [
-    NgIcon,
+    NgIconComponent,
     CustomCard,
     CustomAlert,
-    CustomPagination,
+    CustomPaginationSlide,
     ReportSharesKpiStrip,
-    ReportSharesIdSearch,
     ReportSharesSegmentBar,
-    ReportSharesOwnerGroups
+    ReportSharesOwnerGroups,
+    ReportSharesUserFilterBarComponent
   ],
   templateUrl: './report-shares-received-by-user-component.html',
   styleUrl: './report-shares-received-by-user-component.css',
@@ -45,6 +50,15 @@ export class ReportSharesReceivedByUserComponent {
   private readonly reportService = inject(ReportSharesService);
   private readonly toastService = inject(ToastService);
 
+  private requestSub?: Subscription;
+
+  // Selected user signal
+  readonly selectedUser = signal<User | null>(null);
+
+  // Filter query parameters signal
+  readonly filters = signal<ReportSharesQueryParams>({ direction: 'desc' });
+
+  // State signals
   readonly loading = signal(false);
   readonly page = signal(0);
   readonly totalPages = signal(0);
@@ -52,19 +66,22 @@ export class ReportSharesReceivedByUserComponent {
 
   readonly size = 12;
 
-  //Icons
+  // Icons
   readonly lucideArrowLeftIcon = lucideArrowLeft;
 
-  //Selected user
-  readonly userId = signal<string | null>(null);
-
-  //Data
+  // Data
   readonly items = signal<ReceivedByUserItemResponse[]>([]);
 
   readonly entries = computed<ShareFlowEntry[]>(() => this.items().map(toShareFlowEntryFromReceived));
   readonly segments = computed(() => buildAccessSegments(this.items().map(item => item.accessLevel)));
 
-  //Summary of the current page
+  // Semantic sort options for received items
+  readonly sortOptions: FilterDirectionOption[] = [
+    { key: 'desc', label: 'Más recientes primero' },
+    { key: 'asc', label: 'Más antiguos primero' }
+  ];
+
+  // Summary of the current page
   readonly kpis = computed<KpiItem[]>(() => {
     const entries = this.entries();
     const owners = new Set(entries.map(entry => entry.counterpartEmail || entry.counterpartName)).size;
@@ -77,30 +94,45 @@ export class ReportSharesReceivedByUserComponent {
     ];
   });
 
-  //Method to new user always starts from the first page
-  onUserSubmitted(userId: string): void {
-    this.userId.set(userId);
+  // Method to handle user and filters selection from the filter bar
+  onFilterSelectionChange(selection: { user: User | null; filters: ReportSharesQueryParams }): void {
+    this.selectedUser.set(selection.user);
+    this.filters.set(selection.filters);
     this.page.set(0);
     this.items.set([]);
-    this.loadReport();
+
+    if (selection.user) {
+      this.loadReport();
+    }
   }
 
-  //Method to load the report for the selected user and page
+  // Method to load the report for the selected user, filters and page
   loadReport(): void {
-    const userId = this.userId();
-    if (!userId) return;
+    const user = this.selectedUser();
+    if (!user) return;
 
+    this.requestSub?.unsubscribe();
     this.loading.set(true);
 
-    this.reportService.getReceivedByUser(userId, { page: this.page() + 1, size: this.size })
+    const queryParams: ReportSharesQueryParams = {
+      ...this.filters(),
+      page: this.page(),
+      size: this.size
+    };
+
+    this.requestSub = this.reportService
+      .getReceivedByUser(user.id, queryParams)
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: (response: PaginatedResponse<ReceivedByUserItemResponse>) => {
-          this.items.set(response.content);
-          this.totalPages.set(response.totalPages);
-          this.totalElements.set(response.totalElements);
+          this.items.set(response.content ?? []);
+          this.totalPages.set(response.totalPages ?? 0);
+          this.totalElements.set(response.totalElements ?? 0);
         },
         error: (error: ErrorResponse) => {
+          this.items.set([]);
+          this.totalPages.set(0);
+          this.totalElements.set(0);
           this.toastService.error(
             error.message || 'No fue posible cargar el reporte.',
             'Error al cargar reporte'
@@ -109,13 +141,13 @@ export class ReportSharesReceivedByUserComponent {
       });
   }
 
-  //Method for page change from the pagination
+  // Method for page change from the pagination
   onPageChange(page: number): void {
     this.page.set(page);
     this.loadReport();
   }
 
-  //Method to go back to the previous page
+  // Method to go back to the previous page
   goBack(): void {
     this.location.back();
   }

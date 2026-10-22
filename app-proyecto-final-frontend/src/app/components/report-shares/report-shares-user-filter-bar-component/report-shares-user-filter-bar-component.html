@@ -1,0 +1,125 @@
+<div class="flex flex-col gap-4 rounded-xl border border-border/80 bg-surface p-4 shadow-sm">
+
+    <div class="relative">
+        <label class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-text-muted">
+            1. Seleccionar Usuario
+        </label>
+
+        <div class="relative">
+            <button type="button" (click)="toggleUserDropdown()"
+                class="flex h-10 w-full items-center justify-between rounded-lg border border-border bg-surface-raised px-3 text-sm transition-all hover:border-primary/50 focus:outline-none"
+                [class.border-primary]="selectedUser()">
+                <div class="flex items-center gap-2 truncate">
+                    <ng-icon name="lucideUser" class="text-text-muted" size="16" />
+                    @if (selectedUser()) {
+                    <span class="font-medium text-text">{{ selectedUser()?.firstName || selectedUser()?.username
+                        }}</span>
+                    <span class="text-xs text-text-muted">({{ selectedUser()?.email }})</span>
+                    } @else {
+                    <span class="text-text-muted">Buscar y seleccionar usuario a consultar...</span>
+                    }
+                </div>
+
+                <div class="flex items-center gap-1">
+                    @if (selectedUser()) {
+                    <span (click)="clearUser($event)" class="p-1 text-text-muted hover:text-text">
+                        <ng-icon name="lucideX" size="14" />
+                    </span>
+                    }
+                    <ng-icon name="lucideChevronDown" class="text-text-muted" size="16" />
+                </div>
+            </button>
+
+            @if (isUserOpen()) {
+            <div class="absolute z-50 mt-1 w-full rounded-xl border border-border bg-surface p-2 shadow-xl">
+                <div class="relative mb-2">
+                    <ng-icon name="lucideSearch" class="absolute left-3 top-2.5 text-text-muted" size="16" />
+                    <input type="text" [formControl]="userSearchCtrl" placeholder="Escribe nombre o email..."
+                        class="w-full rounded-lg border border-border bg-surface-raised py-1.5 pl-9 pr-3 text-xs text-text focus:border-primary focus:outline-none" />
+                </div>
+
+                <div class="max-h-48 overflow-y-auto">
+                    @if (loadingUsers()) {
+                    <div class="flex items-center justify-center py-4 text-xs text-text-muted gap-2">
+                        <ng-icon name="lucideLoader2" class="animate-spin" size="14" /> Cargando usuarios...
+                    </div>
+                    } @else if (usersList().length === 0) {
+                    <div class="py-4 text-center text-xs text-text-muted">No se encontraron usuarios</div>
+                    } @else {
+                    @for (usr of usersList(); track usr.id) {
+                    <button type="button" (click)="selectUser(usr)"
+                        class="flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors hover:bg-primary/10 hover:text-primary"
+                        [class.bg-primary/10]="selectedUser()?.id === usr.id"
+                        [class.text-primary]="selectedUser()?.id === usr.id">
+                        <div>
+                            <p class="font-medium">{{ usr.firstName }} {{ usr.lastName }} ({{ usr.username }})</p>
+                            <p class="text-[10px] text-text-muted">{{ usr.email }}</p>
+                        </div>
+                        @if (selectedUser()?.id === usr.id) {
+                        <ng-icon name="lucideCheck" size="14" />
+                        }
+                    </button>
+                    }
+                    }
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+
+    @if (selectedUser()) {
+    <div class="flex flex-col gap-3 border-t border-border/40 pt-3">
+
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+                <ng-icon [svg]="lucideFilterIcon" size="14" />
+                <span>2. Filtros de Búsqueda</span>
+            </div>
+
+            @if (hasActiveFilters) {
+            <app-custom-button label="Reiniciar filtros" [bordered]="true" [icon]="lucideRotateCcwIcon"
+                variant="secondary" size="sm" (clicked)="resetFilters()" />
+            }
+        </div>
+
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+
+            <div class="lg:col-span-4">
+                <app-custom-textfield label="Búsqueda" [placeholder]="searchPlaceholder()" [control]="searchCtrl"
+                    [clearable]="true" [icon]="lucideSearchIcon" size="md" />
+            </div>
+
+            <div class="lg:col-span-3">
+                <app-custom-dropdown label="Tipo de recurso" placeholder="Todos los recursos"
+                    [control]="resourceTypeCtrl" [options]="resourceTypeOptions" optionKey="key" optionLabel="label"
+                    size="md" />
+            </div>
+
+            <div class="lg:col-span-2">
+                <app-custom-dropdown label="Orden" placeholder="Ordenamiento" [control]="directionCtrl"
+                    [options]="directionOptions()" optionKey="key" optionLabel="label" size="md" />
+            </div>
+
+            <div class="sm:col-span-2 lg:col-span-3">
+                <label class="mb-1.5 block text-sm text-text">Rango de fechas</label>
+                <div class="flex items-center gap-1.5">
+                    <div class="flex-1">
+                        <app-custom-datepicker placeholder="Desde" [control]="dateFromCtrl" [clearable]="true"
+                            size="md" />
+                    </div>
+
+                    <span class="text-xs text-text-muted">-</span>
+
+                    <div class="flex-1">
+                        <app-custom-datepicker placeholder="Hasta" [control]="dateToCtrl" [clearable]="true"
+                            size="md" />
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    }
+
+</div>
