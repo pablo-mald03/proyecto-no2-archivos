@@ -30,14 +30,17 @@ export class FolderMapper {
   static toPaginatedContentResponse(
     currentFolder: FolderDocument | null,
     breadcrumbs: FolderBreadcrumbDto[],
-    foldersPage: PageResponseDto<FolderResponseDto>,
-    filesPage: PageResponseDto<FileResponseDto>,
+    folders: PageResponseDto<FolderResponseDto>,
+    files: PageResponseDto<FileResponseDto>,
+    currentFolderPermissions?: ResourcePermissionsDto | null,   // NUEVO
   ): FolderContentResponseDto {
     return {
-      currentFolder: currentFolder ? FolderMapper.toResponse(currentFolder) : null,
+      currentFolder: currentFolder
+        ? FolderMapper.toResponse(currentFolder, currentFolderPermissions ?? undefined)   // NUEVO
+        : null,
       breadcrumbs,
-      folders: foldersPage,
-      files: filesPage,
+      folders,
+      files,
     };
   }
 }

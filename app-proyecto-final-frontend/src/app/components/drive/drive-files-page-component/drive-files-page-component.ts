@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal, untracked } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIcon } from '@ng-icons/core';
 import { CustomButton } from '../../common/custom-button/custom-button';
@@ -24,6 +24,9 @@ import { FileUploadQueueService } from '../../../features/files/service/file-upl
 import { ShareModalComponent } from '../../sharing/share-modal-component/share-modal-component';
 import { ListFolderContentQueryParams } from '../../../features/folders/models/request/list-folder-content-query.model';
 import { debounceTime, merge } from 'rxjs';
+import { PermissionFlags } from '../../../features/shares/models/permissions-flags.model';
+import { PermissionRole } from '../../../features/shares/constants/share.constants';
+import { resolveFlags } from '../../../core/utils/file-permissions.util';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -76,6 +79,9 @@ export class DriveFilesPageComponent implements OnInit {
   readonly currentFolderId = signal<string | null>(null);
   readonly currentFolderName = signal<string>('Contenido');
   readonly isInsideFolder = computed(() => !!this.currentFolderId());
+
+  readonly currentRole = signal<PermissionRole>('OWNER');
+  readonly folderFlags = computed(() => resolveFlags(this.currentRole()));
 
   // Filters State
   readonly filtersExpanded = signal(false);
@@ -161,10 +167,16 @@ export class DriveFilesPageComponent implements OnInit {
   constructor() {
     effect(() => {
       if (this.driveAction.uploadTriggered()) {
-        this.openUploadModal();
+        untracked(() => this.openUploadModal());
       }
 
       if (this.driveAction.folderModalOpen()) {
+        const allowed = untracked(() => this.ensure('canEdit', 'crear o renombrar'));
+        if (!allowed) {
+          this.driveAction.closeFolderModal();
+          return;
+        }
+
         this.folderModalMode.set(this.driveAction.folderModalMode());
         this.folderItemType.set(this.driveAction.folderItemType());
         this.folderInitialName.set(this.driveAction.folderInitialName());
@@ -198,6 +210,12 @@ export class DriveFilesPageComponent implements OnInit {
     });
   }
 
+  private ensure(flag: keyof PermissionFlags, action: string): boolean {
+    if (this.folderFlags()[flag]) return true;
+    this.toastService.warning(`No tienes permiso para ${action} en esta carpeta.`, 'Permiso denegado');
+    return false;
+  }
+
   // Fetch folder or root content using server-side pagination and filters
   private fetchContent({ reset = false }: { reset?: boolean } = {}): void {
     const folderId = this.currentFolderId();
@@ -224,8 +242,10 @@ export class DriveFilesPageComponent implements OnInit {
       next: (response) => {
         if (response.currentFolder) {
           this.currentFolderName.set(response.currentFolder.name);
+          this.currentRole.set(response.currentFolder.permissions?.role ?? 'VIEWER');
         } else {
           this.currentFolderName.set('Mis Documentos');
+          this.currentRole.set('OWNER');
         }
 
         const newFolders = (response.folders?.content || []).map(f => mapFolderToDriveItem(f));
@@ -287,6 +307,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Folder modal handlers
   openCreateFolderModal(): void {
+    if (!this.ensure('canEdit', 'crear carpetas')) return; 
     this.folderModalMode.set('create');
     this.folderItemType.set('folder');
     this.folderInitialName.set('');
@@ -295,6 +316,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Upload Modal handlers
   openUploadModal(): void {
+    if (!this.ensure('canEdit', 'subir archivos')) return; 
     this.isUploadModalOpen.set(true);
   }
 
@@ -311,6 +333,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Drag and Drop move handler
   handleItemDrop(event: { draggedItem: DriveItem; targetFolder: DriveItem }): void {
+    if (!this.ensure('canEdit', 'mover elementos')) return; 
     const { draggedItem, targetFolder } = event;
 
     if (draggedItem.type === 'folder') {
@@ -403,6 +426,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Open "Move to..." modal
   onMoveItem(item: DriveItem): void {
+    if (!this.ensure('canEdit', 'mover elementos')) return; 
     this.itemToMove.set(item);
     this.isMoveModalOpen.set(true);
   }
@@ -451,6 +475,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Row Action Listeners
   onShare(item: DriveItem): void {
+    if (!this.ensure('canShare', 'compartir')) return; 
     this.itemToShare.set(item);
     this.isShareModalOpen.set(true);
   }
@@ -490,6 +515,7 @@ export class DriveFilesPageComponent implements OnInit {
 
   // Delete item sending it to trash
   onDelete(item: DriveItem): void {
+    if (!this.ensure('canDelete', 'eliminar')) return; 
     const type = item.type === 'folder' ? 'folders' : 'files';
     this.trashService.moveToTrash(type, item.id).subscribe({
       next: () => {
@@ -512,6 +538,7 @@ export class DriveFilesPageComponent implements OnInit {
   }
 
   onRename(item: DriveItem): void {
+    if (!this.ensure('canEdit', 'renombrar')) return; 
     this.driveAction.openRenameModal(item.id, item.name, item.type);
   }
 
