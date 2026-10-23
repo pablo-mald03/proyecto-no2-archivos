@@ -1,3 +1,5 @@
+import { ResourcePermissions } from "../../../shares/models/resource-permissions.model";
+
 /*Folder response model representation */
 export interface FolderResponse {
   id: string;
@@ -7,4 +9,5 @@ export interface FolderResponse {
   ancestors: string[];
   createdAt: string;
   updatedAt: string;
+  permissions: ResourcePermissions;
 }

@@ -10,7 +10,6 @@ import { ShareModalComponent } from '../../sharing/share-modal-component/share-m
 
 import { FileService } from '../../../features/files/service/file.service';
 import { CommentService } from '../../../features/comments/service/comment.service';
-import { ShareService } from '../../../features/shares/service/share.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { AuthState } from '../../../stores/auth.state';
 
@@ -18,11 +17,9 @@ import { FileResponse } from '../../../features/files/models/response/file-respo
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
 import { FileComment } from '../../../features/files/models/file-comment.model';
 import { CommentResponse } from '../../../features/comments/models/response/comment-response.model';
-import { ShareAccessLevel } from '../../../features/shares/constants/share.constants';
-import { ShareResponse } from '../../../features/shares/models/response/share-response.model';
-import { AuthUser } from '../../../features/auth/models/aut-user.model';
-import { PaginatedSharedWithMeResponse } from '../../../features/shares/models/response/paginated-shared-with-me-response.model';
+import { PermissionRole, ShareAccessLevel } from '../../../features/shares/constants/share.constants';
 import { FileActivityPanelComponent } from '../../activity/file-activity-panel-component/file-activity-panel-component';
+import { resolveFlags, toShareAccessLevel } from '../../../core/utils/file-permissions.util';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -34,7 +31,7 @@ import { FileActivityPanelComponent } from '../../activity/file-activity-panel-c
     FileCommentsPanelComponent,
     ShareModalComponent,
     FileActivityPanelComponent
-],
+  ],
   templateUrl: './file-preview-layout-component.html',
   styleUrl: './file-preview-layout-component.css',
 })
@@ -47,7 +44,6 @@ export class FilePreviewLayoutComponent implements OnInit {
   private readonly location = inject(Location);
   private readonly fileService = inject(FileService);
   private readonly commentService = inject(CommentService);
-  private readonly shareService = inject(ShareService);
   private readonly toastService = inject(ToastService);
   private readonly authState = inject(AuthState);
 
@@ -71,11 +67,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   readonly saving = signal<boolean>(false);
   readonly activeFileId = signal<string | null>(null);
   readonly activeFileName = signal<string>('Documento');
-  readonly activeComments = signal<FileComment[]>([]);
-  readonly activeCanEdit = signal<boolean>(false);
-  readonly activeCanComment = signal<boolean>(false);
-  readonly activeAccessLevel = signal<ShareAccessLevel>('VIEWER');
-  readonly isOwner = signal<boolean>(false);
+   readonly activeComments = signal<FileComment[]>([]);
   readonly activeFileMetadata = signal<FileResponse | null>(null);
   readonly submittingComment = signal(false);
 
@@ -89,6 +81,21 @@ export class FilePreviewLayoutComponent implements OnInit {
   // Editable local content signal synced with control
   readonly editableContent = signal<string>('');
   readonly contentControl = new FormControl('', { nonNullable: true });
+
+  readonly isOwner = computed(() => this.role() === 'OWNER');
+  readonly activeCanEdit = computed(() => this.flags().canEdit);
+  readonly activeCanComment = computed(() => this.flags().canComment);
+  readonly activeAccessLevel = computed<ShareAccessLevel>(() => toShareAccessLevel(this.role()));
+
+
+  readonly role = signal<PermissionRole>('VIEWER');
+  readonly flags = computed(() => resolveFlags(this.role()));
+
+
+  readonly displayAccessLevel = computed<ShareAccessLevel>(() => this.activeAccessLevel());
+  readonly canShare = computed(() => this.flags().canShare);
+
+
 
   @ViewChild('canvas') canvasComponent?: FilePreviewContentComponent;
 
@@ -133,16 +140,9 @@ export class FilePreviewLayoutComponent implements OnInit {
         this.activeFileMetadata.set(meta);
         this.activeFileName.set(meta.name);
 
-        const currentUser = this.authState.user();
-        const currentUserId = currentUser?.id;
-        const isOwner = !!(currentUserId && meta.ownerId === currentUserId);
-        this.isOwner.set(isOwner);
+        this.role.set(meta.permissions?.role ?? 'VIEWER');
 
-        if (isOwner) {
-          this.applyAccessLevel('EDITOR');
-        } else {
-          this.determineSharedAccessLevel(fileId, currentUser);
-        }
+        this.reloadComments(fileId);
       },
       error: (err: ErrorResponse) => {
         this.loading.set(false);
@@ -154,7 +154,7 @@ export class FilePreviewLayoutComponent implements OnInit {
       }
     });
 
-    this.fileService.getFileContent(fileId,true).subscribe({
+    this.fileService.getFileContent(fileId, true).subscribe({
       next: (content) => {
         this.editableContent.set(content);
         this.contentControl.setValue(content);
@@ -172,101 +172,24 @@ export class FilePreviewLayoutComponent implements OnInit {
         this.toastService.error(err.message || 'Error al cargar el contenido del archivo.', 'Error');
       }
     });
-
-    this.reloadComments(fileId);
   }
 
-  // Method to determine the access level from shares or shared-with-me list
-  private determineSharedAccessLevel(fileId: string, currentUser: AuthUser | null): void {
-    this.shareService.getResourceShares('files', fileId).subscribe({
-      next: (shares) => {
-        const matchingShare = this.findMatchingShare(shares, currentUser);
-        if (matchingShare) {
-          this.applyAccessLevel(matchingShare.access);
-        } else {
-          this.checkSharedWithMe(fileId);
-        }
-      },
-      error: () => {
-        this.checkSharedWithMe(fileId);
-      }
-    });
-  }
 
-  // Fallback method to checking shared-with-me items
-  private checkSharedWithMe(fileId: string): void {
-    this.shareService.getSharedWithMe().subscribe({
-      next: (response: PaginatedSharedWithMeResponse) => {
-        const match = response.content?.find(
-          item => item.resource?.id === fileId || item.share?.resourceId === fileId
-        );
-
-        if (match?.share?.access) {
-          this.applyAccessLevel(match.share.access);
-        } else {
-          this.applyAccessLevel('VIEWER');
-        }
-      },
-      error: () => {
-        this.applyAccessLevel('VIEWER');
-      }
-    });
-  }
-
-  // Method to find direct user share or ANY_USER share
-  private findMatchingShare(shares: ShareResponse[], currentUser: AuthUser | null): ShareResponse | null {
-    if (!shares || !shares.length) return null;
-
-    const userShare = shares.find(s =>
-      s.granteeType === 'USER' && (
-        (s.granteeId && s.granteeId === currentUser?.id) ||
-        (s.granteeEmail && currentUser?.email && s.granteeEmail.toLowerCase() === currentUser.email.toLowerCase()) ||
-        (s.granteeUsername && currentUser?.username && s.granteeUsername.toLowerCase() === currentUser.username.toLowerCase())
-      )
-    );
-    if (userShare) return userShare;
-
-    const anyUserShare = shares.find(s => s.granteeType === 'ANY_USER');
-    return anyUserShare || null;
-  }
-
-  // Apply access level permissions
-  private applyAccessLevel(level: ShareAccessLevel): void {
-    this.activeAccessLevel.set(level);
-    if (level === 'EDITOR') {
-      this.activeCanEdit.set(true);
-      this.activeCanComment.set(true);
-    } else if (level === 'COMMENTER') {
-      this.activeCanEdit.set(false);
-      this.activeCanComment.set(true);
-    } else { // 'VIEWER'
-      this.activeCanEdit.set(false);
-      this.activeCanComment.set(false);
-    }
-
-    const fileId = this.activeFileId();
-    if (fileId) {
-      this.reloadComments(fileId);
-    }
-  }
 
   // Reload threaded comments for the active file
   reloadComments(fileId: string): void {
     this.commentService.getCommentsByFile(fileId).subscribe({
       next: (comments) => {
         const currentUserId = this.authState.user()?.id;
-        const isEditorOrOwner = this.isOwner() || this.displayAccessLevel() === 'EDITOR';
-
-        const mapped: FileComment[] = comments.map(c =>
-          this.mapCommentResponse(c, currentUserId, isEditorOrOwner)
+        const canModerate = this.flags().canEdit; // OWNER o EDITOR
+        this.activeComments.set(
+          comments.map(c => this.mapCommentResponse(c, currentUserId, canModerate))
         );
-        this.activeComments.set(mapped);
       },
-      error: () => {
-        this.activeComments.set([]);
-      }
+      error: () => this.activeComments.set([])
     });
   }
+
 
   // Recursive comment mapper supporting threaded replies and permissions
   private mapCommentResponse(
@@ -312,13 +235,6 @@ export class FilePreviewLayoutComponent implements OnInit {
     return this.isRouted() ? this.activeCanComment() : true;
   });
 
-  readonly displayAccessLevel = computed<ShareAccessLevel>(() => {
-    return this.isOwner() ? 'EDITOR' : this.activeAccessLevel();
-  });
-
-  readonly canShare = computed(() => {
-    return this.isOwner() || this.displayAccessLevel() === 'EDITOR';
-  });
 
   @HostListener('document:keydown.escape')
   onKeydownHandler(): void {
@@ -354,7 +270,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   toggleActivity(): void {
     this.isActivityOpen.update(open => {
       const next = !open;
-      if (next) this.isCommentsOpen.set(false); 
+      if (next) this.isCommentsOpen.set(false);
       return next;
     });
   }
@@ -368,7 +284,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   toggleComments(): void {
     this.isCommentsOpen.update(open => {
       const next = !open;
-      if (next) this.isActivityOpen.set(false); 
+      if (next) this.isActivityOpen.set(false);
       return next;
     });
   }
