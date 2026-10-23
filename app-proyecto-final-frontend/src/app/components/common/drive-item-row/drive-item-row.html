@@ -42,6 +42,15 @@
       </p>
       }
 
+      @if (item().locationName) {
+      <span class="flex items-center gap-1 truncate text-xs text-text-muted"
+        [attr.title]="'Ubicación: ' + item().locationName">
+        <ng-icon [svg]="lucideFolderIcon" size="12" class="shrink-0" />
+        <span class="truncate">{{ item().locationName }}</span>
+      </span>
+      }
+
+
       <p class="text-[11px] text-text-muted sm:hidden">
         {{ (item().deletedAt || item().updatedAt) | date: dateFormat }} • {{ formattedSize() }}
       </p>

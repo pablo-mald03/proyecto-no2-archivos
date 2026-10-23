@@ -20,9 +20,12 @@ export interface DriveItem {
   deletedAt?: string;
   access?: ShareAccessLevel;
   ownerId?: string;
-  ownerUsername?: string; 
-  ownerEmail?: string;    
+  ownerUsername?: string;
+  ownerEmail?: string;
+  locationName?: string;
+  locationId?: string | null;
 }
+
 
 //Helper to map folder response to drive item representation
 export function mapFolderToDriveItem(folder: FolderResponse): DriveItem {
@@ -72,7 +75,18 @@ export function mapSharedWithMeToDriveItem(item: SharedWithMeItem): DriveItem {
     shared: true,
     access: item.share.access,
     ownerId: item.resource.ownerId,
-    ownerUsername: item.resource.ownerUsername, 
-    ownerEmail: item.resource.ownerEmail         
+    ownerUsername: item.resource.ownerUsername,
+    ownerEmail: item.resource.ownerEmail
+  };
+}
+
+//Helper to map recent file response to drive item representation
+export function mapRecentFileToDriveItem(file: FileResponse): DriveItem {
+  return {
+    ...mapFileToDriveItem(file),
+    locationId: file.folderId,
+    locationName: file.folderId
+      ? (file.permissions?.parentName ?? undefined)
+      : 'Mis Documentos'
   };
 }
