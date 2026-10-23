@@ -25,6 +25,12 @@ export class SharedResourceMetadataDto {
   @ApiProperty({ example: '673f8a0...' })
   ownerId!: string;
 
+  @ApiProperty({ example: 'owner_user', required: false, description: 'Username del propietario del recurso' })
+  ownerUsername?: string;
+
+  @ApiProperty({ example: 'owner@example.com', required: false, description: 'Email del propietario del recurso' })
+  ownerEmail?: string;
+
   @ApiProperty({ example: '2026-10-20T10:00:00.000Z' })
   createdAt!: string;
 

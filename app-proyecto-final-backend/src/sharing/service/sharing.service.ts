@@ -20,6 +20,7 @@ import { FileNotFoundException } from 'src/files/exceptions/file-not-found.excep
 import { GranteeType } from 'src/common/constants/permissions/grantee-type';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
 import { ListSharedWithMeQueryDto } from '../dto/request/list-shared-with-me-query.dto';
+import { AccessResolverService } from './access-resolver.service';
 
 /*Principal sharing service class*/
 @Injectable()
@@ -30,6 +31,7 @@ export class SharingService {
     private readonly foldersRepository: FoldersRepository,
     private readonly usersRepository: UsersRepository,
     private readonly activity: ActivityRecorderService,
+    private readonly accessResolver: AccessResolverService,
     @InjectConnection() private readonly connection: Connection,
   ) { }
 
@@ -177,7 +179,6 @@ export class SharingService {
     const userOid = new Types.ObjectId(actor.id);
     const shares = await this.sharesRepository.findDirectSharesForUser(userOid);
 
-    // Apply access and resourceType filters to shares
     const filteredShares = shares.filter((s) => {
       if (query.access && s.access !== query.access) return false;
       if (query.type === 'FILES_ONLY' && s.resourceType !== 'FILE') return false;
@@ -200,12 +201,28 @@ export class SharingService {
     const fileMap = new Map(files.map((f) => [f._id.toString(), f]));
     const folderMap = new Map(folders.map((f) => [f._id.toString(), f]));
 
+    const allOwnerIds = [
+      ...files.map((f) => f.ownerId.toString()),
+      ...folders.map((f) => f.ownerId.toString()),
+    ];
+    const uniqueOwnerIds = [...new Set(allOwnerIds)];
+    const activeOwnersMap = new Map<string, { username: string; email: string }>();
+
+    for (const ownerId of uniqueOwnerIds) {
+      const owner = await this.usersRepository.findById(ownerId);
+      if (owner && owner.isActive) {
+        activeOwnersMap.set(ownerId, { username: owner.username, email: owner.email });
+      }
+    }
+
     const matchingItems: SharedWithMeItemDto[] = [];
 
     for (const share of filteredShares) {
       if (share.resourceType === 'FILE') {
         const file = fileMap.get(share.resourceId.toString());
         if (!file) continue;
+        const ownerInfo = activeOwnersMap.get(file.ownerId.toString());
+        if (!ownerInfo) continue;
 
         if (query.extension && file.extension !== query.extension) continue;
         if (query.search && !file.name.toLowerCase().includes(query.search.toLowerCase())) continue;
@@ -214,8 +231,27 @@ export class SharingService {
         if (query.from && shareDate < query.from) continue;
         if (query.to && shareDate > query.to) continue;
 
+        const shareResponse = ShareMapper.toResponse(share);
+        const effectiveAccess = await this.accessResolver
+          .resolveAccess(
+            {
+              type: 'FILE',
+              id: file._id,
+              ownerId: file.ownerId,
+              ancestors: [],
+            },
+            actor.id,
+          )
+          .catch(() => null);
+
+        if (effectiveAccess && effectiveAccess !== 'OWNER') {
+          shareResponse.access = effectiveAccess;
+        }
+
+        if (query.access && shareResponse.access !== query.access) continue;
+
         matchingItems.push({
-          share: ShareMapper.toResponse(share),
+          share: shareResponse,
           resource: {
             id: file._id.toString(),
             type: 'FILE',
@@ -224,6 +260,8 @@ export class SharingService {
             mimeType: file.mimeType,
             sizeBytes: file.sizeBytes,
             ownerId: file.ownerId.toString(),
+            ownerUsername: ownerInfo.username,
+            ownerEmail: ownerInfo.email,
             createdAt: file.createdAt.toISOString(),
             updatedAt: file.updatedAt.toISOString(),
           },
@@ -231,6 +269,8 @@ export class SharingService {
       } else {
         const folder = folderMap.get(share.resourceId.toString());
         if (!folder) continue;
+        const ownerInfo = activeOwnersMap.get(folder.ownerId.toString());
+        if (!ownerInfo) continue;
 
         if (query.search && !folder.name.toLowerCase().includes(query.search.toLowerCase())) continue;
 
@@ -238,13 +278,34 @@ export class SharingService {
         if (query.from && shareDate < query.from) continue;
         if (query.to && shareDate > query.to) continue;
 
+        const shareResponse = ShareMapper.toResponse(share);
+        const effectiveAccess = await this.accessResolver
+          .resolveAccess(
+            {
+              type: 'FOLDER',
+              id: folder._id,
+              ownerId: folder.ownerId,
+              ancestors: folder.ancestors,
+            },
+            actor.id,
+          )
+          .catch(() => null);
+
+        if (effectiveAccess && effectiveAccess !== 'OWNER') {
+          shareResponse.access = effectiveAccess;
+        }
+
+        if (query.access && shareResponse.access !== query.access) continue;
+
         matchingItems.push({
-          share: ShareMapper.toResponse(share),
+          share: shareResponse,
           resource: {
             id: folder._id.toString(),
             type: 'FOLDER',
             name: folder.name,
             ownerId: folder.ownerId.toString(),
+            ownerUsername: ownerInfo.username,
+            ownerEmail: ownerInfo.email,
             createdAt: folder.createdAt.toISOString(),
             updatedAt: folder.updatedAt.toISOString(),
           },
@@ -252,7 +313,6 @@ export class SharingService {
       }
     }
 
-    // Sort items
     matchingItems.sort((a, b) => {
       let comparison = 0;
       switch (query.sortBy) {

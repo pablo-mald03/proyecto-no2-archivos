@@ -4,19 +4,28 @@ import { AccessLevel, ACCESS_LEVEL_RANK } from 'src/common/constants/permissions
 import { AccessDeniedException } from 'src/common/exceptions/access-deniend.exception';
 import { SharesRepository } from '../repository/shares.repository';
 import { ResourceTarget } from '../constants/resource-target';
-
+import { UsersRepository } from 'src/users/repository/users.repository';
+import { InactiveOwnerException } from '../exceptions/inactive-owner.exception';
 
 //Access resolver service class
 @Injectable()
 export class AccessResolverService {
-  constructor(private readonly sharesRepository: SharesRepository) { }
+  constructor(
+    private readonly sharesRepository: SharesRepository,
+    private readonly usersRepository: UsersRepository,
+  ) { }
 
-  /*Method to resolve the effective AccessLevel for a user on a given resource (file or folder)*/
+  //Method to resolve the effective AccessLevel for a user on a given resource (file or folder)
   async resolveAccess(resource: ResourceTarget, userId: string): Promise<AccessLevel | 'OWNER' | null> {
     const resourceOwnerId = resource.ownerId.toString();
 
     if (resourceOwnerId === userId) {
       return 'OWNER';
+    }
+
+    const owner = await this.usersRepository.findById(resourceOwnerId);
+    if (!owner || !owner.isActive) {
+      throw new InactiveOwnerException('El propietario del recurso se encuentra inactivo');
     }
 
     const itemsToQuery: { resourceType: 'FILE' | 'FOLDER'; resourceId: Types.ObjectId }[] = [
