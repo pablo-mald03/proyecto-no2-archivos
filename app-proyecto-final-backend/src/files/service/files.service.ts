@@ -22,6 +22,7 @@ import { MoveFileDto } from '../dto/request/move-file.dto';
 import { FileNotFoundException } from '../exceptions/file-not-found.exception';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
 import { RecentFilesQueryDto } from '../dto/request/recent-files-query.dto';
+import { SharingService } from 'src/sharing/service/sharing.service';
 
 
 /*Principal files service class*/
@@ -35,6 +36,7 @@ export class FilesService {
     private readonly accessHelper: FileAccessHelperService,
     private readonly foldersRepository: FoldersRepository,
     private readonly activity: ActivityRecorderService,
+    private readonly sharingService: SharingService,
     @InjectConnection() private readonly connection: Connection,
   ) { }
 
@@ -66,6 +68,8 @@ export class FilesService {
         uploadedGridFsIds.push(gridFsId);
       }
 
+      const createdFileIds: Types.ObjectId[] = [];
+
       await this.connection.transaction(async (session) => {
         for (let i = 0; i < prepared.length; i++) {
           const prep = prepared[i];
@@ -92,6 +96,7 @@ export class FilesService {
             session,
           );
 
+          createdFileIds.push(fileDoc._id);
           createdResults.push(FileMapper.toResponse(fileDoc));
 
           await this.activity.recordAndWait(
@@ -102,6 +107,15 @@ export class FilesService {
               resource: { type: ResourceType.FILE, id: fileDoc._id.toString(), name: finalName },
               metadata: { toFolderId: targetFolderOid, sizeBytes: prep.size },
             },
+            session,
+          );
+        }
+
+        if (targetFolderOid && createdFileIds.length > 0) {
+          await this.sharingService.inheritSharesFromFolder(
+            targetFolderOid,
+            createdFileIds,
+            quotaOwnerId,
             session,
           );
         }

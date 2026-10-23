@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
-import { Connection, Types } from 'mongoose';
+import { Connection, Types, ClientSession } from 'mongoose';
 import { FilesRepository } from 'src/files/repository/files.repository';
 import { FoldersRepository } from 'src/folders/repository/folders.repository';
 import { UsersRepository } from 'src/users/repository/users.repository';
@@ -338,6 +338,32 @@ export class SharingService {
     const content = matchingItems.slice(start, start + query.size);
 
     return PageResponseDto.of(content, total, query);
+  }
+
+  /**
+   * Method to copy shares from parent folder to new files
+   */
+  async inheritSharesFromFolder(folderId: Types.ObjectId, newFileIds: Types.ObjectId[], fileOwnerId: Types.ObjectId, session?: ClientSession): Promise<void> {
+    if (newFileIds.length === 0) return;
+
+    const folderShares = await this.sharesRepository.findByResource('FOLDER', folderId, session);
+    if (folderShares.length === 0) return;
+
+    for (const share of folderShares) {
+      for (const fileId of newFileIds) {
+        await this.sharesRepository.upsertShare(
+          {
+            resourceType: 'FILE',
+            resourceId: fileId,
+            ownerId: fileOwnerId,
+            granteeType: share.granteeType,
+            granteeId: share.granteeId,
+            access: share.access,
+          },
+          session,
+        );
+      }
+    }
   }
 
   //Method to get resource 
