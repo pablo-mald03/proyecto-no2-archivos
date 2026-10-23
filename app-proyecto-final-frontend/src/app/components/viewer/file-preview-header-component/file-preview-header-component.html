@@ -84,12 +84,14 @@
       }
     </button>
 
+    @if (isOwner()) {
     <button type="button" (click)="toggleActivity.emit()" class="relative rounded-xl p-2 transition-colors"
       [class.bg-primary/20]="isActivityOpen()" [class.text-primary]="isActivityOpen()"
       [class.text-white/70]="!isActivityOpen()" [class.hover:bg-white/10]="!isActivityOpen()"
       title="Ver historial de actividad">
       <ng-icon [svg]="lucideHistoryIcon" size="20" />
     </button>
+    }
 
     <button type="button" (click)="openNewTab.emit()"
       class="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white transition-colors"

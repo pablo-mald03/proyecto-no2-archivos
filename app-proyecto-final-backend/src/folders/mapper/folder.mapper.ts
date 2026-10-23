@@ -4,11 +4,15 @@ import { FolderBreadcrumbDto } from '../dto/response/folder-breadcrum-response.d
 import { FolderContentResponseDto } from '../dto/response/folder-content-response.dto';
 import { FileResponseDto } from 'src/files/dto/response/file-response.dto';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { ResourcePermissionsDto } from 'src/common/dto/resource-permissions.dto';
 
 /*Principal folder mapper class*/
 export class FolderMapper {
   /*Principal mapper for Entity to domain*/
-  static toResponse(doc: FolderDocument | FolderEntity & { _id?: any }): FolderResponseDto {
+  static toResponse(
+    doc: FolderDocument | FolderEntity & { _id?: any },
+    permissions?: ResourcePermissionsDto,
+  ): FolderResponseDto {
     const id = doc instanceof Object && '_id' in doc ? doc._id.toString() : (doc as any).id;
     return {
       id,
@@ -18,6 +22,7 @@ export class FolderMapper {
       ancestors: (doc.ancestors || []).map((a) => a.toString()),
       createdAt: doc.createdAt instanceof Date ? doc.createdAt.toISOString() : String(doc.createdAt),
       updatedAt: doc.updatedAt instanceof Date ? doc.updatedAt.toISOString() : String(doc.updatedAt),
+      ...(permissions ? { permissions } : {}),
     };
   }
 

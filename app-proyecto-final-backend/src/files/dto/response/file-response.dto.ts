@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { PageResponseDto } from 'src/common/dto/page-response.dto';
+import { ResourcePermissionsDto } from 'src/common/dto/resource-permissions.dto';
 
 /*Principal file response DTO model*/
 export class FileResponseDto {
@@ -12,6 +13,9 @@ export class FileResponseDto {
   sizeBytes!: number;
   createdAt!: string;
   updatedAt!: string;
+
+  @ApiProperty({ type: () => ResourcePermissionsDto, required: false })
+  permissions?: ResourcePermissionsDto;
 }
 
 /*Swagger documentation for paginated files*/

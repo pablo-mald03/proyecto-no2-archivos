@@ -144,24 +144,26 @@ export class FilesService {
   /*Principal method to find a file*/
   async findById(id: string, actor: AuthUser): Promise<FileResponseDto> {
     const file = await this.getOrFail(id);
-    await this.accessHelper.assertFileAccess(file, actor.id, AccessLevel.VIEWER);
-    return FileMapper.toResponse(file);
+    const permissions = await this.accessHelper.resolveFilePermissions(file, actor.id);
+    return FileMapper.toResponse(file, permissions);
   }
 
   /*Principal method to download a file*/
-  async downloadFile(id: string, actor: AuthUser): Promise<{ stream: NodeJS.ReadableStream; file: FileResponseDto }> {
+  async downloadFile(id: string, actor: AuthUser, isViewing: boolean): Promise<{ stream: NodeJS.ReadableStream; file: FileResponseDto }> {
 
     const file = await this.getOrFail(id);
     await this.accessHelper.assertFileAccess(file, actor.id, AccessLevel.VIEWER);
 
     const stream = this.gridFsStorage.openDownloadStream(file.gridFsId);
-    this.activity.record({
-      actor: { id: actor.id, username: actor.username, email: actor.email },
-      action: ActivityAction.FILE_DOWNLOADED,
-      description: `Descargo el archivo "${file.name}"`,
-      resource: { type: ResourceType.FILE, id: file._id.toString(), name: file.name },
-      metadata: { sizeBytes: file.sizeBytes },
-    });
+    if (!isViewing) {
+      this.activity.record({
+        actor: { id: actor.id, username: actor.username, email: actor.email },
+        action: ActivityAction.FILE_DOWNLOADED,
+        description: `Descargo el archivo "${file.name}"`,
+        resource: { type: ResourceType.FILE, id: file._id.toString(), name: file.name },
+        metadata: { sizeBytes: file.sizeBytes },
+      });
+    }
 
     return { stream, file: FileMapper.toResponse(file) };
   }

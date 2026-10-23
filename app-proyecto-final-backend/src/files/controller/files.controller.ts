@@ -1,15 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Res,
-  UploadedFiles,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseBoolPipe, Patch, Post, Query, Res, UploadedFiles, UseInterceptors, } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { ApiConsumes, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -74,10 +63,11 @@ export class FilesController {
   @ApiOperation({ summary: 'Download or stream file content' })
   async download(
     @Param('id', ParseObjectIdPipe) id: string,
+    @Query('isViewing', new ParseBoolPipe({ optional: true })) isViewing: boolean,
     @CurrentUser() actor: AuthUser,
     @Res() res: Response,
   ): Promise<void> {
-    const { stream, file } = await this.filesService.downloadFile(id, actor);
+    const { stream, file } = await this.filesService.downloadFile(id, actor, isViewing);
 
     res.set({
       'Content-Type': file.mimeType,

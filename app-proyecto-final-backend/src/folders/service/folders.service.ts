@@ -25,6 +25,7 @@ import { AccessLevel } from 'src/common/constants/permissions/access-level';
 import { ListUserFoldersQueryDto } from '../dto/request/list-user-folders-query.dto';
 import { UserFolderItemDto } from '../dto/response/user-folder-item.dto';
 import { PageRequest } from 'src/common/types/page-request';
+import { ResourcePermissionsDto } from 'src/common/dto/resource-permissions.dto';
 
 /* Principal folder service */
 @Injectable()
@@ -165,21 +166,29 @@ export class FoldersService {
   async findById(id: string, actor: AuthUser): Promise<FolderResponseDto> {
     const folder = await this.getOrFail(id);
 
-    if (folder.ownerId.toString() !== actor.id) {
-      await this.accessResolver.assertAccess(
-        {
-          type: 'FOLDER',
-          id: folder._id,
-          ownerId: folder.ownerId,
-          ancestors: folder.ancestors,
-        },
-        actor.id,
-        AccessLevel.VIEWER,
-        'No tienes permisos para ver esta carpeta',
-      );
+    const accessDetails = await this.accessResolver.resolveAccessDetails(
+      {
+        type: 'FOLDER',
+        id: folder._id,
+        ownerId: folder.ownerId,
+        ancestors: folder.ancestors,
+      },
+      actor.id,
+    );
+
+    let parentName: string | null = null;
+    if (folder.parentId) {
+      const parentFolder = await this.foldersRepository.findActiveById(folder.parentId);
+      parentName = parentFolder?.name ?? null;
     }
 
-    return FolderMapper.toResponse(folder);
+    const permissions: ResourcePermissionsDto = {
+      role: accessDetails.role,
+      inheritedFromFolderId: accessDetails.inheritedFromFolderId,
+      parentName,
+    };
+
+    return FolderMapper.toResponse(folder, permissions);
   }
 
   /*Principal method to rename a folder*/

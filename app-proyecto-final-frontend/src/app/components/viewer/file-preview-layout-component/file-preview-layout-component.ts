@@ -154,7 +154,7 @@ export class FilePreviewLayoutComponent implements OnInit {
       }
     });
 
-    this.fileService.getFileContent(fileId).subscribe({
+    this.fileService.getFileContent(fileId,true).subscribe({
       next: (content) => {
         this.editableContent.set(content);
         this.contentControl.setValue(content);

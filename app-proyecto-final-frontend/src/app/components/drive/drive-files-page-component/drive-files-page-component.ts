@@ -8,14 +8,7 @@ import { CustomDropdown } from '../../common/custom-dropdown/custom-dropdown';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { ToastService } from '../../../core/services/toast.service';
 import { DriveItem, mapFileToDriveItem, mapFolderToDriveItem } from '../../../features/drive/drive-item.model';
-import {
-  lucideChevronDown,
-  lucideFolderPlus,
-  lucidePlus,
-  lucideRotateCcw,
-  lucideSearch,
-  lucideSlidersHorizontal
-} from '@ng-icons/lucide';
+import { lucideChevronDown, lucideFolderPlus, lucidePlus, lucideRotateCcw, lucideSearch, lucideSlidersHorizontal } from '@ng-icons/lucide';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UploadFileModalComponent } from '../../files/upload-file-modal-component/upload-file-modal-component';
 import { DriveActionService } from '../../../core/services/drive-action.service';

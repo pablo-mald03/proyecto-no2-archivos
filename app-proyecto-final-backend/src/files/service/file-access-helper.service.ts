@@ -5,6 +5,7 @@ import { AccessResolverService } from 'src/sharing/service/access-resolver.servi
 import { AccessLevel } from 'src/common/constants/permissions/access-level';
 import { FolderNotFoundException } from 'src/folders/exceptions/folder-not-found.exception';
 import { FileDocument } from '../entities/file.entity';
+import { ResourcePermissionsDto } from 'src/common/dto/resource-permissions.dto';
 
 //Principal file access helper service class
 @Injectable()
@@ -43,6 +44,34 @@ export class FileAccessHelperService {
       userId,
       minRequiredLevel,
     );
+  }
+
+  /**
+   * Method to resolve file permissions and ACL inheritance details
+   */
+  async resolveFilePermissions(file: FileDocument, userId: string): Promise<ResourcePermissionsDto> {
+    const ancestors = await this.resolveFolderAncestors(file.folderId);
+    const accessDetails = await this.accessResolver.resolveAccessDetails(
+      {
+        type: 'FILE',
+        id: file._id,
+        ownerId: file.ownerId,
+        ancestors,
+      },
+      userId,
+    );
+
+    let parentName: string | null = null;
+    if (file.folderId) {
+      const parentFolder = await this.foldersRepository.findActiveById(file.folderId);
+      parentName = parentFolder?.name ?? null;
+    }
+
+    return {
+      role: accessDetails.role,
+      inheritedFromFolderId: accessDetails.inheritedFromFolderId,
+      parentName,
+    };
   }
 
   /**

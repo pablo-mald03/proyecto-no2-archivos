@@ -8,7 +8,7 @@ import { CustomButton } from '../../common/custom-button/custom-button';
 import { CustomInfiniteScroll } from '../../common/custom-infinite-scroll/custom-infinite-scroll';
 import { EmptyStateComponent } from '../../common/empty-state-component/empty-state-component';
 import { FileActivityCardComponent } from '../file-activity-card-component/file-activity-card-component';
-import { lucideActivity, lucideCalendar, lucideHistory, lucideRotateCcw, lucideSlidersHorizontal, lucideX } from '@ng-icons/lucide';
+import { lucideActivity, lucideCalendar, lucideChevronDown, lucideFilter, lucideHistory, lucideRotateCcw, lucideSlidersHorizontal, lucideX } from '@ng-icons/lucide';
 import { LogService } from '../../../features/logs/services/log.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { Log } from '../../../features/logs/models/log.model';
@@ -43,7 +43,7 @@ import { finalize } from 'rxjs';
   templateUrl: './file-activity-panel-component.html',
   styleUrl: './file-activity-panel-component.css',
 })
-/* Sliding activity logs panel with infinite scroll and filters for resource activity */
+/* Sliding activity logs panel with infinite scroll and collapsible filters */
 export class FileActivityPanelComponent implements OnInit {
 
   private readonly logService = inject(LogService);
@@ -70,13 +70,18 @@ export class FileActivityPanelComponent implements OnInit {
   readonly size = 15;
   readonly hasMore = computed(() => this.page() + 1 < this.totalPages());
 
-  // Filter UI State
+  // Filter UI State (Colapsable)
   readonly filtersExpanded = signal(false);
 
-  // Filter Catalog
+  // Catalog Options
   readonly actions = signal<{ value: string; label: string }[]>([
     { value: '', label: 'Todas las acciones' }
   ]);
+
+  readonly directionOptions = [
+    { value: 'desc', label: 'Más recientes primero' },
+    { value: 'asc', label: 'Más antiguos primero' }
+  ];
 
   // Controls
   readonly actionControl = new FormControl('', { nonNullable: true });
@@ -84,17 +89,14 @@ export class FileActivityPanelComponent implements OnInit {
   readonly toDateControl = new FormControl('', { nonNullable: true });
   readonly directionControl = new FormControl<'asc' | 'desc'>('desc', { nonNullable: true });
 
-  readonly directionOptions = [
-    { value: 'desc', label: 'Más recientes primero' },
-    { value: 'asc', label: 'Más antiguos primero' }
-  ];
-
   // Icons
   readonly lucideHistoryIcon = lucideHistory;
   readonly lucideXIcon = lucideX;
   readonly lucideSlidersHorizontalIcon = lucideSlidersHorizontal;
   readonly lucideRotateCcwIcon = lucideRotateCcw;
   readonly lucideActivityIcon = lucideActivity;
+  readonly lucideChevronDownIcon = lucideChevronDown;
+  readonly lucideFilterIcon = lucideFilter;
 
   private requestVersion = 0;
 
@@ -135,12 +137,14 @@ export class FileActivityPanelComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: catalog => {
+          const mappedActions = (catalog?.actions || []).map(item => ({
+            value: item.code,
+            label: item.label
+          }));
+
           this.actions.set([
             { value: '', label: 'Todas las acciones' },
-            ...catalog.actions.map(item => ({
-              value: item.code,
-              label: item.label
-            }))
+            ...mappedActions
           ]);
         },
         error: () => {
@@ -149,7 +153,7 @@ export class FileActivityPanelComponent implements OnInit {
       });
   }
 
-  // Fetch paginated activity logs with infinite scroll support
+  // Fetch paginated activity logs
   fetchLogs({ reset = false }: { reset?: boolean } = {}): void {
     const resId = this.resourceId();
     if (!resId) return;
@@ -217,14 +221,12 @@ export class FileActivityPanelComponent implements OnInit {
       });
   }
 
-  // Load next page on scroll bottom
   loadMore(): void {
     if (this.loading() || this.loadingMore() || !this.hasMore()) return;
     this.fetchLogs({ reset: false });
   }
 
-  // Check if any filter is active
-  hasActiveFilters(): boolean {
+  get hasActiveFilters(): boolean {
     return !!(
       this.actionControl.value ||
       this.fromDateControl.value ||
@@ -233,7 +235,6 @@ export class FileActivityPanelComponent implements OnInit {
     );
   }
 
-  // Reset filter controls
   resetFilters(): void {
     this.actionControl.setValue('', { emitEvent: false });
     this.fromDateControl.setValue('', { emitEvent: false });
@@ -242,11 +243,14 @@ export class FileActivityPanelComponent implements OnInit {
     this.onFilterChange();
   }
 
+  toggleFilters(): void {
+    this.filtersExpanded.update(v => !v);
+  }
+
   private onFilterChange(): void {
     this.fetchLogs({ reset: true });
   }
 
-  // Date boundary formatter
   private toApiDate(value: string, endOfDay: boolean): string | undefined {
     if (!value) return undefined;
     const date = new Date(`${value}T${endOfDay ? '23:59:59.999' : '00:00:00'}`);
