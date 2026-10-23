@@ -88,8 +88,8 @@ export class TrashPage implements OnInit {
   // Filter options
   readonly typeOptions = [
     { value: '', label: 'Todos los tipos' },
-    { value: 'FOLDER', label: 'Carpetas' },
-    { value: 'FILE', label: 'Archivos' }
+    { value: 'FOLDERS_ONLY', label: 'Carpetas' },
+    { value: 'FILES_ONLY', label: 'Archivos' }
   ];
 
   readonly sortByOptions = [
@@ -107,9 +107,6 @@ export class TrashPage implements OnInit {
     { value: '', label: 'Todas las extensiones' },
     { value: 'txt', label: 'Texto (.txt)' },
     { value: 'md', label: 'Markdown (.md)' },
-    { value: 'pdf', label: 'PDF (.pdf)' },
-    { value: 'png', label: 'Imagen (.png)' },
-    { value: 'jpg', label: 'Imagen (.jpg)' }
   ];
 
   // Active filters flag (updated on every fetch, since FormControls are not signals)
