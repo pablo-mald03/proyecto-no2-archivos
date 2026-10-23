@@ -5,10 +5,10 @@
     <app-file-preview-header-component [fileName]="displayFileName()" [isRouted]="isRouted()" [isOwner]="isOwner()"
         [accessLevel]="displayAccessLevel()" [zoomLevel]="zoomLevel()" [canEdit]="displayCanEdit()"
         [canShare]="canShare()" [isEditMode]="isEditMode()" [saving]="saving()" [isCommentsOpen]="isCommentsOpen()"
-        [commentsCount]="displayComments().length" (close)="closeLayout()" (zoomIn)="zoomIn()" (zoomOut)="zoomOut()"
-        (zoomReset)="resetZoom()" (toggleEdit)="toggleEditMode()" (save)="saveChanges()"
-        (toggleComments)="toggleComments()" (openNewTab)="openInNewTab()" (download)="downloadFile()"
-        (share)="openShareModal()" />
+        [isActivityOpen]="isActivityOpen()" [commentsCount]="displayComments().length" (close)="closeLayout()"
+        (zoomIn)="zoomIn()" (zoomOut)="zoomOut()" (zoomReset)="resetZoom()" (toggleEdit)="toggleEditMode()"
+        (save)="saveChanges()" (toggleComments)="toggleComments()" (toggleActivity)="toggleActivity()"
+        (openNewTab)="openInNewTab()" (download)="downloadFile()" (share)="openShareModal()" />
 
     <div class="relative flex flex-1 min-h-0 w-full overflow-hidden">
 
@@ -26,16 +26,17 @@
                 (commentDeleted)="handleCommentDeleted($event)" />
         </div>
 
+        <div (click)="$event.stopPropagation()" class="h-full">
+            <app-file-activity-panel-component [isOpen]="isActivityOpen()" [resourceId]="activeFileId()"
+                resourceType="FILE" (closePanel)="isActivityOpen.set(false)" />
+        </div>
+
     </div>
 
 </div>
 }
 
 @if (isShareModalOpen() && activeFileId()) {
-<app-share-modal-component
-    [isOpen]="isShareModalOpen()"
-    [resourceId]="activeFileId()!"
-    [resourceName]="displayFileName()"
-    resourceType="files"
-    (closed)="closeShareModal()" />
+<app-share-modal-component [isOpen]="isShareModalOpen()" [resourceId]="activeFileId()!"
+    [resourceName]="displayFileName()" resourceType="files" (closed)="closeShareModal()" />
 }

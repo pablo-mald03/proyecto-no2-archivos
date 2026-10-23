@@ -25,6 +25,8 @@ import { AccessLevel } from 'src/common/constants/permissions/access-level';
 import { ListUserFoldersQueryDto } from '../dto/request/list-user-folders-query.dto';
 import { UserFolderItemDto } from '../dto/response/user-folder-item.dto';
 import { PageRequest } from 'src/common/types/page-request';
+import { ResourcePermissionsDto } from 'src/common/dto/resource-permissions.dto';
+import { FolderDocument } from '../entities/folder.entity';
 
 /* Principal folder service */
 @Injectable()
@@ -75,6 +77,7 @@ export class FoldersService {
   ): Promise<FolderContentResponseDto> {
     let currentFolder = null;
     let breadcrumbs: any[] = [];
+    let currentFolderPermissions: ResourcePermissionsDto | null = null;   // NUEVO
 
     if (folderId) {
       currentFolder = await this.getOrFail(folderId);
@@ -94,6 +97,12 @@ export class FoldersService {
       }
 
       breadcrumbs = await this.hierarchyHelper.buildBreadcrumbs(currentFolder);
+
+      // NUEVO: el penúltimo breadcrumb es el padre, así que no hace falta otra query
+      const parentName = breadcrumbs.length > 1
+        ? breadcrumbs[breadcrumbs.length - 2].name
+        : null;
+      currentFolderPermissions = await this.resolvePermissions(currentFolder, actor.id, parentName);
     }
 
     const contentOwnerId = folderId && currentFolder
@@ -158,29 +167,25 @@ export class FoldersService {
       breadcrumbs,
       foldersPage,
       filesPage,
+      currentFolderPermissions,
     );
   }
+
 
   /*Principal method to find a folder by ID*/
   async findById(id: string, actor: AuthUser): Promise<FolderResponseDto> {
     const folder = await this.getOrFail(id);
 
-    if (folder.ownerId.toString() !== actor.id) {
-      await this.accessResolver.assertAccess(
-        {
-          type: 'FOLDER',
-          id: folder._id,
-          ownerId: folder.ownerId,
-          ancestors: folder.ancestors,
-        },
-        actor.id,
-        AccessLevel.VIEWER,
-        'No tienes permisos para ver esta carpeta',
-      );
+    let parentName: string | null = null;
+    if (folder.parentId) {
+      const parentFolder = await this.foldersRepository.findActiveById(folder.parentId);
+      parentName = parentFolder?.name ?? null;
     }
 
-    return FolderMapper.toResponse(folder);
+    const permissions = await this.resolvePermissions(folder, actor.id, parentName);
+    return FolderMapper.toResponse(folder, permissions);
   }
+
 
   /*Principal method to rename a folder*/
   async rename(id: string, dto: RenameFolderDto, actor: AuthUser): Promise<FolderResponseDto> {
@@ -311,5 +316,24 @@ export class FoldersService {
     if (ownerId.toString() !== actorId) {
       throw new AccessDeniedException('No tienes permisos sobre este recurso');
     }
+  }
+
+  /*Helper method to resolve the effective permissions of the actor over a folder*/
+  private async resolvePermissions(folder: FolderDocument, actorId: string, parentName: string | null): Promise<ResourcePermissionsDto> {
+    const accessDetails = await this.accessResolver.resolveAccessDetails(
+      {
+        type: 'FOLDER',
+        id: folder._id,
+        ownerId: folder.ownerId,
+        ancestors: folder.ancestors,
+      },
+      actorId,
+    );
+
+    return {
+      role: accessDetails.role,
+      inheritedFromFolderId: accessDetails.inheritedFromFolderId,
+      parentName,
+    };
   }
 }

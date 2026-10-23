@@ -1,3 +1,5 @@
+import { ResourcePermissions } from "../../../shares/models/resource-permissions.model";
+
 /*File response model representation */
 export interface FileResponse {
   id: string;
@@ -9,4 +11,5 @@ export interface FileResponse {
   sizeBytes: number;
   createdAt: string;
   updatedAt: string;
+  permissions: ResourcePermissions;
 }

@@ -33,6 +33,8 @@ export class CustomDropdown {
   clearable = input(false);
   selectableFirst = input(false);
   size = input<'sm' | 'md' | 'lg'>('md');
+  
+  strategy = input<'fixed' | 'absolute'>('fixed');
 
   // Open state and floating list position
   readonly isOpen = signal(false);
@@ -83,7 +85,7 @@ export class CustomDropdown {
   @HostListener('window:scroll')
   @HostListener('window:resize')
   updatePositionOnScroll(): void {
-    if (this.isOpen()) {
+    if (this.isOpen() && this.strategy() === 'fixed') {
       this.calculatePosition();
     }
   }
@@ -93,6 +95,7 @@ export class CustomDropdown {
     if (!trigger) return;
 
     const rect = trigger.getBoundingClientRect();
+
     this.dropdownPosition.set({
       top: rect.bottom + window.scrollY + 6,
       left: rect.left + window.scrollX,
@@ -101,7 +104,7 @@ export class CustomDropdown {
   }
 
   toggleDropdown(): void {
-    if (!this.isOpen()) {
+    if (!this.isOpen() && this.strategy() === 'fixed') {
       this.calculatePosition();
     }
     this.isOpen.update(open => !open);
@@ -122,7 +125,6 @@ export class CustomDropdown {
     return 'Invalid value';
   });
 
-  // Reactive calculation tracking the controlValue signal cleanly
   readonly selectedOption = computed(() => {
     const val = this.controlValue();
     if (val === null || val === undefined || val === '') return null;
@@ -140,7 +142,6 @@ export class CustomDropdown {
   selectOption(option: Record<string, unknown>): void {
     const val = this.getOptionValue(option);
     const ctrl = this.control();
-
 
     if (ctrl.value === val) {
       this.isOpen.set(false);

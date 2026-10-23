@@ -41,13 +41,16 @@
   </div>
 
   @if (isOpen()) {
-  <div [style.top.px]="dropdownPosition().top" [style.left.px]="dropdownPosition().left"
-    [style.width.px]="dropdownPosition().width"
-    class="fixed z-9999 max-h-60 overflow-y-auto rounded-2xl border border-border/80 bg-surface/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
+  <div [class.fixed]="strategy() === 'fixed'" [class.absolute]="strategy() === 'absolute'"
+    [class.left-0]="strategy() === 'absolute'" [class.top-[calc(100%+0.375rem)]]="strategy() === 'absolute'"
+    [class.w-full]="strategy() === 'absolute'" [style.top.px]="strategy() === 'fixed' ? dropdownPosition().top : null"
+    [style.left.px]="strategy() === 'fixed' ? dropdownPosition().left : null"
+    [style.width.px]="strategy() === 'fixed' ? dropdownPosition().width : null"
+    class="z-9999 max-h-60 overflow-y-auto rounded-2xl border border-border/80 bg-surface/95 backdrop-blur-xl shadow-2xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150">
 
     @if (options().length === 0) {
     <div class="p-3 text-center text-xs text-text-muted">
-      No options available
+      Sin opciones disponibles
     </div>
     } @else {
     @for (option of options(); track getOptionValue(option)) {

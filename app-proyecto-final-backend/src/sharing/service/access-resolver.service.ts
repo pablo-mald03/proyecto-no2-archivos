@@ -67,6 +67,71 @@ export class AccessResolverService {
     return maxAccess;
   }
 
+  // Method to resolve the effective AccessLevel and inheritance details for a user on a given resource
+  async resolveAccessDetails(
+    resource: ResourceTarget,
+    userId: string,
+  ): Promise<{ role: AccessLevel | 'OWNER'; inheritedFromFolderId: string | null }> {
+    const resourceOwnerId = resource.ownerId.toString();
+
+    if (resourceOwnerId === userId) {
+      return { role: 'OWNER', inheritedFromFolderId: null };
+    }
+
+    const owner = await this.usersRepository.findById(resourceOwnerId);
+    if (!owner || !owner.isActive) {
+      throw new InactiveOwnerException('El propietario del recurso se encuentra inactivo');
+    }
+
+    const targetIdStr = resource.id.toString();
+    const itemsToQuery: { resourceType: 'FILE' | 'FOLDER'; resourceId: Types.ObjectId }[] = [
+      {
+        resourceType: resource.type,
+        resourceId: new Types.ObjectId(resource.id),
+      },
+    ];
+
+    if (resource.ancestors && resource.ancestors.length > 0) {
+      for (const ancId of resource.ancestors) {
+        itemsToQuery.push({
+          resourceType: 'FOLDER',
+          resourceId: new Types.ObjectId(ancId),
+        });
+      }
+    }
+
+    const matchingShares = await this.sharesRepository.findEffectiveSharesForResourceOrAncestors(
+      itemsToQuery,
+      userId,
+    );
+
+    if (matchingShares.length === 0) {
+      throw new AccessDeniedException('No tienes permisos para acceder a este recurso');
+    }
+
+    let maxRank = 0;
+    let winningShare = matchingShares[0];
+
+    for (const share of matchingShares) {
+      const rank = ACCESS_LEVEL_RANK[share.access];
+      const isDirect = share.resourceId.toString() === targetIdStr;
+      const winningIsDirect = winningShare.resourceId.toString() === targetIdStr;
+
+      if (rank > maxRank || (rank === maxRank && isDirect && !winningIsDirect)) {
+        maxRank = rank;
+        winningShare = share;
+      }
+    }
+
+    const isDirect = winningShare.resourceId.toString() === targetIdStr;
+    const inheritedFromFolderId = isDirect ? null : winningShare.resourceId.toString();
+
+    return {
+      role: winningShare.access,
+      inheritedFromFolderId,
+    };
+  }
+
   //Method to assert that the user has at least the required AccessLevel on the resource
   async assertAccess(resource: ResourceTarget, userId: string, minRequiredLevel: AccessLevel = AccessLevel.VIEWER, customErrorMessage = 'No tienes permisos para acceder a este recurso'): Promise<void> {
     const access = await this.resolveAccess(resource, userId);

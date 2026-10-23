@@ -4,7 +4,7 @@ import { API_URL } from "../../../core/config/api.config";
 import { LogPage } from "../../logs/models/pagination/log-pagination.model";
 import { catchError, Observable, throwError } from "rxjs";
 import { ActivityQuery } from "../models/activity-query.model";
-import { LogCatalog } from "../../logs/models/log-request.model";
+import { LogCatalog } from "../../logs/models/query/log-request.model";
 import { ErrorResponse } from "../../errors/models/error-response.model";
 
 @Injectable({

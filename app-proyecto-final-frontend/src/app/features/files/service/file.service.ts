@@ -105,10 +105,15 @@ export class FileService {
     }
 
     //Method to get text content of a file
-    getFileContent(id: string): Observable<string> {
+    getFileContent(id: string, isViewing: boolean = false): Observable<string> {
+        const params = new HttpParams().set('isViewing', isViewing);
+
         return this.http.get(
             `${this.apiUrl}/files/${id}/download`,
-            { responseType: 'text' }
+            {
+                params,
+                responseType: 'text'
+            }
         ).pipe(
             catchError((error: HttpErrorResponse) =>
                 throwError(() => this.parseError(error))

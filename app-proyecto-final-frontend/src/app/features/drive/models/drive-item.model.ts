@@ -20,6 +20,8 @@ export interface DriveItem {
   deletedAt?: string;
   access?: ShareAccessLevel;
   ownerId?: string;
+  ownerUsername?: string; 
+  ownerEmail?: string;    
 }
 
 //Helper to map folder response to drive item representation
@@ -69,7 +71,8 @@ export function mapSharedWithMeToDriveItem(item: SharedWithMeItem): DriveItem {
     updatedAt: item.resource.updatedAt,
     shared: true,
     access: item.share.access,
-    ownerId: item.resource.ownerId
+    ownerId: item.resource.ownerId,
+    ownerUsername: item.resource.ownerUsername, 
+    ownerEmail: item.resource.ownerEmail         
   };
 }
-

@@ -18,7 +18,6 @@ export class ActivityController {
 
   //Endpoint to list all activity logs 
   @Get()
-  @RequirePermissions(Permission.ACTIVITY_VIEW_ALL)
   @ApiOperation({ summary: 'List all activity history with pagination and filters' })
   @ApiOkResponse({ type: PaginatedActivityLogResponseDto })
   findAll(@Query() query: ListActivityQueryDto) {
