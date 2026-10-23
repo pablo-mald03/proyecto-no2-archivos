@@ -12,10 +12,8 @@ import { DatePipe } from '@angular/common';
 import { FormControl } from '@angular/forms';
 import { TableColumn } from '../../common/custom-table/types/table-column.model';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { debounceTime, finalize } from 'rxjs';
 import { ErrorResponse } from '../../../features/errors/models/error-response.model';
-import { CustomButton } from '../../common/custom-button/custom-button';
-import { CustomTextfield } from '../../common/custom-textfield/custom-textfield';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-logs-page',
@@ -29,7 +27,6 @@ import { CustomTextfield } from '../../common/custom-textfield/custom-textfield'
     CustomPagination,
     TableCellDirective,
     DatePipe,
-    CustomTextfield
 ],
   templateUrl: './logs-page.html',
   styleUrl: './logs-page.css',
@@ -72,9 +69,6 @@ export class LogsPage implements OnInit {
     nonNullable: true
   });
 
-  readonly resourceIdFilterControl = new FormControl('', {
-    nonNullable: true
-  });
 
   readonly fromDateControl = new FormControl('', {
     nonNullable: true
@@ -119,13 +113,6 @@ export class LogsPage implements OnInit {
 
     this.resourceTypeFilterControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.onFilterChange());
-
-    this.resourceIdFilterControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        takeUntilDestroyed(this.destroyRef)
-      )
       .subscribe(() => this.onFilterChange());
 
     this.fromDateControl.valueChanges
@@ -202,7 +189,6 @@ export class LogsPage implements OnInit {
       direction: this.directionControl.value,
       action: this.actionFilterControl.value || undefined,
       resourceType: this.resourceTypeFilterControl.value || undefined,
-      resourceId: this.resourceIdFilterControl.value.trim() || undefined,
       from: this.toApiDate(this.fromDateControl.value, false),
       to: this.toApiDate(this.toDateControl.value, true)
     })
@@ -274,7 +260,6 @@ export class LogsPage implements OnInit {
   resetFilters(): void {
     this.actionFilterControl.setValue('');
     this.resourceTypeFilterControl.setValue('');
-    this.resourceIdFilterControl.setValue('');
     this.fromDateControl.setValue('');
     this.toDateControl.setValue('');
     this.sortControl.setValue('createdAt');
