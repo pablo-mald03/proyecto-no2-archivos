@@ -151,7 +151,25 @@ export class FilesService {
       },
     );
 
-    const items = content.map((file) => FileMapper.toResponse(file));
+    const folderIds = [
+      ...new Set(content.map((f) => f.folderId?.toString()).filter((id): id is string => !!id)),
+    ].map((id) => new Types.ObjectId(id));
+
+    const folderDocs = folderIds.length > 0
+      ? await this.foldersRepository.findByIds(folderIds)
+      : [];
+    const folderNameById = new Map(folderDocs.map((d) => [d._id.toString(), d.name]));
+
+    const items = content.map((file) =>
+      FileMapper.toResponse(file, {
+        role: 'OWNER',                  
+        inheritedFromFolderId: null,
+        parentName: file.folderId
+          ? (folderNameById.get(file.folderId.toString()) ?? null)
+          : null,
+      }),
+    );
+
     return PageResponseDto.of(items, total, query);
   }
 
