@@ -92,63 +92,6 @@ export class ReportSharesRepository {
     const pipeline: PipelineStage[] = [
       { $match: shareMatch },
       ...this.buildResourceNameStages(query.search),
-    ];
-
-    if (query.search?.trim()) {
-      pipeline.push(
-        {
-          $lookup: {
-            from: 'files',
-            let: { rid: '$resourceId', rt: '$resourceType' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FILE'] }],
-                  },
-                },
-              },
-              { $project: { name: 1 } },
-            ],
-            as: 'fileDoc',
-          },
-        } as PipelineStage,
-        {
-          $lookup: {
-            from: 'folders',
-            let: { rid: '$resourceId', rt: '$resourceType' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FOLDER'] }],
-                  },
-                },
-              },
-              { $project: { name: 1 } },
-            ],
-            as: 'folderDoc',
-          },
-        } as PipelineStage,
-        {
-          $addFields: {
-            resourceName: {
-              $ifNull: [
-                { $arrayElemAt: ['$fileDoc.name', 0] },
-                { $arrayElemAt: ['$folderDoc.name', 0] },
-              ],
-            },
-          },
-        } as PipelineStage,
-        {
-          $match: {
-            resourceName: { $regex: query.search.trim(), $options: 'i' },
-          },
-        } as PipelineStage,
-      );
-    }
-
-    pipeline.push(
       {
         $lookup: {
           from: 'users',
@@ -156,9 +99,19 @@ export class ReportSharesRepository {
           foreignField: '_id',
           as: 'grantee',
         },
-      } as PipelineStage,
-      { $sort: { createdAt: sortDir } } as PipelineStage,
-    );
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'ownerId',
+          foreignField: '_id',
+          as: 'owner',
+        },
+      },
+      { $unwind: '$owner' },
+      { $match: { 'owner.isActive': true } },
+      { $sort: { createdAt: sortDir } },
+    ];
 
     const [countResult, rows] = await Promise.all([
       this.shareModel.aggregate([...pipeline, { $count: 'total' }]),
@@ -194,6 +147,7 @@ export class ReportSharesRepository {
     const sortDir = query.direction === 'asc' ? 1 : -1;
     const shareMatch = buildShareMatchStage(query);
 
+    shareMatch['ownerId'] = { $ne: new Types.ObjectId(query.userId) };
     shareMatch['$or'] = [
       { granteeId: new Types.ObjectId(query.userId), granteeType: GranteeType.USER },
       { granteeType: GranteeType.ANY_USER },
@@ -201,64 +155,40 @@ export class ReportSharesRepository {
 
     const pipeline: PipelineStage[] = [
       { $match: shareMatch },
-      ...this.buildResourceNameStages(query.search),
-    ];
-
-    if (query.search?.trim()) {
-      pipeline.push(
-        {
-          $lookup: {
-            from: 'files',
-            let: { rid: '$resourceId', rt: '$resourceType' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FILE'] }],
-                  },
-                },
-              },
-              { $project: { name: 1 } },
-            ],
-            as: 'fileDoc',
-          },
-        } as PipelineStage,
-        {
-          $lookup: {
-            from: 'folders',
-            let: { rid: '$resourceId', rt: '$resourceType' },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FOLDER'] }],
-                  },
-                },
-              },
-              { $project: { name: 1 } },
-            ],
-            as: 'folderDoc',
-          },
-        } as PipelineStage,
-        {
-          $addFields: {
-            resourceName: {
-              $ifNull: [
-                { $arrayElemAt: ['$fileDoc.name', 0] },
-                { $arrayElemAt: ['$folderDoc.name', 0] },
+      {
+        $addFields: {
+          accessRank: {
+            $switch: {
+              branches: [
+                { case: { $eq: ['$access', 'EDITOR'] }, then: 3 },
+                { case: { $eq: ['$access', 'COMMENTER'] }, then: 2 },
+                { case: { $eq: ['$access', 'VIEWER'] }, then: 1 },
               ],
+              default: 0,
             },
           },
-        } as PipelineStage,
-        {
-          $match: {
-            resourceName: { $regex: query.search.trim(), $options: 'i' },
-          },
-        } as PipelineStage,
-      );
-    }
-
-    pipeline.push(
+        },
+      },
+      {
+        $sort: {
+          resourceId: 1,
+          accessRank: -1,
+          createdAt: -1,
+        },
+      },
+      {
+        $group: {
+          _id: '$resourceId',
+          shareId: { $first: '$_id' },
+          resourceId: { $first: '$resourceId' },
+          resourceType: { $first: '$resourceType' },
+          accessLevel: { $first: '$access' },
+          granteeType: { $first: '$granteeType' },
+          ownerId: { $first: '$ownerId' },
+          createdAt: { $first: '$createdAt' },
+        },
+      },
+      ...this.buildResourceNameStages(query.search),
       {
         $lookup: {
           from: 'users',
@@ -266,10 +196,11 @@ export class ReportSharesRepository {
           foreignField: '_id',
           as: 'owner',
         },
-      } as PipelineStage,
-      { $unwind: '$owner' } as PipelineStage,
-      { $sort: { createdAt: sortDir } } as PipelineStage,
-    );
+      },
+      { $unwind: '$owner' },
+      { $match: { 'owner.isActive': true } },
+      { $sort: { createdAt: sortDir } },
+    ];
 
     const [countResult, rows] = await Promise.all([
       this.shareModel.aggregate([...pipeline, { $count: 'total' }]),
@@ -280,11 +211,11 @@ export class ReportSharesRepository {
         {
           $project: {
             _id: 0,
-            shareId: { $toString: '$_id' },
-            resourceId: { $toString: '$resourceId' },
+            shareId: { $toString: '$shareId' },
+            resourceId: { $toString: '$_id' },
             resourceName: { $ifNull: ['$resourceName', 'Sin nombre'] },
             resourceType: 1,
-            accessLevel: '$access',
+            accessLevel: 1,
             granteeType: 1,
             ownerUsername: '$owner.username',
             ownerEmail: '$owner.email',
@@ -319,6 +250,7 @@ export class ReportSharesRepository {
         },
       },
       { $unwind: '$owner' },
+      { $match: { 'owner.isActive': true } },
       { $sort: { createdAt: sortDir } },
     ];
 
@@ -354,7 +286,17 @@ export class ReportSharesRepository {
           from: 'files',
           let: { rid: '$resourceId', rt: '$resourceType' },
           pipeline: [
-            { $match: { $expr: { $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FILE'] }] } } },
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$_id', '$$rid'] },
+                    { $eq: ['$$rt', 'FILE'] },
+                    { $eq: ['$isDeleted', false] },
+                  ],
+                },
+              },
+            },
             { $project: { name: 1 } },
           ],
           as: 'fileDoc',
@@ -365,7 +307,17 @@ export class ReportSharesRepository {
           from: 'folders',
           let: { rid: '$resourceId', rt: '$resourceType' },
           pipeline: [
-            { $match: { $expr: { $and: [{ $eq: ['$_id', '$$rid'] }, { $eq: ['$$rt', 'FOLDER'] }] } } },
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ['$_id', '$$rid'] },
+                    { $eq: ['$$rt', 'FOLDER'] },
+                    { $eq: ['$isDeleted', false] },
+                  ],
+                },
+              },
+            },
             { $project: { name: 1 } },
           ],
           as: 'folderDoc',
@@ -381,6 +333,11 @@ export class ReportSharesRepository {
           },
         },
       },
+      {
+        $match: {
+          resourceName: { $ne: null },
+        },
+      },
     ];
 
     if (search?.trim()) {
@@ -389,5 +346,4 @@ export class ReportSharesRepository {
 
     return stages;
   }
-
 }
