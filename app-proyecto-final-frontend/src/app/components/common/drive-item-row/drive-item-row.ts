@@ -90,6 +90,15 @@ export class DriveItemRow {
     }
   }
 
+
+  // Computed owner label for display
+  readonly ownerLabel = computed(() => {
+    const current = this.item();
+    if (current.ownerUsername) return `@${current.ownerUsername}`;
+    if (current.ownerEmail) return current.ownerEmail;
+    return null;
+  });
+
   readonly itemIcon = computed(() => {
     const current = this.item();
     if (current.type === 'folder') return this.lucideFolderIcon;

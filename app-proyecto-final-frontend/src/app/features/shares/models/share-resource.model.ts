@@ -9,6 +9,8 @@ export interface SharedResource {
     mimeType?: string;
     sizeBytes?: number;
     ownerId: string;
+    ownerUsername: string,
+    ownerEmail: string,
     createdAt: string;
     updatedAt: string;
 }

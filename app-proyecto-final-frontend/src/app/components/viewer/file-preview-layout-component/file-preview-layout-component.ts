@@ -22,6 +22,7 @@ import { ShareAccessLevel } from '../../../features/shares/constants/share.const
 import { ShareResponse } from '../../../features/shares/models/response/share-response.model';
 import { AuthUser } from '../../../features/auth/models/aut-user.model';
 import { PaginatedSharedWithMeResponse } from '../../../features/shares/models/response/paginated-shared-with-me-response.model';
+import { FileActivityPanelComponent } from '../../activity/file-activity-panel-component/file-activity-panel-component';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -31,8 +32,9 @@ import { PaginatedSharedWithMeResponse } from '../../../features/shares/models/r
     FilePreviewHeaderComponent,
     FilePreviewContentComponent,
     FileCommentsPanelComponent,
-    ShareModalComponent
-  ],
+    ShareModalComponent,
+    FileActivityPanelComponent
+],
   templateUrl: './file-preview-layout-component.html',
   styleUrl: './file-preview-layout-component.css',
 })
@@ -81,6 +83,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   readonly zoomLevel = signal<number>(100);
   readonly isEditMode = signal<boolean>(false);
   readonly isCommentsOpen = signal<boolean>(false);
+  readonly isActivityOpen = signal<boolean>(false);
   readonly isShareModalOpen = signal<boolean>(false);
 
   // Editable local content signal synced with control
@@ -347,13 +350,27 @@ export class FilePreviewLayoutComponent implements OnInit {
     this.zoomLevel.set(100);
   }
 
+  // Toggle Activity Panel
+  toggleActivity(): void {
+    this.isActivityOpen.update(open => {
+      const next = !open;
+      if (next) this.isCommentsOpen.set(false); 
+      return next;
+    });
+  }
+
   toggleEditMode(): void {
     if (!this.displayCanEdit()) return;
     this.isEditMode.update(mode => !mode);
   }
 
+  // Update toggleComments to close activity when opening comments
   toggleComments(): void {
-    this.isCommentsOpen.update(open => !open);
+    this.isCommentsOpen.update(open => {
+      const next = !open;
+      if (next) this.isActivityOpen.set(false); 
+      return next;
+    });
   }
 
   // Handle adding a top-level comment or threaded reply

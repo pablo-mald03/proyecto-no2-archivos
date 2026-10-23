@@ -3,7 +3,7 @@
 export interface LogQuery {
   page?: number;
   size?: number;
-  sortBy?: 'createdAt' | 'action' | 'actorUsername';
+  sortBy?: string;
   direction?: 'asc' | 'desc';
   actorId?: string;
   action?: string;

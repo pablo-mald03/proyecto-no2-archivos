@@ -6,6 +6,7 @@ import {
   lucideDownload,
   lucideExternalLink,
   lucideEye,
+  lucideHistory,
   lucideMessageSquare,
   lucidePencil,
   lucideSave,
@@ -24,6 +25,7 @@ import {
 })
 // Header toolbar component for the file preview layout component
 export class FilePreviewHeaderComponent {
+
   // Inputs
   readonly fileName = input.required<string>();
   readonly isRouted = input<boolean>(false);
@@ -35,6 +37,7 @@ export class FilePreviewHeaderComponent {
   readonly isEditMode = input<boolean>(false);
   readonly saving = input<boolean>(false);
   readonly isCommentsOpen = input<boolean>(false);
+  readonly isActivityOpen = input<boolean>(false); 
   readonly commentsCount = input<number>(0);
 
   // Outputs
@@ -45,6 +48,7 @@ export class FilePreviewHeaderComponent {
   readonly toggleEdit = output<void>();
   readonly save = output<void>();
   readonly toggleComments = output<void>();
+  readonly toggleActivity = output<void>(); 
   readonly openNewTab = output<void>();
   readonly download = output<void>();
   readonly share = output<void>();
@@ -57,6 +61,7 @@ export class FilePreviewHeaderComponent {
   readonly lucideEyeIcon = lucideEye;
   readonly lucideSaveIcon = lucideSave;
   readonly lucideMessageSquareIcon = lucideMessageSquare;
+  readonly lucideHistoryIcon = lucideHistory; 
   readonly lucideExternalLinkIcon = lucideExternalLink;
   readonly lucideDownloadIcon = lucideDownload;
   readonly lucideShareIcon = lucideShare2;

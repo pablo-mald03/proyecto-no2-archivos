@@ -1,0 +1,55 @@
+<div class="relative flex gap-4 pb-8 last:pb-0">
+    <div class="absolute left-3.5 top-8 -bottom-3 w-px bg-border/40 last:hidden"></div>
+
+    <div class="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border/60 bg-surface-raised shadow-sm"
+        [class]="actionStyle().bgClass">
+        <ng-icon [name]="actionStyle().icon" size="13" [class]="actionStyle().textClass" />
+    </div>
+
+    <div class="flex min-w-0 flex-1 flex-col gap-2 rounded-xl border border-border/40 bg-surface p-3.5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary hover:shadow-md hover:shadow-primary/10">
+        
+        <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 truncate text-xs font-semibold text-text">
+                <ng-icon name="lucideUser" size="12" class="text-text-muted shrink-0" />
+                <span class="truncate">{{ log().actorUsername || log().actorEmail || 'Sistema' }}</span>
+            </div>
+
+            <span class="shrink-0 text-[10px] text-text-muted font-medium">
+                {{ log().createdAt | date:'dd MMM, HH:mm' }}
+            </span>
+        </div>
+
+        <p class="text-xs text-text-muted wrap-break-word font-normal leading-relaxed">
+            {{ log().description || log().actionLabel }}
+        </p>
+
+        @if (log().targetUserEmail || log().metadata?.accessLevel || log().metadata?.previousName) {
+        <div class="mt-1 flex flex-wrap gap-1.5 text-[10px] text-text-muted">
+            @if (log().targetUserEmail) {
+            <span class="rounded-md bg-surface-raised px-2 py-0.5 border border-border/30">
+                Para: <strong class="text-text">{{ log().targetUserEmail }}</strong>
+            </span>
+            }
+            @if (log().metadata?.accessLevel) {
+            <span class="rounded-md bg-primary/10 px-2 py-0.5 text-primary border border-primary/20 font-medium">
+                Permiso: {{ log().metadata?.accessLevel }}
+            </span>
+            }
+            @if (log().metadata?.previousName) {
+            <span class="rounded-md bg-surface-raised px-2 py-0.5 border border-border/30">
+                Antes: {{ log().metadata?.previousName }}
+            </span>
+            }
+        </div>
+        }
+
+        @if (log().actionLabel) {
+        <div class="mt-1">
+            <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-medium border"
+                [class]="actionStyle().badgeClass">
+                {{ log().actionLabel }}
+            </span>
+        </div>
+        }
+    </div>
+</div>

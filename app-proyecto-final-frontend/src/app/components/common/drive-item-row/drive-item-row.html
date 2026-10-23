@@ -3,7 +3,6 @@
   [class.bg-primary/10]="isSelected()" [class.border-primary/30]="isSelected()" (click)="itemClicked.emit(item())"
   (dblclick)="itemDoubleClicked.emit(item())" (contextmenu)="onRightClick($event)">
 
-
   <div class="flex items-center gap-3 min-w-0 flex-1">
 
     @if (mode() === 'default') {
@@ -24,16 +23,25 @@
     </div>
 
     <div class="min-w-0 flex-1">
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-1.5">
         <p class="truncate font-medium text-text group-hover:text-primary transition-colors">
           {{ item().name }}
         </p>
+
         @if (accessLabel()) {
-        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 shrink-0">
+        <span
+          class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-primary/10 text-primary border border-primary/20 shrink-0">
           {{ accessLabel() }}
         </span>
         }
       </div>
+
+      @if (ownerLabel()) {
+      <p class="text-[11px] text-text-muted truncate">
+        Compartido por <span class="font-medium text-text/80">{{ ownerLabel() }}</span>
+      </p>
+      }
+
       <p class="text-[11px] text-text-muted sm:hidden">
         {{ (item().deletedAt || item().updatedAt) | date: dateFormat }} • {{ formattedSize() }}
       </p>
@@ -134,8 +142,7 @@
         Descargar
       </app-custom-toggle-menu-item>
       } @else {
-      <app-custom-toggle-menu-item [icon]="lucideFolderIcon"
-        (clicked)="itemClicked.emit(item()); closeContextMenu()">
+      <app-custom-toggle-menu-item [icon]="lucideFolderIcon" (clicked)="itemClicked.emit(item()); closeContextMenu()">
         Abrir carpeta
       </app-custom-toggle-menu-item>
       }

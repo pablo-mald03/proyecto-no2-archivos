@@ -1,12 +1,20 @@
+import { LogMetadata } from "./response/log-metadata.model";
 
 /*Principal log interface base representation */
 export interface Log {
-    id: number;
-    module: string;
-    action: string;
-    detail: string;
-    userId: string;
-    userRegistry: string;
-    userIdentification: string;
-    createdAt: string;
+  id: string;
+  action: string;
+  actionLabel: string;
+  description: string;
+  resourceType: string;
+  resourceTypeLabel: string;
+  resourceId?: string;
+  resourceName?: string;
+  actorId?: string;
+  actorUsername?: string;
+  actorEmail?: string;
+  targetUserId?: string;
+  targetUserEmail?: string;
+  metadata?: LogMetadata;
+  createdAt: string;
 }
