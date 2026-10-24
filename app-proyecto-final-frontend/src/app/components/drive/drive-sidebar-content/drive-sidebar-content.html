@@ -12,6 +12,11 @@
 
     <app-drive-nav class="flex-1 overflow-y-auto" [collapsed]="collapsed()" (optionSelected)="optionSelected.emit()" />
 
+    <div class="border-t border-border px-4 py-3">
+        <app-storage-widget [compact]="collapsed()" />
+    </div>
+
+
     <app-drive-user-card [collapsed]="collapsed()" (logoutClicked)="logoutClicked.emit()" />
 
 </div>

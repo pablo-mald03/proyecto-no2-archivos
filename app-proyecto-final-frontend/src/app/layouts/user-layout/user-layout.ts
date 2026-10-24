@@ -8,6 +8,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { ErrorResponse } from '../../features/errors/models/error-response.model';
 import { DriveActionService } from '../../core/services/drive-action.service';
 import { DriveUploadWidgetComponent } from '../../components/files/drive-upload-widget-component/drive-upload-widget-component';
+import { StorageState } from '../../stores/storage.state';
 
 @Component({
   selector: 'app-user-layout',
@@ -22,6 +23,7 @@ export class UserLayout {
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
   private readonly driveAction = inject(DriveActionService);
+  private readonly storage = inject(StorageState);
 
   sidebarCollapsed = signal(false);
   mobileSidebarOpen = signal(false);
@@ -59,6 +61,7 @@ export class UserLayout {
   logout(): void {
     this.authService.logout().subscribe({
       next: () => {
+        this.storage.reset();
         this.toastService.success('Se ha cerrado sesion correctamente', 'Sesión cerrada');
         this.router.navigate(['/']);
       },

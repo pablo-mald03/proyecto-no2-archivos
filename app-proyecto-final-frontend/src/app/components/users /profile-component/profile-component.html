@@ -89,27 +89,11 @@
             </app-custom-card>
 
             @if (profile()!.roleCode === 'USER') {
-            <app-custom-card [hoverable]="false">
-                <div class="mb-3 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <ng-icon [svg]="lucideHardDriveIcon" size="16" class="text-primary" />
-                        <h3 class="text-sm font-semibold text-text">Almacenamiento</h3>
-                    </div>
-                    <span class="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{{
-                        storagePercentage().toFixed(2) }}%</span>
-                </div>
-
-                <div class="h-2.5 w-full overflow-hidden rounded-full bg-surface-raised p-0.5 border border-border/40">
-                    <div class="h-full bg-linear-to-r from-primary/80 to-primary transition-all duration-500 rounded-full shadow-xs"
-                        [style.width.%]="storagePercentage()"></div>
-                </div>
-
-                <div class="mt-3 flex justify-between text-xs font-medium text-text-muted">
-                    <span>{{ formatBytes(profile()!.storage.usedBytes) }} usados</span>
-                    <span>{{ formatBytes(profile()!.storage.quotaBytes) }} total</span>
-                </div>
+            <app-custom-card [hoverable]="true">
+                <app-storage-widget />
             </app-custom-card>
             }
+
 
             <app-custom-card [hoverable]="false">
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-wider text-text-muted">Gestión de Cuenta</h3>
@@ -267,15 +251,8 @@
 
 </div>
 
-<app-edit-profile-modal-component
-  [isOpen]="showEditProfileModal()"
-  [profile]="profile()"
-  (closed)="closeEditProfileModal()"
-  (updated)="loadProfile()"
-/>
+<app-edit-profile-modal-component [isOpen]="showEditProfileModal()" [profile]="profile()"
+    (closed)="closeEditProfileModal()" (updated)="loadProfile()" />
 
-<app-change-password-modal-component
-  [isOpen]="showChangePasswordModal()"
-  (closed)="closeChangePasswordModal()"
-  (updated)="loadProfile()"
-/>
+<app-change-password-modal-component [isOpen]="showChangePasswordModal()" (closed)="closeChangePasswordModal()"
+    (updated)="loadProfile()" />

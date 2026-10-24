@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideArrowLeft, lucideAtSign, lucideCake, lucideCalendar, lucideCheck, lucideChevronRight, lucideCircleCheck, lucideCircleX, lucideHardDrive, lucideIdCard, lucideKeyRound, lucideMail, lucidePhone, lucideShield, lucideShieldCheck, lucideUser, lucideUserPen } from '@ng-icons/lucide';
+import { lucideArrowLeft, lucideAtSign, lucideCake, lucideCalendar, lucideChevronRight, lucideCircleCheck, lucideCircleX, lucideIdCard, lucideKeyRound, lucideMail, lucidePhone, lucideShield, lucideShieldCheck, lucideUser, lucideUserPen } from '@ng-icons/lucide';
 import { CustomCard } from '../../common/custom-card/custom-card';
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { Router } from '@angular/router';
@@ -13,12 +13,14 @@ import { AuthState } from '../../../stores/auth.state';
 import { UserProfile } from '../../../features/users/models/response/user-profile.model';
 import { EditProfileModalComponent } from '../edit-profile-modal-component/edit-profile-modal-component';
 import { ChangePasswordModalComponent } from '../change-password-modal-component/change-password-modal-component';
+import { StorageWidget } from '../../storage/storage-widget/storage-widget';
+import { StorageState } from '../../../stores/storage.state';
 
 @Component({
   selector: 'app-profile-component',
   standalone: true,
   host: { class: 'flex flex-col h-full min-h-0' },
-  imports: [NgIcon, CustomCard, CustomAlert, DatePipe, EditProfileModalComponent, ChangePasswordModalComponent],
+  imports: [NgIcon, CustomCard, CustomAlert, DatePipe, EditProfileModalComponent, ChangePasswordModalComponent, StorageWidget],
   viewProviders: [
     provideIcons({
       lucideArrowLeft,
@@ -44,6 +46,7 @@ export class ProfileComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly toastService = inject(ToastService);
   private readonly authState = inject(AuthState);
+  private readonly storage = inject(StorageState); 
 
   // Data Signals
   readonly profile = signal<UserProfile | null>(null);
@@ -69,7 +72,6 @@ export class ProfileComponent implements OnInit {
   readonly lucideKeyRoundIcon = lucideKeyRound;
   readonly lucideChevronRightIcon = lucideChevronRight;
   readonly lucideCalendarIcon = lucideCalendar;
-  readonly lucideHardDriveIcon = lucideHardDrive;
 
   // Computed initials for user avatar
   readonly initials = computed(() => {
@@ -85,19 +87,6 @@ export class ProfileComponent implements OnInit {
     return `${p.firstName} ${p.lastName}`;
   });
 
-  // Computed storage usage percentage
-  readonly storagePercentage = computed(() => {
-    const s = this.profile()?.storage;
-    if (!s || s.quotaBytes === 0) return 0;
-
-    const percentage = (s.usedBytes / s.quotaBytes) * 100;
-    const rounded = Math.round(percentage * 100) / 100;
-
-    const visible = s.usedBytes > 0 ? Math.max(rounded, 0.01) : rounded;
-
-    return Math.min(visible, 100);
-  });
-
   ngOnInit(): void {
     this.loadProfile();
   }
@@ -109,7 +98,12 @@ export class ProfileComponent implements OnInit {
     this.userService.getUserProfile()
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
-        next: (response) => this.profile.set(response),
+        next: (response) => {
+          this.profile.set(response);
+          if (response.roleCode === 'USER') {
+            this.storage.setUsage(response.storage);
+          }
+        },
         error: (error: ErrorResponse) => {
           this.toastService.error(
             error.message || 'Could not load profile information.',
@@ -117,19 +111,6 @@ export class ProfileComponent implements OnInit {
           );
         }
       });
-  }
-
-  // Format bytes into readable human units 
-  formatBytes(bytes: number): string {
-    if (!bytes || bytes <= 0) return '0 Bytes';
-
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(k)), sizes.length - 1);
-
-    if (i <= 0) return `${Math.round(bytes)} Bytes`;
-
-    return `${(bytes / Math.pow(k, i)).toFixed(2)} ${sizes[i]}`;
   }
 
   // Modal controls

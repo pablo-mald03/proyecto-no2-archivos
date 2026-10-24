@@ -2,11 +2,12 @@ import { RoleDocument } from "src/roles/entities/role.entity";
 import { UserDocument } from "../entities/user.entity";
 import { UserResponseDto } from "../dto/response/user-response.dto";
 import { UserDetailResponseDto } from "../dto/response/user-detail-response.dto";
+import { UserStorageResponseDto } from "../dto/response/user-storage-response.dto";
 
 //User mapper class
 export class UserMapper {
 
-    //Method to map the user entity to domain
+  //Method to map the user entity to domain
   static toResponse(user: UserDocument, role: RoleDocument): UserResponseDto {
     return {
       id: user.id,
@@ -32,4 +33,13 @@ export class UserMapper {
       updatedAt: user.updatedAt,
     };
   }
+
+  //Method to map the user storage to response
+  static toStorage(user: UserDocument): UserStorageResponseDto {
+    return {
+      quotaBytes: user.storage.quotaBytes,
+      usedBytes: user.storage.usedBytes,
+    };
+  }
+
 }

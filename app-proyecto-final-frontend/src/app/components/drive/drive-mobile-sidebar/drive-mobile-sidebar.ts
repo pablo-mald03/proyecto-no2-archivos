@@ -2,10 +2,11 @@ import { Component, input, output } from '@angular/core';
 import { NgIcon } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
 import { DriveSidebarContent } from '../drive-sidebar-content/drive-sidebar-content';
+import { StorageWidget } from '../../storage/storage-widget/storage-widget';
 
 @Component({
   selector: 'app-drive-mobile-sidebar',
-  imports: [NgIcon, DriveSidebarContent],
+  imports: [NgIcon, DriveSidebarContent, StorageWidget],
   templateUrl: './drive-mobile-sidebar.html',
   styleUrl: './drive-mobile-sidebar.css',
 })

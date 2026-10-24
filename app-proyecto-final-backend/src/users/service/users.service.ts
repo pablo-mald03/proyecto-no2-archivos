@@ -34,6 +34,7 @@ import { SystemSettingsService } from 'src/system-settings/service/system-settin
 import { RegisterUserDto } from '../dto/request/register-user.dto';
 import { RecoverPasswordDto } from '../dto/request/recovery-password.dto';
 import { InvalidRecoveryDataException } from '../exceptions/invalid-recovery-data.exception';
+import { UserStorageResponseDto } from '../dto/response/user-storage-response.dto';
 
 /*Principal user service class */
 @Injectable()
@@ -129,6 +130,13 @@ export class UsersService {
     const user = await this.getOrFail(id);
     return UserMapper.toDetail(user, await this.roles.getByIdOrFail(user.roleId));
   }
+
+  /*Principal method to fetch used storage by id*/
+  async findStorage(id: string): Promise<UserStorageResponseDto> {
+    const user = await this.getOrFail(id);
+    return UserMapper.toStorage(user);
+  }
+
 
   /*Principal method to update an user */
   async update(id: string, dto: UpdateUserDto, actor: AuthUser): Promise<UserDetailResponseDto> {
