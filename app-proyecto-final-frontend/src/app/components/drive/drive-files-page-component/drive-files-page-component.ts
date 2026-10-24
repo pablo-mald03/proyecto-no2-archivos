@@ -27,6 +27,7 @@ import { debounceTime, merge } from 'rxjs';
 import { PermissionFlags } from '../../../features/shares/models/permissions-flags.model';
 import { PermissionRole } from '../../../features/shares/constants/share.constants';
 import { resolveFlags } from '../../../core/utils/file-permissions.util';
+import { StorageState } from '../../../stores/storage.state';
 
 @Component({
   selector: 'app-drive-files-page-component',
@@ -62,6 +63,7 @@ export class DriveFilesPageComponent implements OnInit {
   private readonly fileService = inject(FileService);
   private readonly trashService = inject(TrashService);
   private readonly uploadQueueService = inject(FileUploadQueueService);
+  private readonly storage = inject(StorageState);
 
   // Pagination & Loading State
   readonly pageSize = 15;
@@ -520,6 +522,7 @@ export class DriveFilesPageComponent implements OnInit {
     this.trashService.moveToTrash(type, item.id).subscribe({
       next: () => {
         this.toastService.success(`Se envió '${item.name}' a la papelera.`, 'Papelera');
+        this.storage.refresh(); 
         this.fetchContent({ reset: true });
       },
       error: (err: ErrorResponse) => {

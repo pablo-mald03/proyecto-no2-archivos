@@ -20,6 +20,7 @@ import { CommentResponse } from '../../../features/comments/models/response/comm
 import { PermissionRole, ShareAccessLevel } from '../../../features/shares/constants/share.constants';
 import { FileActivityPanelComponent } from '../../activity/file-activity-panel-component/file-activity-panel-component';
 import { resolveFlags, toShareAccessLevel } from '../../../core/utils/file-permissions.util';
+import { StorageState } from '../../../stores/storage.state';
 
 @Component({
   selector: 'app-file-preview-layout-component',
@@ -46,6 +47,7 @@ export class FilePreviewLayoutComponent implements OnInit {
   private readonly commentService = inject(CommentService);
   private readonly toastService = inject(ToastService);
   private readonly authState = inject(AuthState);
+  private readonly storage = inject(StorageState);
 
   // Inputs & Outputs for backwards-compatible modal usage
   readonly isOpen = input<boolean>(true);
@@ -383,6 +385,7 @@ export class FilePreviewLayoutComponent implements OnInit {
         this.saving.set(false);
         this.isEditMode.set(false);
         this.toastService.success('Archivo guardado correctamente.', 'Guardado');
+        this.storage.refresh();  
         this.contentSaved.emit(newContent);
       },
       error: (err: ErrorResponse) => {
