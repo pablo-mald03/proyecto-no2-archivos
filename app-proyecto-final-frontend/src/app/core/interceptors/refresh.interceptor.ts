@@ -33,7 +33,7 @@ export const refreshInterceptor: HttpInterceptorFn = (req, next) => {
                 catchError((refreshError: HttpErrorResponse) => {
                     if (refreshError.status === 401 || refreshError.status === 403) {
                         state.clear();
-                        if (!ME_CALL.test(req.url)) router.navigate(['/login']);
+                        if (!ME_CALL.test(req.url)) router.navigate(['/auth/login']);
                     }
                     return throwError(() => error);
                 }),
