@@ -9,6 +9,12 @@
         <ng-icon [svg]="lucideXIcon" size="20" />
     </button>
 
+
+        <div class="border-t border-border px-4 py-3">
+        <app-storage-widget />
+    </div>
+
+
     <app-drive-sidebar-content (optionSelected)="closed.emit()" (uploadClicked)="upload()" (folderClicked)="newFolder()"
         (logoutClicked)="logoutClicked.emit()" />
 

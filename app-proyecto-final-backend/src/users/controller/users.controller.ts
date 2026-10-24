@@ -17,6 +17,7 @@ import { Public } from 'src/common/decorators/public.decorator';
 import { Throttle } from '@nestjs/throttler';
 import { RegisterUserDto } from '../dto/request/register-user.dto';
 import { RecoverPasswordDto } from '../dto/request/recovery-password.dto';
+import { UserStorageResponseDto } from '../dto/response/user-storage-response.dto';
 
 //Principal users controller
 @ApiTags('Users')
@@ -61,6 +62,14 @@ export class UsersController {
   @ApiOkResponse({ type: PaginatedUsersResponseDto })
   findAllUsers(@Query() query: ListUsersQueryDto, @CurrentUser() actor?: AuthUser) {
     return this.users.findAllUsers(query, actor);
+  }
+
+  @Get('me/storage')
+  @RequirePermissions(Permission.DRIVE_ACCESS)
+  @ApiOperation({ summary: 'Get the storage quota and usage of the current user' })
+  @ApiOkResponse({ type: UserStorageResponseDto })
+  findMyStorage(@CurrentUser() actor: AuthUser): Promise<UserStorageResponseDto> {
+    return this.users.findStorage(actor.id);
   }
 
 

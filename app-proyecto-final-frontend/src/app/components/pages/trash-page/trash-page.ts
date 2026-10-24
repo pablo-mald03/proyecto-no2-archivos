@@ -26,6 +26,7 @@ import { EmptyStateComponent } from '../../common/empty-state-component/empty-st
 import { CustomAlert } from '../../common/custom-alert/custom-alert';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { CustomDatepicker } from '../../common/custom-datepicker/custom-datepicker';
+import { StorageState } from '../../../stores/storage.state';
 
 @Component({
   selector: 'app-trash-page',
@@ -53,6 +54,7 @@ export class TrashPage implements OnInit {
   // Dependencies
   private readonly trashService = inject(TrashService);
   private readonly toastService = inject(ToastService);
+  private readonly storage = inject(StorageState);
 
   // Pagination & Loading State
   readonly pageSize = 15;
@@ -311,6 +313,7 @@ export class TrashPage implements OnInit {
         next: () => {
           this.toastService.success('La papelera ha sido vaciada.', 'Papelera vaciada');
           this.closeConfirmDialog();
+          this.storage.refresh();
           this.fetchItems({ reset: true });
         },
         error: (err: ErrorResponse) => {
@@ -333,6 +336,7 @@ export class TrashPage implements OnInit {
         next: () => {
           this.toastService.success(`'${item.name}' ha sido restaurado con éxito.`, 'Restaurado');
           this.closeConfirmDialog();
+          this.storage.refresh();
           this.fetchItems({ reset: true });
         },
         error: (err: ErrorResponse) => {
@@ -348,6 +352,7 @@ export class TrashPage implements OnInit {
             'Eliminado'
           );
           this.closeConfirmDialog();
+          this.storage.refresh();
           this.fetchItems({ reset: true });
         },
         error: (err: ErrorResponse) => {
